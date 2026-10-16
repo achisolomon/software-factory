@@ -1,0 +1,14 @@
+{
+  "name": "software-factory-marketplace",
+  "description": "Achi's Software Factory agent team for Claude Code.",
+  "owner": {
+    "name": "Achi Solomon"
+  },
+  "plugins": [
+    {
+      "name": "software-factory",
+      "source": "./",
+      "description": "A team of AI agents that builds software end to end, with a shared handoff contract and approval gates."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "software-factory",
+  "displayName": "Software Factory",
+  "version": "0.2.0",
+  "description": "A team of AI agents that builds software end to end: Team Lead, Product Manager, Software Architect, Developer, Test Automation, DevOps, FinOps, Security and UX/UI Designer, with a shared handoff contract and approval gates.",
+  "author": {
+    "name": "Achi Solomon"
+  },
+  "license": "MIT",
+  "keywords": ["agents", "software-architecture", "code-review", "devops", "finops", "security", "testing", "product-management"]
+}
