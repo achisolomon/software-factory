@@ -30,14 +30,57 @@ flowchart LR
 - **Infrastructure has its own gate.** DevOps runs the IaC plan and reviews it, the Architect and FinOps review it, and only after all three approve and you approve the report does DevOps apply.
 - **Nothing irreversible without you.** No push, merge to main, deploy, infrastructure apply, paid resource or data deletion happens without your explicit approval of that specific action.
 
-## Install
+## Install (once per machine)
 
-This repo is the single source of truth. Install it once at user scope so every project gets it:
+This repo is the single source of truth. Install the plugin once at **user scope**, so every project on the machine gets the team. You don't need to install it again per project.
+
+In the Claude Code chat box in VS Code (these are chat commands, not shell commands):
 
 ```text
 /plugin marketplace add achisolomon/software-factory
 /plugin install software-factory@software-factory-marketplace
 ```
+
+When asked for the scope, choose **Install for you** (user scope).
+
+Or from a regular terminal:
+
+```bash
+claude plugin marketplace add achisolomon/software-factory
+claude plugin install software-factory@software-factory-marketplace --scope user
+```
+
+The repo is private, so the machine needs GitHub access to it (`gh auth login` or Git credentials for `achisolomon`).
+
+## Add the factory to a new project
+
+1. **Open the project folder in VS Code.** Ideally it's a Git repo with a GitHub remote, so the team can track work as GitHub issues.
+2. **Make sure `gh` is logged in with the `project` scope** so the Team Lead can create the GitHub Project board:
+   ```bash
+   gh auth status
+   gh auth refresh -s project   # only if "project" is missing from the scopes
+   ```
+   Without it, init still works, and tasks are tracked in `docs/architecture/tasks.md` instead.
+3. **Start a new Claude Code chat** (plugins load when a session starts; a chat opened before the install won't see the plugin).
+4. **Run init**: type `/factory` in the chat box and pick `factory-init`, optionally followed by a one-line description:
+   ```text
+   /software-factory:factory-init a mobile app for booking dog walkers
+   ```
+   The slash menu matches skill names, so typing `/software` or `/so` won't find it. Type `/factory`.
+5. **Answer the project-facts questions** in one batch: stack or cloud, compliance (PII, payments, GDPR...), monthly budget, whether agents may create local branches and commits, and similar.
+6. **Review what it created**:
+   - `docs/factory/status.md`: phase, gates, open questions.
+   - `docs/architecture/project-facts.md`: your answers, plus the GitHub Project link.
+   - For an existing codebase: `docs/architecture/repo-map.md` (Mermaid map) and `docs/standards/coding-standards.md`.
+   - A GitHub Project board for the repo, with columns Todo, In Progress, In Review, Changes Requested, Done, Blocked.
+7. **Commit the `docs/` folder** so the team's state is versioned with the code.
+8. **Start building**: `/software-factory:build <what to build>`. Name the GitHub issues you want worked on (for example `#12 and #15`). The Team Lead never picks issues by itself.
+
+Run init once per project. Running it again on an initialized project just summarizes the current state.
+
+**Troubleshooting**
+- "No matching commands": open a new chat, or reload VS Code (`Cmd+Shift+P` → **Developer: Reload Window**), then type `/factory`.
+- Check what is installed with `/plugin` in the chat, or `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
 
 ## Updating
 
@@ -48,7 +91,7 @@ Claude Code runs an installed copy from its plugin cache, cached by version. Edi
 3. Commit and push.
 4. In Claude Code: `/plugin marketplace update software-factory-marketplace`, then restart the session.
 
-To try it locally without publishing:
+To test a change locally before pushing, start Claude Code with the repo folder as a plugin:
 
 ```bash
 claude --plugin-dir ./software-factory
