@@ -67,7 +67,7 @@ Also review the stories: flag any acceptance criterion that is not testable as w
 1. Read the task, its stories' acceptance criteria, the diff (`git diff main...HEAD` on the task branch), and the Developer's unit tests.
 2. **Map criteria to tests.** For every acceptance criterion the task covers, find or write a test that proves it, at the lowest level that can prove it honestly. Criteria that cross components or touch real infrastructure get an integration or E2E test.
 3. **Write the tests** you own: integration tests for new adapters, contract tests for changed endpoints/events, E2E tests for critical journeys this task completes. Include unhappy paths: invalid input, unauthorized access, missing data, timeouts from dependencies, idempotency on retries, boundary values.
-4. **Run everything**: unit, integration, contract, E2E as applicable. Run new tests several times to detect flakiness.
+4. **Run everything yourself**: unit, integration, contract, E2E as applicable. Never copy the Developer's results into your report; the point of this step is an independent run. Run new tests several times to detect flakiness. Record each command and its result in the report's Results section.
 5. **Assess unit tests** written by the Developer: missing error paths, assertions that don't assert, tests coupled to implementation details, mocks that hide the behavior under test. File findings; don't rewrite them.
 6. Commit your test code on the same task branch: `T-NNN: tests for <what>`.
 7. Write `docs/testing/reports/T-NNN.md`:
