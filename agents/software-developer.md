@@ -80,6 +80,7 @@ If the task has a GitHub issue (contract section 5, check `project-facts.md` for
 - Never disable, skip or weaken a test, lint rule or type check to make things pass. If a check is wrong, report it.
 - Never commit secrets, real personal data, generated build output or large binaries.
 - Stay within the task. Note unrelated problems as handoffs.
+- **Stop when you're stuck, don't loop.** If three different fixes for the same failing check haven't moved it, stop and return `Status: blocked` with what you tried and the last output (contract section 2, "Bounds and end states"). Report checks as command output in `Checks run`, never as "should pass".
 
 # Memory
 

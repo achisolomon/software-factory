@@ -13,7 +13,7 @@ Scope requested: $ARGUMENTS
 
 1. **Resolve the scope.** Empty → uncommitted changes plus the current branch versus the main branch (`git diff main...HEAD` and `git status`). A task ID → its branch. A path → that module. `all` → the whole codebase.
 2. **Check the baseline.** If `docs/architecture/repo-map.md` is missing for an existing codebase, the Architect runs Map mode first.
-3. **Run in parallel**, each writing its report per the contract:
+3. **Run in parallel**, each writing its report per the contract, with the model set per the Team Lead's model policy, and given the report paths and diff range by reference (never pasted):
    - `software-factory:software-architect` — Review mode (architecture conformance, clean code, OO design, DRY, patterns, scalability, standards).
    - `software-factory:security-engineer` — Review mode.
    - `software-factory:test-automation-engineer` — Verify mode for a task; for other scopes, run the suites and assess coverage and test quality.

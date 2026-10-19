@@ -1,10 +1,11 @@
 # Software Factory
 
-A Claude Code plugin with a team of nine AI agents that can take a product from idea to release — or review and extend an existing codebase — working together through a shared handoff contract and stopping for your approval at every important decision.
+A Claude Code plugin with a team of ten AI agents that can take a product from idea to release (or review and extend an existing codebase), working together through a shared handoff contract and stopping for your approval at every important decision.
 
 | Agent | What it does |
 |---|---|
-| **Team Lead** | Runs the process: plans, delegates, tracks the status board, enforces the gates, talks to you |
+| **Team Lead** | Runs the process: plans, delegates, tracks the status board, enforces the gates, curates the factory brain, talks to you |
+| **Triage Classifier** | Classifies every new request first (type, size, path, which reviewers are needed) so small work takes the fast path. Read-only, runs on Haiku |
 | **Product Manager** | Vision, PRD with measurable goals and NFRs, backlog of stories with Given/When/Then acceptance criteria, release acceptance |
 | **Software Architect** | Mermaid repo maps, system design, ADRs, contracts, task breakdown, coding standards, and code review (clean code, OOD, DRY, patterns, scalability) |
 | **Software Developer** | Implements one task at a time with unit tests, on a local branch; fixes review findings |
@@ -23,6 +24,9 @@ flowchart LR
   G2 --> B[Build loop per task<br/>Developer → Test + Architect + Security + FinOps + UX] --> RR[Release readiness] --> G3{{Gate 3<br/>Release}}
 ```
 
+- **Triage first.** Every request goes to the Triage Classifier, whose path (`fast-path` up to `full-lifecycle`) decides how much process runs. The Team Lead can add process, never remove it without you.
+- **A factory brain per repo.** `docs/factory/brain.md` holds short, verified facts about the repo (build quirks, recurring findings) that every agent reads. Agents propose notes; only the Team Lead writes them.
+- **Bounded, evidence-based loops.** At most three fix rounds per task and three attempts per failing check; "done" means command output re-run by the Test Engineer and the Architect, not the Developer's word. Every task ends as `done`, `blocked`, `max-rounds` or `stalled`.
 - **One contract, one owner per artifact.** `reference/handoff-contract.md` defines every path, ID, severity level, the Definition of Done and the reply format. Every agent reads it first.
 - **Your project's specifics live in your repo**, not in the agents: `docs/architecture/project-facts.md` (stack, cloud, compliance, budget), `docs/standards/coding-standards.md`, the PRD, ADRs and so on. The same agents work on any project.
 - **The Team Lead is your main session.** Subagents can't ask you questions, so they return their questions to the Team Lead, which batches them for you.
@@ -118,7 +122,7 @@ Or call any specialist directly, for example:
 
 ## Customize
 
-- **Models**: each agent sets `model:` in its frontmatter (Opus for Team Lead, PM, Architect and Security; Sonnet for Developer, Test, DevOps, FinOps and UX/UI Designer). Change it there, or per project.
+- **Models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 
@@ -129,9 +133,11 @@ software-factory/
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── marketplace.json
-├── agents/          9 agent definitions
+├── agents/          10 agent definitions
 ├── skills/          factory-init, build, review
 ├── reference/
 │   └── handoff-contract.md
+├── docs/
+│   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
 └── README.md
 ```
