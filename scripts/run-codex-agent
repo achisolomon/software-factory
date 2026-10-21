@@ -86,21 +86,15 @@ esac
 if [[ -z "$model" ]]; then
   case "$mode" in
     routine)
-      case "$role" in
-        triage-classifier|test-automation-engineer|ux-ui-designer) model="gpt-6-luna" ;;
-        *)
-          printf '%s\n' "Routine mode is limited to triage-classifier, test-automation-engineer, and ux-ui-designer. Use the default model or an explicit --model override." >&2
-          exit 2
-          ;;
-      esac
+      model="gpt-6-luna"
       ;;
     quality)
-      model="gpt-5.6-terra"
+      model="gpt-6.1-sol"
       ;;
     default)
       case "$role" in
-        triage-classifier|test-automation-engineer|ux-ui-designer) model="gpt-6-luna" ;;
-        *) model="gpt-5.6-terra" ;;
+        team-lead|triage-classifier|test-automation-engineer|ux-ui-designer|finops-engineer) model="gpt-6-luna" ;;
+        *) model="gpt-6.1-sol" ;;
       esac
       ;;
   esac
@@ -114,7 +108,7 @@ agent_file="$factory_root/agents/$role.md"
 contract_file="$factory_root/reference/handoff-contract.md"
 routing_file="$factory_root/reference/codex-model-routing.md"
 
-prompt="Act as the Software Factory ${role} role. Your target project is the current working directory. Read ${agent_file}, ${contract_file}, and ${routing_file} before beginning. Follow the role's ownership and approval boundaries. The factory runner for delegating Codex specialists is ${factory_root}/scripts/run-codex-agent. Task: ${task}"
+prompt="Act as the Software Factory ${role} role. Your target project is the current working directory. Read ${agent_file}, ${contract_file}, and ${routing_file} before beginning. Follow the role's ownership and approval boundaries. Read the task-cited sections of project artifacts; expand only when needed. Keep searches and tool output bounded; exclude dependency trees, generated files and nested checkouts unless in scope. After two unsuccessful routine-model attempts, return evidence for escalation rather than repeating. For web UI testing, read ${factory_root}/skills/frontend-testing/SKILL.md. The factory runner for delegating Codex specialists is ${factory_root}/scripts/run-codex-agent. Task: ${task}"
 
 if [[ "$dry_run" == true ]]; then
   printf 'role=%s\nmode=%s\nmodel=%s\nproject_root=%s\nagent_file=%s\n' "$role" "$mode" "$model" "$project_root" "$agent_file"

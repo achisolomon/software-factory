@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Software Factory">
+  <rect width="512" height="512" rx="112" fill="#1D4ED8"/>
+  <path fill="#fff" d="M120 364V216h52v-48h56v48h56v-48h56v48h52v148h-36v-92H156v92zm68-52h52v52h-52zm84 0h52v52h-52z"/>
+  <path fill="#93C5FD" d="M180 124h152v36H180z"/>
+</svg>

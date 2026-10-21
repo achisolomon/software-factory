@@ -44,7 +44,7 @@ flowchart LR
 | 4. Release readiness | DevOps | Security (final gate), FinOps (cost check), Test (regression), UX/UI Designer (UX gate), PM (acceptance) | Pipelines, IaC, runbook, release notes | **Gate 3**: user approves release |
 | 5. Deploy & operate | DevOps | FinOps (actual vs forecast), Security (post-deploy checks) | Deployment, monitoring, cost tracking | — |
 
-Phases are scoped by triage. Every new request (except a status question) goes to the Triage Classifier first, and its `Path` decides how much of the lifecycle runs: `full-lifecycle`, `feature-slice` (Discovery for one epic, the Architecture slice it touches, the Build loop), `build-loop-only`, `fast-path` (one task: Developer, Architect review, Test verification, plus any conditional reviewer triage marked `yes`), `review-only` or `answer-only`. The Team Lead may add process with a stated reason, never remove it without the user.
+Phases are scoped by triage. Every new request (except a status question) is classified first using the Triage Classifier rules: the Team Lead may classify clear small requests inline; ambiguous or substantial requests go to the Triage Classifier, and its `Path` decides how much of the lifecycle runs: `full-lifecycle`, `feature-slice` (Discovery for one epic, the Architecture slice it touches, the Build loop), `build-loop-only`, `fast-path` (one task: Developer, Architect review, Test verification, plus any conditional reviewer triage marked `yes`), `review-only` or `answer-only`. The Team Lead may add process with a stated reason, never remove it without the user.
 
 ### Build loop for one task
 

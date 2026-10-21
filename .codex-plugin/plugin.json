@@ -1,0 +1,42 @@
+{
+  "name": "software-factory",
+  "version": "0.4.0",
+  "description": "A multi-agent software factory for planning, building, reviewing, and releasing software with approval gates.",
+  "author": {
+    "name": "Achi Solomon",
+    "url": "https://github.com/achisolomon"
+  },
+  "homepage": "https://github.com/achisolomon/software-factory",
+  "repository": "https://github.com/achisolomon/software-factory",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "software-engineering",
+    "architecture",
+    "code-review",
+    "security",
+    "testing",
+    "devops"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Software Factory",
+    "shortDescription": "Plan, build, review, and release software with a specialist agent team.",
+    "longDescription": "A disciplined software-delivery workflow with product, architecture, development, test, security, DevOps, FinOps, UX, and triage roles.",
+    "developerName": "Achi Solomon",
+    "category": "Productivity",
+    "capabilities": [
+      "Software planning",
+      "Code generation and review",
+      "Testing and release readiness"
+    ],
+    "websiteURL": "https://github.com/achisolomon/software-factory",
+    "brandColor": "#1D4ED8",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/logo.svg",
+    "defaultPrompt": [
+      "Use Software Factory to plan and build this feature.",
+      "Use Software Factory to review this repository for architecture, security, and test gaps."
+    ]
+  }
+}

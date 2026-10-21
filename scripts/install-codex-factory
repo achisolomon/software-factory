@@ -3,16 +3,17 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/install-codex-factory --project-dir DIR
+Usage: scripts/install-codex-factory --project-dir DIR [--update]
 
 Installs the Software Factory Codex runtime into DIR/.codex/software-factory.
-The installer never overwrites an existing factory installation or the
-project's AGENTS.md. Reinstall from a fresh target directory after reviewing
-or removing an old installation.
+Includes agents, skills, reference and scripts. An existing installation is
+refused unless --update is supplied. Updates preserve the old installation
+in a sibling backup directory. Project docs and AGENTS.md are never changed.
 EOF
 }
 
 project_dir=""
+update=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,6 +25,10 @@ while [[ $# -gt 0 ]]; do
     --help|-h)
       usage
       exit 0
+      ;;
+    --update)
+      update=true
+      shift
       ;;
     *)
       printf 'Unknown option: %s\n' "$1" >&2
@@ -41,14 +46,48 @@ factory_root="$(cd -- "$script_dir/.." && pwd)"
 target_root="$(cd -- "$project_dir" && pwd)"
 install_root="$target_root/.codex/software-factory"
 
-if [[ -e "$install_root" ]]; then
+if [[ -L "$target_root/.codex" || -L "$install_root" ]]; then
+  printf '%s\n' 'Refusing to install through a symlinked .codex or factory directory.' >&2
+  exit 2
+fi
+if [[ -e "$install_root" && "$update" == false ]]; then
   printf 'Refusing to overwrite existing installation: %s\n' "$install_root" >&2
   exit 2
 fi
+if [[ -e "$install_root" && ( ! -f "$install_root/agents/team-lead.md" || ! -f "$install_root/scripts/run-codex-agent" ) ]]; then
+  printf 'Not a recognized factory installation: %s\n' "$install_root" >&2
+  exit 2
+fi
+
+case "$factory_root/" in
+  "$install_root/"*)
+    printf '%s\n' 'Run updates from a separate factory checkout, not the installation being replaced.' >&2
+    exit 2
+    ;;
+esac
 
 mkdir -p "$target_root/.codex"
-mkdir "$install_root"
-cp -R "$factory_root/agents" "$factory_root/reference" "$factory_root/scripts" "$install_root"
+stage_root="$(mktemp -d "$target_root/.codex/software-factory-stage.XXXXXX")"
+trap 'rm -rf -- "$stage_root"' EXIT
+cp -R "$factory_root/agents" "$factory_root/reference" "$factory_root/scripts" "$factory_root/skills" "$stage_root"
+
+backup_root=""
+if [[ -e "$install_root" ]]; then
+  backup_root="$(mktemp -d "$target_root/.codex/software-factory-backup.XXXXXX")"
+  rmdir "$backup_root"
+  mv "$install_root" "$backup_root"
+fi
+if ! mv "$stage_root" "$install_root"; then
+  if [[ -n "$backup_root" ]]; then
+    mv "$backup_root" "$install_root"
+  fi
+  printf '%s\n' 'Installation failed; previous installation restored when present.' >&2
+  exit 1
+fi
+
+if [[ -n "$backup_root" ]]; then
+  printf 'Previous installation preserved at %s\n' "$backup_root"
+fi
 
 printf 'Installed Software Factory for Codex at %s\n' "$install_root"
 printf '%s\n' 'Next, run:'

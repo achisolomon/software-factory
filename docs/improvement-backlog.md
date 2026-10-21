@@ -85,6 +85,11 @@ Eve runs the reviewer on a different vendor. We can get most of the value inside
 
 Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional step in the Build loop and Release readiness.
 
+## Frontend testing and economical routing
+
+- 2026-10-21: reviewed [practicajs/the-frontend-testing-skill](https://github.com/practicajs/the-frontend-testing-skill), commit `46a82aeb76a7ce5895053804a6efeb27bc405bdb`. Adapted page analysis, canonical examples, browser testing practices, trace diagnosis and targeted stability guidance into our own frontend-testing skill. Kept test ownership with QA; did not bundle upstream orchestration, hooks, mutators or templates.
+- 0.4.0: Luna coordination/routine mode for every role, Sol for substantial work, explicit Astra escalation; scoped context and inline small-request triage; backup-preserving local runtime updates including skills. Savings still require measurement on representative tasks.
+
 ## Changelog
 
 - 0.3.0 (2026-10-17): items 4 to 9 shipped.

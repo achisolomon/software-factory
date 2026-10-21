@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+marketplace_name="software-factory-marketplace"
+plugin_name="software-factory"
+marketplace_source="achisolomon/software-factory"
+
+usage() {
+  cat <<'EOF'
+Usage: install-codex-plugin [--project-dir DIR] [--refresh-marketplace]
+
+Installs Software Factory from its GitHub Codex marketplace for the current
+Codex user. With --project-dir, also enables it for that trusted project.
+
+Requirements: Codex CLI and GitHub access to achisolomon/software-factory.
+
+--refresh-marketplace replaces an existing Software Factory marketplace entry
+and its cached plugin with the GitHub source configured by this installer.
+EOF
+}
+
+project_dir=""
+refresh_marketplace=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --project-dir)
+      [[ $# -ge 2 ]] || { printf '%s\n' 'Missing value for --project-dir.' >&2; exit 2; }
+      project_dir="$2"
+      shift 2
+      ;;
+    --refresh-marketplace)
+      refresh_marketplace=true
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+command -v codex >/dev/null 2>&1 || {
+  printf '%s\n' 'Codex CLI is required. Install or update Codex, then run this command again.' >&2
+  exit 2
+}
+
+marketplace_exists=false
+if codex plugin marketplace list --json 2>/dev/null | grep -Eq '"name"[[:space:]]*:[[:space:]]*"software-factory-marketplace"'; then
+  marketplace_exists=true
+fi
+
+if [[ "$marketplace_exists" == true && "$refresh_marketplace" == true ]]; then
+  codex plugin marketplace remove "$marketplace_name"
+  marketplace_exists=false
+fi
+
+if [[ "$marketplace_exists" == false ]]; then
+  codex plugin marketplace add "$marketplace_source" --sparse .agents/plugins
+else
+  printf '%s\n' "Using existing marketplace: $marketplace_name"
+  printf '%s\n' 'If it was not installed from achisolomon/software-factory, rerun with --refresh-marketplace.'
+fi
+
+plugin_installed=false
+if codex plugin list --json 2>/dev/null | sed -n '/"installed"/,/"available"/p' | grep -Eq '"name"[[:space:]]*:[[:space:]]*"software-factory"'; then
+  plugin_installed=true
+fi
+
+if [[ "$plugin_installed" == true && "$refresh_marketplace" == true ]]; then
+  codex plugin remove "$plugin_name@$marketplace_name"
+  plugin_installed=false
+fi
+
+if [[ "$plugin_installed" == false ]]; then
+  codex plugin add "$plugin_name@$marketplace_name"
+fi
+
+if [[ -n "$project_dir" ]]; then
+  [[ -d "$project_dir" ]] || { printf 'Project directory does not exist: %s\n' "$project_dir" >&2; exit 2; }
+  project_root="$(cd -- "$project_dir" && pwd)"
+  config_dir="$project_root/.codex"
+  config_file="$config_dir/config.toml"
+  config_header="[plugins.\"software-factory@software-factory-marketplace\"]"
+
+  mkdir -p "$config_dir"
+  touch "$config_file"
+  if ! grep -Fqx "$config_header" "$config_file"; then
+    {
+      printf '\n%s\n' "$config_header"
+      printf 'enabled = true\n'
+    } >> "$config_file"
+  else
+    config_tmp="$(mktemp "${config_file}.XXXXXX")"
+    awk -v header="$config_header" '
+      $0 == header { in_target = 1; enabled_written = 0; print; next }
+      in_target && /^\[/ {
+        if (!enabled_written) print "enabled = true"
+        in_target = 0
+      }
+      in_target && /^[[:space:]]*enabled[[:space:]]*=/ {
+        print "enabled = true"
+        enabled_written = 1
+        next
+      }
+      { print }
+      END { if (in_target && !enabled_written) print "enabled = true" }
+    ' "$config_file" > "$config_tmp"
+    mv "$config_tmp" "$config_file"
+  fi
+  printf 'Enabled Software Factory for %s\n' "$project_root"
+fi
+
+printf '%s\n' 'Software Factory is installed. Start a new Codex chat and ask it to use Software Factory for your task.'
