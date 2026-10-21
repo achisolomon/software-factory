@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/install-codex-factory --project-dir DIR
+
+Installs the Software Factory Codex runtime into DIR/.codex/software-factory.
+The installer never overwrites an existing factory installation or the
+project's AGENTS.md. Reinstall from a fresh target directory after reviewing
+or removing an old installation.
+EOF
+}
+
+project_dir=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --project-dir)
+      [[ $# -ge 2 ]] || { printf '%s\n' 'Missing value for --project-dir.' >&2; exit 2; }
+      project_dir="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+[[ -n "$project_dir" ]] || { printf '%s\n' 'A project directory is required.' >&2; usage >&2; exit 2; }
+[[ -d "$project_dir" ]] || { printf 'Project directory does not exist: %s\n' "$project_dir" >&2; exit 2; }
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+factory_root="$(cd -- "$script_dir/.." && pwd)"
+target_root="$(cd -- "$project_dir" && pwd)"
+install_root="$target_root/.codex/software-factory"
+
+if [[ -e "$install_root" ]]; then
+  printf 'Refusing to overwrite existing installation: %s\n' "$install_root" >&2
+  exit 2
+fi
+
+mkdir -p "$target_root/.codex"
+mkdir "$install_root"
+cp -R "$factory_root/agents" "$factory_root/reference" "$factory_root/scripts" "$install_root"
+
+printf 'Installed Software Factory for Codex at %s\n' "$install_root"
+printf '%s\n' 'Next, run:'
+printf '  cd %q\n' "$target_root"
+printf '%s\n' "  ./.codex/software-factory/scripts/run-codex-agent team-lead -- 'Describe the work to do.'"
+printf '%s\n' 'For the interactive Team Lead, initialize Git in a new project first: git init'

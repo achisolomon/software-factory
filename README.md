@@ -122,7 +122,24 @@ Or call any specialist directly, for example:
 
 ## Customize
 
-- **Models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Codex models**: use `scripts/run-codex-agent` to launch a role with an explicit Codex model. Its cost-effective defaults and escalation rules are in `reference/codex-model-routing.md`; it does not alter the Claude frontmatter. For example:
+  ```bash
+  # Run from the project the agents should work on.
+  /path/to/software-factory/scripts/run-codex-agent software-developer -- 'Implement task T-027 and run its unit tests.'
+  /path/to/software-factory/scripts/run-codex-agent test-automation-engineer --mode routine -- 'Verify task T-027 against its acceptance criteria.'
+  /path/to/software-factory/scripts/run-codex-agent team-lead -- 'Plan and deliver task T-027 through the factory.'
+  ```
+  Pass `--model <model-id>` only for a supported, deliberate escalation. Run `codex debug models` to see the models your account can use.
+  Add `--dry-run` to inspect the resolved role and model without starting a Codex session.
+  The interactive `team-lead` role requires the target project to be a Git repository; run `git init` first for a new project. Specialist roles support non-Git targets.
+- **Install Codex support in another project**: run this from the factory repository, once per target project. It installs the agents, contract, model policy, and runner to the project-local `.codex/software-factory/` directory without changing the project's `AGENTS.md`:
+  ```bash
+  ./scripts/install-codex-factory --project-dir /path/to/project
+  cd /path/to/project
+  ./.codex/software-factory/scripts/run-codex-agent team-lead -- 'Build a dashboard for support tickets.'
+  ```
+  The installer refuses to overwrite an existing factory installation; review or remove that exact directory before a deliberate reinstall.
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 
@@ -134,8 +151,12 @@ software-factory/
 │   ├── plugin.json
 │   └── marketplace.json
 ├── agents/          10 agent definitions
+├── scripts/
+│   ├── install-codex-factory
+│   └── run-codex-agent
 ├── skills/          factory-init, build, review
 ├── reference/
+│   ├── codex-model-routing.md
 │   └── handoff-contract.md
 ├── docs/
 │   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
