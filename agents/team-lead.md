@@ -86,7 +86,7 @@ Every delegation message to a subagent contains:
 
 **Long jobs.** When a job will outlast the agent's turn (cold dependency download, long build), the agent starts it in the background and returns `Status: in-progress` with `Job:` filled, writing nothing it cannot finish. Record the Job in `## In flight` and resume the SAME agent (SendMessage) when it finishes. At most two in-progress hand-backs per task run; a third counts as `stalled`. in-progress is not an end state and does not move the task issue.
 
-**In flight.** Write a row in `status.md` `## In flight` BEFORE each dispatch (Task, Agent, Model, Worktree, Dispatched UTC, Expect back, Job) and clear or update it when the reply is processed.
+**In flight.** Write a row in `status.md` `## In flight` BEFORE each dispatch (Task, Issue, Agent, Agent ID, Model, Worktree, Dispatched UTC, Expect back, Job; Agent ID `pending` until the dispatch returns it) and clear or update it when the reply is processed.
 
 Subagents do not see this conversation. Put everything they need into the delegation or into files they will read.
 
@@ -191,8 +191,8 @@ GitHub Project: <url, or "none — no remote yet, using tasks.md">
 | Gate 3 — Release | | | |
 
 ## In flight
-| Task | Agent | Model | Worktree | Dispatched (UTC) | Expect back | Job |
-|---|---|---|---|---|---|---|
+| Task | Issue | Agent | Agent ID | Model | Worktree | Dispatched (UTC) | Expect back | Job |
+|---|---|---|---|---|---|---|---|---|
 
 ## Background processes
 | Process | Command or ports | Worktree | Started (UTC) | Shell id |
@@ -216,11 +216,11 @@ Whenever anything is running (an agent, a workflow or a background process) and 
 
 **Agents**
 
-| Agent | Model | Worktree | Task | Since / last update |
-|---|---|---|---|---|
-| Workflow `<id>` (`<name>`) | none (coordinator; runs the agents marked "in workflow `<id>`") | `<worktree>` | `<what the workflow does>` | `~HH:MM` |
-| Architect (review), in workflow `<id>` | opus | `<worktree>` | `<one line>` | `~HH:MM` |
-| Test Engineer (verify), in workflow `<id>` | sonnet (inherited from the session) | `<worktree>` | `<one line>` | `~HH:MM` |
+| Agent | Agent ID | Model | Worktree | Issue | Task | Since / last update |
+|---|---|---|---|---|---|---|
+| Workflow `<name>` | `<workflow id>` | none (coordinator; runs the 2 agents below) | `<worktree>` | n/a | `<what the workflow does>` | `~HH:MM` |
+| Developer, lane A | `<agent id>` | sonnet | `lane-a` | [#41](https://github.com/<owner>/<repo>/issues/41) | `<one line>` | `~HH:MM` |
+| Test Engineer (verify) | `<agent id>` | sonnet (inherited from the session) | `lane-a` | T-027 (local) | `<one line>` | `~HH:MM` |
 
 **Background processes** (shell commands: no model, no token cost)
 
@@ -230,7 +230,10 @@ Whenever anything is running (an agent, a workflow or a background process) and 
 
 Rules:
 - Every agent row names the model that agent actually runs on. A model you set on the dispatch is written plain (`sonnet`). A model the agent got from its parent because none was set is written `<model> (inherited from the session)` or `<model> (inherited from workflow <id>)`; that is a slip, so set `model` on the next dispatch.
-- A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and names its agents. Each of its agents is its own row, marked `in workflow <id>`, with its own model.
+- A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and its own ID in Agent ID. List its agents directly under its row, each with its own Agent ID and model; do not repeat the workflow ID on them.
+- Agent ID is the agent's own ID (the one you resume it with via SendMessage), not its parent's. Write `pending` until you have it.
+- Issue is a clickable link to the task's issue (contract rule 9.14). With `Tracking: local` it is `T-NNN (local)`; for a review or skeptic agent, the issue of the task or finding it works on.
+- Parallel Developers each have their own worktree and branch (contract section 2), so different worktrees per lane are expected.
 - Shell processes (servers, emulators, watchers) go only in the Background processes table, never in Agents. Record each one in `status.md` `## Background processes` when you start it, and remove the row when you stop it.
 - Times are the user's local time. Links follow contract rule 9.14.
 
