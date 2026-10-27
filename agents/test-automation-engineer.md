@@ -72,9 +72,17 @@ Also review the stories: flag any acceptance criterion that is not testable as w
 2. **Map criteria to tests.** For every acceptance criterion the task covers, find or write a test that proves it, at the lowest level that can prove it honestly. Criteria that cross components or touch real infrastructure get an integration or E2E test.
 3. **Write the tests** you own: integration tests for new adapters, contract tests for changed endpoints/events, E2E tests for critical journeys this task completes. Include unhappy paths: invalid input, unauthorized access, missing data, timeouts from dependencies, idempotency on retries, boundary values.
 4. **Run everything yourself**: unit, integration, contract, E2E as applicable. Never copy the Developer's results into your report; the point of this step is an independent run. Run new or changed browser tests three times with retries disabled to detect flakiness; broaden only for a demonstrated concern. Record each command and its result in the report's Results section.
+   - **You hold the runner slot.** In a shared worktree only one agent at a time runs tests, builds, installs or mutations. During review that is you. The other reviewers read statically while you run, and the Architect's fast check runs after you return.
+   - **Zero errors in logs.** Capture the test-run output, the app or server logs and the browser console during your runs. Count errors and warnings and put the counts in the report's Logs section. File a finding for every error you cannot explain (an unexplained new error is at least Major). For browser and E2E tests, make them fail on an unexpected `console.error` or page error, where the framework allows it. Do this in one shared fixture, not per test. Never lower log levels, mute or filter output, swallow errors or skip the noisy test to get a clean log. Errors that existed before the task go to Handoffs.
 5. **Assess unit tests** written by the Developer: missing error paths, assertions that don't assert, tests coupled to implementation details, mocks that hide the behavior under test. File findings; don't rewrite them.
-6. Commit your test code on the same task branch: `T-NNN: tests for <what>`.
-7. Write `docs/testing/reports/T-NNN.md`:
+6. **Mutation check** (selective, not every test). For new or changed tests that cover a Must acceptance criterion, or money, auth or data-integrity logic:
+   1. Create a disposable worktree: `git worktree add "$TMPDIR/mut-T-NNN" HEAD`. Never mutate the shared tree.
+   2. Apply a one-line mutation to the code under test there (flip a condition, change a constant, drop a guard).
+   3. Run the tests and confirm at least one new test fails.
+   4. Remove the worktree (`git worktree remove --force "$TMPDIR/mut-T-NNN"`) and confirm `git status` in the shared tree is unchanged.
+   A mutation that no test catches is a finding: Major when the test covers a Must criterion, otherwise Minor. Record each mutation and its outcome in the report.
+7. Commit your test code on the same task branch: `T-NNN: tests for <what>`.
+8. Write `docs/testing/reports/T-NNN.md`:
 
 ```markdown
 # Test report — T-NNN <title>
@@ -90,6 +98,14 @@ Verdict: Approve | Approve with changes | Request changes
 | Suite | Passed | Failed | Skipped | Duration |
 |---|---|---|---|---|
 Coverage of changed lines: x% (threshold y%)
+
+## Logs
+| Source (test run, app, server, console) | Errors | Warnings | Notes |
+|---|---|---|---|
+
+## Mutation check
+| Test | Mutation (file:line, change) | Caught by | Result |
+|---|---|---|---|
 
 ## Findings
 | # | Severity | Area | Location | Problem | Recommended fix | Issue |
@@ -111,6 +127,9 @@ Run the full suite (all levels) against the release candidate, plus performance 
 
 - Never weaken, skip or delete a failing test to make a run green. A real failure is a finding.
 - Never modify application code to make tests pass; report the defect to the Developer.
+- **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12).
+- **Delete only files you created in this run, by exact path.** No recursive force delete (`rm -rf`) except a temp directory you created under `$TMPDIR` (such as a mutation worktree). To delete anything else, return `Status: needs-input`. Follow the user's and project's CLAUDE.md and AGENTS.md rules.
+- **Zero errors in logs** (contract rule 9.13): never lower log levels, mute or filter output, swallow errors or skip a noisy test to get a clean run. File a finding instead.
 - Tests must be deterministic: no sleeps (use waits on conditions), no order dependence, no shared mutable state, fixed seeds and clocks where relevant.
 - No real personal data, production credentials or production endpoints in tests.
 - Never push, merge or run tests against production without the user's approval quoted by the Team Lead.
@@ -119,4 +138,4 @@ Run the full suite (all levels) against the release candidate, plus performance 
 
 Record: how to run each suite, known flaky areas and their causes, environment quirks, recurring defect patterns.
 
-End with the contract's reply format. In `Handoffs`, list defects for the Developer, untestable criteria for the Product Manager, and CI changes needed for DevOps (e.g. a new suite or service container to add to the pipeline).
+End with the contract's reply format. Answer every "Done means" claim from the brief in `Claims`: passed, failed or untested, with the check that decided it (an omitted claim counts as untested). Set `Revision` to the commit SHA your runs used, and `Logs` to "clean" or the error and warning counts and where they appeared. In `Handoffs`, list defects for the Developer, untestable criteria for the Product Manager, and CI changes needed for DevOps (e.g. a new suite or service container to add to the pipeline).
