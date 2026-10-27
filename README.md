@@ -106,14 +106,13 @@ Run init once per project. Running it again on an initialized project just summa
 
 **Which version am I running?** At the start of every session (terminal or the VS Code extension) a hook shows `Software Factory v<version>`, says whether it is the latest, and gives the update command when a newer version is published on GitHub `main` (checked at most every 6 hours). The Team Lead also starts its first status with the version. In a terminal, `claude plugin list` shows it too.
 
-**Update** when the session start says a newer version is available. In a terminal:
+**Update** when the session start says a newer version is available. Either ask Claude in the chat to "update the software factory" (approve the command it runs), or paste this one line into the VS Code terminal (Terminal > New Terminal):
 
 ```bash
-claude plugin marketplace update software-factory-marketplace
-claude plugin update software-factory@software-factory-marketplace --scope user
+claude plugin marketplace update software-factory-marketplace && claude plugin update software-factory@software-factory-marketplace --scope user
 ```
 
-Then reload the VS Code window (Developer: Reload Window) or restart Claude Code. A chat that is already open keeps the old instructions; start a new one.
+Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and start a new chat. A chat that is already open keeps the old instructions.
 
 Editing this checkout does not update an installed plugin or another repo's local runtime. Before publishing a release, bump the matching version in `plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/plugin.json`, then commit and push through the usual approval process. Follow [Update the factory in another repository](#update-the-factory-in-another-repository) for installation-specific commands.
 

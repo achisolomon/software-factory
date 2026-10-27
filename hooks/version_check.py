@@ -74,15 +74,20 @@ def main():
         return 0
     newest = latest()
     if newest and as_tuple(newest) > as_tuple(current):
-        message = (f"Software Factory v{current} is running. v{newest} is available. To update, run in a "
-                   f"terminal: {UPDATE}, then reload the VS Code window or restart Claude Code.")
+        message = (f"Software Factory v{current} is running. v{newest} is available. To update, ask Claude to "
+                   f"\"update the software factory\", or paste this in the VS Code terminal (Terminal > New "
+                   f"Terminal): {UPDATE}. Then run Developer: Reload Window and start a new chat.")
         context = (f"Software Factory plugin v{current} is loaded; v{newest} is available. If you act as the "
                    f"Team Lead, start your first status this session with \"Software Factory v{current}\" and tell "
-                   f"the user once that v{newest} is available, with this update command: {UPDATE}")
+                   f"the user once that v{newest} is available. If the user asks to update the Software Factory, "
+                   f"run this with Bash (the user approves it): {UPDATE}. Then tell them to run Developer: Reload "
+                   f"Window (or restart Claude Code) and start a new chat.")
     else:
         message = f"Software Factory v{current}" + (" (latest)." if newest else ".")
         context = (f"Software Factory plugin v{current} is loaded. If you act as the Team Lead, start your first "
-                   f"status this session with \"Software Factory v{current}\".")
+                   f"status this session with \"Software Factory v{current}\". If the user asks to update the "
+                   f"Software Factory, run this with Bash (the user approves it): {UPDATE}. Then tell them to run "
+                   f"Developer: Reload Window (or restart Claude Code) and start a new chat.")
     print(json.dumps({"systemMessage": message,
                       "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}))
     return 0
