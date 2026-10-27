@@ -49,6 +49,7 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | 27 | Factory self-change gets deep review and your sign-off | pushapp run | done (0.5.0) | team-lead Promoting lessons |
 | 28 | TRUST page and provenance page | mifal | done (0.5.0) | `docs/TRUST.md`, `docs/provenance.md` |
 | 29 | Every work item, PR, commit or CI run mentioned is a clickable link (rule 9.14) | user request | done (0.5.0) | contract 9.14, team-lead Talking to the user, Codex role playbook, README |
+| 30 | Team table in every status: agents with their real model (inherited or coordinator labelled), background processes separate | user request | done (0.5.0) | team-lead Team table and status template, resume skill, Codex role playbook, contract section 3 |
 
 ### Considered and declined
 

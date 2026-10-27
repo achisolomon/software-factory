@@ -102,7 +102,7 @@ All paths are relative to the project root. Each artifact has exactly one owner 
 ```
 docs/
   factory/
-    status.md                     # Team Lead: phase, gates, approvals log, open questions, and the `## In flight` table (Task | Agent | Model | Worktree | Dispatched (UTC) | Expect back | Job) (task board and findings are on the GitHub Project, section 5)
+    status.md                     # Team Lead: phase, gates, approvals log, open questions, the `## In flight` table (Task | Agent | Model | Worktree | Dispatched (UTC) | Expect back | Job), and the `## Background processes` table (Process | Command or ports | Worktree | Started (UTC) | Shell id) (task board and findings are on the GitHub Project, section 5)
     brain.md                      # Team Lead: the factory brain: short, verified, durable facts about this repo that every agent reads; specialists propose notes, the Team Lead curates
   product/
     vision.md                     # PM — problem, users, goals, success metrics

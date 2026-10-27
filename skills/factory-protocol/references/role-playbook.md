@@ -16,6 +16,8 @@ Never push, merge to main, deploy, apply infrastructure, create paid resources, 
 
 Every issue, PR, commit, CI run, Project board or work item in another tracker (Jira, Linear and so on) mentioned to the user, or in a report, issue or PR body, is a full clickable URL, never a bare "#41", "PROJ-123" or "check the board". If a reply gives only a number, look up the URL (`gh issue view 41 --json url`) before replying. With local tracking, give the repo path and ID instead (contract rule 9.14).
 
+Whenever anything is running and you give the user a status, start with the team table, built from `status.md`, never from memory. Agents: Agent | Model | Worktree | Task | Since / last update. Each agent row names the model it actually runs on; a model it inherited because none was set is written `<model> (inherited from the session)`, and is a slip to fix on the next dispatch. A coordinator that runs no model itself gets Model `none (coordinator)` and names its agents. Background processes (servers, emulators, watchers; no model, no token cost) go in a separate table (Process | Command or ports | Worktree | Since) and in `status.md` `## Background processes`, never in the agents table.
+
 ## Specialist procedures
 
 | Role | Produce / verify |
@@ -78,7 +80,7 @@ Use Blocker, Major, Minor, and Nit severities. A task is done only when its acce
 
 ## Local tracking
 
-When `project-facts.md` Preferences say `Tracking: local` (set only by the user), track tasks in `docs/architecture/tasks.md`, put findings only in report files, and reply `Issues: none (local tracking)`. Fix-round counts, end states and Changes Requested are tracked in `tasks.md` rows. Other preferences set by the user: `Delegation rules`, `Status cadence` (Codex has no session cron; report the In flight table when asked) and `Auto-compact` (Claude Code only; not applicable in Codex).
+When `project-facts.md` Preferences say `Tracking: local` (set only by the user), track tasks in `docs/architecture/tasks.md`, put findings only in report files, and reply `Issues: none (local tracking)`. Fix-round counts, end states and Changes Requested are tracked in `tasks.md` rows. Other preferences set by the user: `Delegation rules`, `Status cadence` (Codex has no session cron; report the team table when asked) and `Auto-compact` (Claude Code only; not applicable in Codex).
 
 ## Restart and resume
 
