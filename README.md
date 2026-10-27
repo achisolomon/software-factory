@@ -32,7 +32,21 @@ flowchart LR
 - **The Team Lead is your main session.** Subagents can't ask you questions, so they return their questions to the Team Lead, which batches them for you.
 - **Work is tracked in GitHub.** Tasks and findings are GitHub issues on one GitHub Project board (Todo, In Progress, In Review, Changes Requested, Done, Blocked). `docs/factory/status.md` only holds the phase, gates and open questions. The Team Lead works only on the issues you name.
 - **Infrastructure has its own gate.** DevOps runs the IaC plan and reviews it, the Architect and FinOps review it, and only after all three approve and you approve the report does DevOps apply.
-- **Nothing irreversible without you.** No push, merge to main, deploy, infrastructure apply, paid resource or data deletion happens without your explicit approval of that specific action.
+- **Nothing irreversible without you.** No push, merge to main, deploy, infrastructure apply, paid resource or data deletion happens without your explicit approval of that specific action. In Claude Code a hook asks for confirmation on the common ones; see [docs/TRUST.md](docs/TRUST.md) for the limits.
+
+## What's new in 0.5.0
+
+- **Say "team lead".** Typing "team lead, <request>" (or "team leader") hands the session to the Team Lead. No slash command needed.
+- **Code-enforced gates (Claude Code).** Hooks ask before pushes, merges, deploys, infrastructure changes, publishes and recursive force deletes, refuse shell-written file edits from subagents, check that every subagent reply has the required fields, and remind the Team Lead to resume after compaction. See [docs/TRUST.md](docs/TRUST.md) for what is enforced and what is still a prompt.
+- **Briefs with claims.** Every delegation says what "done" means (named claims, each with the check that decides it) and what the sender is least sure of. Replies answer each claim.
+- **Skeptic pass.** A Blocker or Major finding gets one read-only agent whose only job is to refute it with evidence. Nothing is dropped silently.
+- **Review routing.** `scripts/review-route` reads the diff (paths, added lines and removed lines) and says which reviewers are required and whether the review is standard or deep. It can add reviewers, never drop one.
+- **One runner per worktree, mutation checks, zero errors in logs.** Only one agent runs tests or builds in a shared worktree. Critical tests are proven by a one-line mutation in a disposable worktree. Logs must be clean, and noisy logs are fixed, not muted.
+- **Long jobs, local tracking, restart safety.** Agents hand back `in-progress` with a job to check. `Tracking: local` keeps work out of GitHub. A `## In flight` table plus the `resume` skill and a compaction hook make restarts safe.
+- **Session settings.** `session-setup` writes auto-compact and exact-command permissions to the project's `.claude/settings.json`, after you approve the diff.
+- **Links, not numbers.** Every issue, PR, commit, CI run or work item (GitHub, Jira, any tracker) the factory mentions is a clickable link, so you never have to look one up (contract rule 9.14).
+- **Retro asset and plan drift batching.** Each epic ends with a retro that must name the asset it produced. Plan-text fixes are batched into one Architect pass.
+- Where ideas came from: [docs/provenance.md](docs/provenance.md). Backlog: [docs/improvement-backlog.md](docs/improvement-backlog.md).
 
 ## Install (once per machine)
 
@@ -72,13 +86,13 @@ The repo is private, so the machine needs GitHub access to it (`gh auth login` o
    ```
    The slash menu matches skill names, so typing `/software` or `/so` won't find it. Type `/factory`.
 5. **Answer the project-facts questions** in one batch: stack or cloud, compliance (PII, payments, GDPR...), monthly budget, whether agents may create local branches and commits, and similar.
-6. **Review what it created**:
+6. **Review what it created** (init also offers `/software-factory:session-setup`, which proposes auto-compact and exact-command permission rules for `.claude/settings.json` and writes them only after you approve the diff):
    - `docs/factory/status.md`: phase, gates, open questions.
    - `docs/architecture/project-facts.md`: your answers, plus the GitHub Project link.
    - For an existing codebase: `docs/architecture/repo-map.md` (Mermaid map) and `docs/standards/coding-standards.md`.
    - A GitHub Project board for the repo, with columns Todo, In Progress, In Review, Changes Requested, Done, Blocked.
 7. **Commit the `docs/` folder** so the team's state is versioned with the code.
-8. **Start building**: `/software-factory:build <what to build>`. Name the GitHub issues you want worked on (for example `#12 and #15`). The Team Lead never picks issues by itself.
+8. **Start building**: just say `team lead, <what to build>` (or "team leader"), or use `/software-factory:build <what to build>`. Name the GitHub issues you want worked on (for example `#12 and #15`). The Team Lead never picks issues by itself.
 
 Run init once per project. Running it again on an initialized project just summarizes the current state.
 
@@ -103,10 +117,13 @@ In the project you want the team to work on:
 | Command | What happens |
 |---|---|
 | `/software-factory:factory-init [description]` | Creates the `docs/` scaffold, captures project facts, maps an existing repo and derives coding standards |
+| `team lead, <request>` | Say it in any message. Your session becomes the Team Lead (same as `build`). A bare "team lead" gives the status summary |
 | `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
+| `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
+| `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
 | `/software-factory:review [task \| branch \| path \| all]` | Parallel architecture, security, test and (if relevant) cost review with one consolidated verdict |
 
-You can also run the whole session as the Team Lead: `claude --agent software-factory:team-lead`.
+You can also run the whole session as the Team Lead: `claude --agent software-factory:team-lead`. Adding `--permission-mode auto` is recommended; the gate hook still asks before irreversible actions.
 
 Or call any specialist directly, for example:
 
@@ -188,17 +205,21 @@ software-factory/
 │   ├── plugin.json
 │   └── marketplace.json
 ├── agents/          10 agent definitions
+├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
 ├── assets/          Codex marketplace icon and logo
 ├── plugin.json       portable Agent Plugins manifest
 ├── scripts/
 │   ├── install-codex-plugin
 │   ├── install-codex-factory
+│   ├── review-route
 │   └── run-codex-agent
-├── skills/          factory-init, build, review, factory-protocol, frontend-testing
+├── skills/          factory-init, build, team-lead, review, resume, session-setup, factory-protocol, frontend-testing
 ├── reference/
 │   ├── codex-model-routing.md
 │   └── handoff-contract.md
 ├── docs/
+│   ├── TRUST.md                 what code enforces and what relies on prompts
+│   ├── provenance.md            outside sources we adapted
 │   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
 └── README.md
 ```
@@ -213,7 +234,7 @@ Keep task context focused, classify clear small requests inline, run conditional
 
 ## Update the factory in another repository
 
-Changes in this checkout are available locally now. Marketplace commands receive them only after version 0.4.0 has been committed and published to the marketplace's configured GitHub source. Editing this checkout does not update cached plugins or project-local runtime copies. Start a new chat after updating.
+Changes in this checkout are available locally now. Marketplace commands receive them only after version 0.5.0 has been committed and published to the marketplace's configured GitHub source. Editing this checkout does not update cached plugins or project-local runtime copies. Start a new chat after updating.
 
 ### Project-local Codex runtime (`.codex/software-factory/`)
 

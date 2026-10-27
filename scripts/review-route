@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""Route a Developer's diff to reviewers. Prints one JSON object; never removes a reviewer.
+
+Usage:
+  review-route [base]             diff of the working tree (commits, staged, unstaged and
+                                  untracked files) against the merge base with base (default main)
+  review-route --changes-json     read {"changes": [{"path", "old_path"?, "added"?, "removed"?}]} on stdin
+
+Rules scan paths and both added and removed lines (a deleted guard counts). Anything
+the script cannot read fails toward more review. Stdlib only, Python 3.9+.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+OPTIONAL = ("security", "ux", "finops", "devops")
+MAX_UNTRACKED_BYTES = 1_000_000
+
+SECURITY_WORDS = re.compile(
+    r"auth|permission|secret|credential|token|passw|session|crypt|admin|forbidden|privileg"
+    r"|(?<![a-z])(?:acls?|rbac|jwts?|csrf|xsrf|cors|sso|saml|oidc)(?![a-z])"
+)
+HTTP_CLIENT = re.compile(r"fetch\(|axios|requests\.|urllib|http\.client|httpx|webhook", re.I)
+MANIFESTS = {
+    "package.json", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb",
+    "bun.lock", "pipfile", "pipfile.lock", "pyproject.toml", "poetry.lock", "uv.lock", "setup.py", "setup.cfg",
+    "go.mod", "go.sum", "cargo.toml", "cargo.lock", "gemfile", "gemfile.lock", "composer.json", "composer.lock",
+    "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.lockfile",
+    "libs.versions.toml", "pom.xml", "podfile", "podfile.lock", "package.swift", "package.resolved",
+    "pubspec.yaml", "pubspec.lock", "mix.exs", "mix.lock", "deno.json", "deno.lock", "packages.config",
+}
+STORAGE_PATH = re.compile(r"(^|/)(migrations?|migrate|schemas?|models?|entities|db|database|storage|prisma)(/|$)")
+UX_EXT = (".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", ".sass", ".less", ".html")
+UX_PATH = re.compile(r"(^|/)(components|screens|pages)/|(^|/)res/layout")
+INFRA_PATH = re.compile(r"(^|/)(infra|deploy|deployment|helm|charts|k8s|kubernetes)/")
+FINOPS_FILES = re.compile(
+    r"^(serverless\.(ya?ml|ts|js|json)|vercel\.json|wrangler\.(toml|json|jsonc)|fly\.toml|netlify\.toml)$"
+)
+FINOPS_KEYS = re.compile(
+    r"retention|replica|autoscal|scaling|min[ _-]?instances|max[ _-]?instances|min[ _-]?scale|max[ _-]?scale"
+    r"|instance[ _-]?(type|class|count)|reserved[ _-]?concurrency|provisioned"
+)
+CI_PATH = re.compile(
+    r"(^|/)\.github/workflows/|(^|/)\.gitlab-ci\.ya?ml$|(^|/)\.circleci/|(^|/)jenkinsfile$"
+    r"|(^|/)azure-pipelines\.ya?ml$|(^|/)bitbucket-pipelines\.ya?ml$|(^|/)\.buildkite/"
+)
+POLICY_PATH = re.compile(
+    r"^(agents|reference|hooks|skills)/|(^|/)\.(claude|agents)/|(^|/)(claude|agents)\.md$"
+)
+GIT_HOOKS_PATH = re.compile(r"(^|/)(\.husky|\.githooks|\.git/hooks)/|(^|/)(lefthook\.ya?ml|\.pre-commit-config\.ya?ml)$")
+ORACLE_PATH = re.compile(
+    r"(^|/)(fixtures?|__fixtures__|__snapshots__|snapshots|golden|goldens|testdata|test-data|oracles?)/"
+    r"|\.snap$|oracle|golden"
+)
+
+
+def is_dockerfile(base):
+    return base.startswith("dockerfile") or base.endswith(".dockerfile")
+
+
+def words(text):
+    """Lowercase text with camelCase split, so userAcl reads as "user acl"."""
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text).lower()
+
+
+def path_rules(path):
+    """(rule, path) pairs that a changed path alone triggers."""
+    low, base = path.lower(), os.path.basename(path.lower())
+    hits = []
+    if (SECURITY_WORDS.search(words(path)) or base in MANIFESTS or re.match(r"requirements.*\.txt$", base)
+            or base.endswith(".csproj") or STORAGE_PATH.search(low) or "schema" in base
+            or base.endswith((".sql", ".prisma"))):
+        hits.append("security")
+    if (base.endswith(UX_EXT) or UX_PATH.search(low)
+            or (base.endswith(".xml") and re.search(r"(^|/)res/", low))):
+        hits.append("ux")
+    if (base.endswith((".tf", ".tfvars")) or INFRA_PATH.search(low) or is_dockerfile(base)
+            or FINOPS_FILES.match(base)):
+        hits.append("finops")
+    if CI_PATH.search(low) or is_dockerfile(base) or re.search(r"(^|/)(infra|deploy)/", low):
+        hits.append("devops")
+    if POLICY_PATH.search(low) or CI_PATH.search(low) or GIT_HOOKS_PATH.search(low) or ORACLE_PATH.search(low):
+        hits.append("deep")
+    return hits
+
+
+def line_rules(path, lines):
+    """Rules that the changed lines (added and removed) trigger."""
+    text = "\n".join(lines)
+    low = path.lower()
+    hits = []
+    if SECURITY_WORDS.search(words(text)) or HTTP_CLIENT.search(text):
+        hits.append("security")
+    if low.endswith(".swift") and re.search(r"\bView\b", text):
+        hits.append("ux")
+    if FINOPS_KEYS.search(words(text)) or (
+            low.endswith((".yaml", ".yml")) and re.search(r"^\s*apiVersion:", text, re.M)
+            and re.search(r"^\s*kind:", text, re.M)):
+        hits.append("finops")
+    return hits
+
+
+def route(changes, problems):
+    reviewers = {"architect": "required", "test": "required"}
+    reviewers.update({name: "optional" for name in OPTIONAL})
+    reasons, deep = [], False
+
+    def add(rule, path):
+        nonlocal deep
+        if rule in OPTIONAL:
+            reviewers[rule] = "required"
+        if rule in ("deep", "unresolved"):
+            deep = True
+        reason = f"{rule}: {path}"
+        if reason not in reasons:
+            reasons.append(reason)
+
+    for problem in problems:  # the diff itself could not be read: every reviewer, deep
+        for name in OPTIONAL:
+            reviewers[name] = "required"
+        add("unresolved", problem)
+    if not changes and not problems:
+        add("unresolved", "(empty diff)")
+    for change in changes:
+        paths = list(dict.fromkeys(p for p in (change["path"], change["old_path"]) if p))
+        for path in paths:
+            for rule in path_rules(path):
+                add(rule, path)
+        for rule in line_rules(paths[0], change["added"] + change["removed"]):
+            add(rule, paths[0])
+        if change["incomplete"]:
+            add("unresolved", paths[0])
+    return {"reviewers": reviewers, "depth": "deep" if deep else "standard", "reasons": reasons,
+            "action": "route-only"}
+
+
+def git(args, cwd=None):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, errors="replace",
+                          check=True).stdout
+
+
+def parse_diff(text):
+    changes, cur, in_hunk = [], None, False
+    for line in text.split("\n"):
+        if line.startswith("diff --git "):
+            cur = {"path": "", "old_path": "", "added": [], "removed": [], "incomplete": False}
+            changes.append(cur)
+            in_hunk = False
+            m = re.match(r"diff --git a/(.*) b/(.*)$", line)
+            if m:
+                cur["old_path"], cur["path"] = m.group(1), m.group(2)
+        elif cur is None:
+            continue
+        elif in_hunk and line[:1] in ("+", "-"):
+            (cur["added"] if line[0] == "+" else cur["removed"]).append(line[1:])
+        elif line.startswith("@@"):
+            in_hunk = True
+        elif not in_hunk:
+            if line.startswith("rename from "):
+                cur["old_path"] = line[len("rename from "):]
+            elif line.startswith("rename to "):
+                cur["path"] = line[len("rename to "):]
+            elif line.startswith("+++ b/"):
+                cur["path"] = line[len("+++ b/"):]
+            elif line.startswith("--- a/"):
+                cur["old_path"] = line[len("--- a/"):]
+            elif line.startswith(("Binary files ", "GIT binary patch")):
+                cur["incomplete"] = True
+    for change in changes:
+        if not change["path"]:
+            change["path"], change["incomplete"] = change["old_path"] or "(unknown path)", True
+    return changes
+
+
+def untracked(top, path):
+    change = {"path": path, "old_path": "", "added": [], "removed": [], "incomplete": False}
+    try:
+        with open(os.path.join(top, path), "rb") as fh:
+            data = fh.read(MAX_UNTRACKED_BYTES + 1)
+    except OSError:
+        data = None
+    if data is None or b"\0" in data or len(data) > MAX_UNTRACKED_BYTES:
+        change["incomplete"] = True
+    else:
+        change["added"] = data.decode("utf-8", "replace").splitlines()
+    return change
+
+
+def changes_from_git(base):
+    try:
+        top = git(["rev-parse", "--show-toplevel"]).strip()
+        merge_base = git(["merge-base", base, "HEAD"], top).strip()
+        diff = git(["-c", "core.quotepath=off", "diff", "--no-color", "--no-ext-diff", "-M", "-U0", merge_base], top)
+        others = git(["ls-files", "--others", "--exclude-standard", "-z"], top)
+    except (OSError, subprocess.CalledProcessError):
+        return [], [f"could not diff against {base}"]
+    changes = parse_diff(diff)
+    changes += [untracked(top, path) for path in others.split("\0") if path]
+    return changes, []
+
+
+def lines_of(value):
+    if isinstance(value, str):
+        return value.splitlines()
+    if isinstance(value, list) and all(isinstance(v, str) for v in value):
+        return list(value)
+    raise ValueError("added/removed must be a string or a list of strings")
+
+
+def changes_from_json(raw):
+    try:
+        items = json.loads(raw)["changes"]
+        if not isinstance(items, list):
+            raise ValueError("changes must be a list")
+        changes = []
+        for item in items:
+            path = item.get("path") or item.get("old_path")
+            if not isinstance(path, str) or not path:
+                raise ValueError("each change needs a path")
+            changes.append({
+                "path": path,
+                "old_path": item.get("old_path") or "",
+                "added": lines_of(item.get("added", [])),
+                "removed": lines_of(item.get("removed", [])),
+                # No line evidence at all (or a binary file) means the content is unknown.
+                "incomplete": bool(item.get("binary")) or ("added" not in item and "removed" not in item),
+            })
+        return changes, []
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return [], ["could not read --changes-json input"]
+
+
+def main(argv):
+    if "-h" in argv or "--help" in argv:
+        print(__doc__.strip())
+        return 0
+    if "--changes-json" in argv:
+        changes, problems = changes_from_json(sys.stdin.read())
+    else:
+        base = next((a for a in argv if not a.startswith("-")), "main")
+        changes, problems = changes_from_git(base)
+    print(json.dumps(route(changes, problems)))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
