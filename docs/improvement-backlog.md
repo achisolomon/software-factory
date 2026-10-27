@@ -122,3 +122,4 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 - 0.3.0 (2026-10-17): items 4 to 9 shipped.
 - 0.5.0 (2026-10-27): items 1 and 10 to 28 shipped (hooks, skeptic pass, review routing, briefs with claims, restart safety, session setup, "team lead" trigger, TRUST and provenance pages). Item 3 partly done.
 - 0.5.1 (2026-10-27): items 29 to 31 (links, not numbers; team table; FinOps GitHub Actions budget). Version bumped so installed 0.5.0 copies update.
+- 0.5.2 (2026-10-27): team table and `## In flight` gain Agent ID (each agent's own, not its workflow's) and Issue (clickable link, or `T-NNN (local)`).
