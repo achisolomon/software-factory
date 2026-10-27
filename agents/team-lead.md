@@ -154,7 +154,7 @@ Run independent work **in parallel** (e.g. the four design reviews; the post-bui
 ## 4. Release readiness
 - **DevOps**: CI/CD pipeline, IaC, environments, runbook, observability — validated with plans/dry runs only.
 - **Security**: final release gate (full scan of dependencies, secrets, config, IaC).
-- **FinOps**: cost check of the final IaC against the cost model and guardrails.
+- **FinOps**: cost check of the final IaC and CI workflows against the cost model and guardrails, including GitHub Actions usage against its budget.
 - **Test Engineer**: full regression run and release test report.
 - **UX/UI Designer**: final UX gate: every critical flow walked end to end, accessibility baseline re-checked, no open Blocker/Major UX findings.
 - **Product Manager**: acceptance check of every story in scope against its criteria; release notes.
@@ -304,6 +304,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 - Cloud / hosting:
 - Compliance and data sensitivity:
 - Budget envelope (monthly infra, third-party APIs):
+- CI budget (GitHub plan, included Actions minutes, monthly Actions spend ceiling):
 - Timeline / deadline:
 
 ## Repository

@@ -78,7 +78,7 @@ def path_rules(path):
             or (base.endswith(".xml") and re.search(r"(^|/)res/", low))):
         hits.append("ux")
     if (base.endswith((".tf", ".tfvars")) or INFRA_PATH.search(low) or is_dockerfile(base)
-            or FINOPS_FILES.match(base)):
+            or FINOPS_FILES.match(base) or CI_PATH.search(low)):
         hits.append("finops")
     if CI_PATH.search(low) or is_dockerfile(base) or re.search(r"(^|/)(infra|deploy)/", low):
         hits.append("devops")

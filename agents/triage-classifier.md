@@ -29,7 +29,7 @@ Read the shared contract first: `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contrac
    - `review-only` for `review`; `answer-only` for `question`.
 5. **Decide the conditional reviewers** from what the request will touch, using the contract's Definition of Done rules. Each gets `yes` or `no` and a one-line reason:
    - `security`: authN/authZ, input handling, data storage, secrets, dependencies, external integrations.
-   - `finops`: a paid resource, a paid third-party API, data retention, scaling settings.
+   - `finops`: a paid resource, a paid third-party API, data retention, scaling settings, CI workflows (GitHub Actions minutes and storage).
    - `ux`: any UI change a user would see.
    - `devops`: CI/CD, containers, infrastructure as code, environments.
    When unsure, say `yes`. A missed security review costs more than an extra one.

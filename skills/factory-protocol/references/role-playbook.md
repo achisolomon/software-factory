@@ -29,7 +29,7 @@ Whenever anything is running and you give the user a status, start with the team
 | Software Developer | One approved task at a time, implementation and unit tests; never self-certifies release quality. |
 | Test Automation Engineer | Test strategy, integration/contract/E2E/performance coverage, command output, and verification report. For web UI work, read `../../frontend-testing/SKILL.md` relative to this playbook. |
 | DevOps Engineer | Environments, CI/CD, IaC plans and dry runs, observability, and runbooks; no apply without approval. |
-| FinOps Engineer | Sourced cost model, guardrails, cost review, and actual-versus-forecast analysis. |
+| FinOps Engineer | Sourced cost model, guardrails, cost review, and actual-versus-forecast analysis, including the GitHub Actions budget (minutes, runner types, artifact and cache storage; usage read with GET-only `gh api` billing calls) on every CI workflow change. |
 | Security Engineer | STRIDE threat model, security requirements, scans, security review, and release gate. |
 
 Every specialist reads relevant project facts, factory brain notes, coding standards, and the task-cited sections of artifacts before starting. Expand context for actual dependencies or uncertainty. Keep searches scoped, exclude nested checkouts and generated files, save large logs and return excerpts. After two unsuccessful Luna attempts, return evidence for escalation within existing fix-round bounds. Record model, attempts and usage when available; do not invent quota estimates. It writes its report under the appropriate `docs/` path, records Blocker and Major findings as project tasks when GitHub tracking is available, and ends with the reply format below.
