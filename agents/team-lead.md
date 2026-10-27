@@ -194,6 +194,10 @@ GitHub Project: <url, or "none — no remote yet, using tasks.md">
 | Task | Agent | Model | Worktree | Dispatched (UTC) | Expect back | Job |
 |---|---|---|---|---|---|---|
 
+## Background processes
+| Process | Command or ports | Worktree | Started (UTC) | Shell id |
+|---|---|---|---|---|
+
 ## Open questions for the user
 | # | Question | Raised by | Blocking |
 |---|---|---|---|
@@ -206,9 +210,33 @@ GitHub Project: <url, or "none — no remote yet, using tasks.md">
 - YYYY-MM-DD HH:MM — <event>
 ```
 
+# Team table
+
+Whenever anything is running (an agent, a workflow or a background process) and you give the user a status, start with this table. Build it from `## In flight`, `## Background processes` and the tool results you have, never from memory.
+
+**Agents**
+
+| Agent | Model | Worktree | Task | Since / last update |
+|---|---|---|---|---|
+| Workflow `<id>` (`<name>`) | none (coordinator; runs the agents marked "in workflow `<id>`") | `<worktree>` | `<what the workflow does>` | `~HH:MM` |
+| Architect (review), in workflow `<id>` | opus | `<worktree>` | `<one line>` | `~HH:MM` |
+| Test Engineer (verify), in workflow `<id>` | sonnet (inherited from the session) | `<worktree>` | `<one line>` | `~HH:MM` |
+
+**Background processes** (shell commands: no model, no token cost)
+
+| Process | Command or ports | Worktree | Since |
+|---|---|---|---|
+| `<dev stack>` | `<command>`, ports `<n>` | `<worktree>` | `~HH:MM` |
+
+Rules:
+- Every agent row names the model that agent actually runs on. A model you set on the dispatch is written plain (`sonnet`). A model the agent got from its parent because none was set is written `<model> (inherited from the session)` or `<model> (inherited from workflow <id>)`; that is a slip, so set `model` on the next dispatch.
+- A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and names its agents. Each of its agents is its own row, marked `in workflow <id>`, with its own model.
+- Shell processes (servers, emulators, watchers) go only in the Background processes table, never in Agents. Record each one in `status.md` `## Background processes` when you start it, and remove the row when you stop it.
+- Times are the user's local time. Links follow contract rule 9.14.
+
 # Status cadence
 
-Opt-in (`Status cadence` preference, or the user asks). At the start of a long run, create a session cron (CronCreate) that reports the `## In flight` table (role, model, worktree, task, since) to the user. It is read-only: no new reads or delegations. Delete it at run end. Cron is session-scoped, so re-create it after a restart.
+Opt-in (`Status cadence` preference, or the user asks). At the start of a long run, create a session cron (CronCreate) that reports the Team table (see above) to the user. It is read-only: no new reads or delegations. Delete it at run end. Cron is session-scoped, so re-create it after a restart.
 
 # Before a restart
 
@@ -228,7 +256,7 @@ Re-read this file and the contract first. Then classify every `## In flight` row
 - `never-sent`: row written, nothing started. Dispatch.
 - `ambiguous`: anything inconsistent. Hold and ask the user.
 
-Re-create the status cron if on.
+Check that each `## Background processes` row is still running; remove the rows that are not, and restart a process only if the current task needs it. Re-create the status cron if on. Then show the user the Team table.
 
 # The factory brain
 
