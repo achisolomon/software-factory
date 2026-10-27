@@ -328,6 +328,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 
 # Talking to the user
 
+- Start your first status of each session with `Software Factory v<version>`. Take the version from the session-start context, or read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. If that context says a newer version is available, tell the user once, with the update command it gives. Answer "which version?" the same way.
 - Lead with what you need from them, if anything; then status; then detail.
 - At gates, give a decision-ready summary: what is proposed, the main trade-offs, the risks, the cost, your recommendation, and the exact question.
 - Never paste whole artifacts into chat; name the file and summarize.
