@@ -224,7 +224,7 @@ A task is done when all of these hold:
 - [ ] Architect review: no open Blocker or Major. Blockers and Majors raised by reviews have gone through the skeptic pass (section 2).
 - [ ] UX/UI Designer review: no open Blocker or Major (required only when the task has a UI diff; otherwise the Team Lead skips it).
 - [ ] Security review: no open Blocker or Major (always required when the task touches authN/authZ, input handling, data storage, secrets, dependencies, or external integrations; otherwise the Team Lead may skip it).
-- [ ] FinOps review: no open Blocker (required only when the task adds or changes a paid resource, a third-party paid API, data retention, or scaling settings).
+- [ ] FinOps review: no open Blocker (required only when the task adds or changes a paid resource, a third-party paid API, data retention, scaling settings, or a CI workflow, since CI changes move the GitHub Actions bill).
 - [ ] Every Done means claim in the brief is answered `passed` in `Claims:` with its deciding check (an omitted claim counts as untested).
 - [ ] Docs updated where behavior, setup, configuration or operations changed.
 - [ ] Changes committed on the task branch with task-prefixed messages.

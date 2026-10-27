@@ -18,7 +18,7 @@ Use the review scope in the user's request that invoked this skill.
    - Software Architect — Review mode (architecture conformance, clean code, OO design, DRY, patterns, scalability, standards).
    - Security Engineer — Review mode.
    - Test Automation Engineer — Verify mode for a task; for other scopes, run the suites and assess coverage and test quality.
-   - FinOps Engineer, Review mode, only if infrastructure, scaling, retention or paid third-party APIs changed (or the route marks it required).
+   - FinOps Engineer, Review mode, only if infrastructure, scaling, retention, paid third-party APIs or CI workflows (GitHub Actions minutes) changed (or the route marks it required).
    One runner per shared worktree: the Test Engineer holds the runner slot while the others review statically; the Architect's fast check runs after the Test Engineer returns.
    In Claude Code, delegate with the `software-factory:` agent names. In Codex, use native Codex delegation and include the matching Specialist procedure from `../factory-protocol/references/role-playbook.md` in each delegation.
 5. **Skeptic pass.** For each Blocker or Major, run one read-only skeptic agent (same role type as the reviewer, `sonnet`; `opus` for Security Blockers and auth, payments or data deletion) whose only job is to refute the finding with evidence (`file:line`, command output). A refuted or downgraded finding gets a comment with that evidence on its issue (in the report when Tracking is local); never a silent drop. A finding the skeptic cannot refute stands. A Security Blocker is downgraded only with the Security Engineer's agreement. Skeptic runs are not fix rounds.
