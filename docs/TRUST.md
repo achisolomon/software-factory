@@ -4,7 +4,7 @@ Software Factory protects you in two ways. Some rules are enforced by code that 
 
 ## Enforced by code (Claude Code only)
 
-The hooks live in `hooks/` and are wired in `hooks/hooks.json`. They only act in a factory context: a factory subagent, or a repo that has `docs/factory/status.md`. Elsewhere they do nothing.
+The hooks live in `hooks/` and are wired in `hooks/hooks.json`. They only act in a factory context: a factory subagent, or a repo that has `docs/factory/status.md`. Elsewhere they do nothing, except the version check, which shows a one-line version message in every session.
 
 | Piece | Runs on | What it does |
 |---|---|---|
@@ -12,6 +12,7 @@ The hooks live in `hooks/` and are wired in `hooks/hooks.json`. They only act in
 | `hooks/require_agent_model.py` | Every Agent or Task dispatch | Refuses a delegation that does not set `model` explicitly. |
 | `hooks/check_reply.py` | When a factory subagent stops | Blocks a reply that is missing required fields (`Status`, `Summary`, `Files`, `Claims`, `Revision`, `Logs`, `Checks run`, plus `Job` or `Questions for the user` when they apply), or whose `Files:` names a `docs/` report that is not on disk. It gives up after one retry so it cannot loop. |
 | `hooks/after_compact.py` | Session start after compaction | Reminds the Team Lead to re-read its instructions and run the resume procedure before any new dispatch. |
+| `hooks/version_check.py` | Session start (new, resumed or cleared session) | Shows the installed version and whether a newer one exists. Its only network call is a read of this repo's public `.claude-plugin/plugin.json` on GitHub `main`, at most every 6 hours, with a 2-second timeout; it sends nothing about you or your project. The result is cached in the plugin data folder (or `~/.cache/software-factory`), and only a plain version number is ever shown. Offline, it shows the installed version only. This hook runs in every session, not only factory projects. |
 | `hooks/team_lead_trigger.py` | Every prompt | Adds context when you say "team lead" or "team leader", so the session hands over to the Team Lead. Never blocks. |
 | `scripts/review-route` | Run by the Team Lead on the diff | Decides which reviewers are required and whether the review is deep, from changed paths and from added and removed lines (a deleted guard counts). It can add reviewers to triage's list, never drop one. Unknown or unreadable input fails toward more review. |
 | Settings from `session-setup` | Claude Code itself | The project's `.claude/settings.json` gets auto-compact and exact-command allow rules, written only after you approve the diff. It never allows broad runners such as `npm run:*` or `bash:*`, and never a command the gate asks on. |
