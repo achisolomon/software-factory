@@ -124,3 +124,4 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 - 0.5.1 (2026-10-27): items 29 to 31 (links, not numbers; team table; FinOps GitHub Actions budget). Version bumped so installed 0.5.0 copies update.
 - 0.5.2 (2026-10-27): team table and `## In flight` gain Agent ID (each agent's own, not its workflow's) and Issue (clickable link, or `T-NNN (local)`).
 - 0.5.3 (2026-10-27): `hooks/version_check.py` shows the running version at session start and whether a newer one is published, with the update command; the Team Lead's first status names the version.
+- 0.5.4 (2026-10-27): the team table gains a Status column (running, blocked, done, to do) and replaces the separate "Finished" and "Next" lists; done rows only since the last status, at most five to do rows.
