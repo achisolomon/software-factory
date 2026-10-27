@@ -71,7 +71,7 @@ class ReviewRouteTests(unittest.TestCase):
         self.assert_routes({"path": "config/app.yaml", "added": ["log_retention_days: 30"]}, ["finops"])
         self.assert_routes({"path": "manifests/api.yaml", "added": ["apiVersion: apps/v1", "kind: Deployment"]},
                            ["finops"])
-        self.assert_routes({"path": ".github/workflows/ci.yml", "added": ["on: push"]}, ["devops"], "deep")
+        self.assert_routes({"path": ".github/workflows/ci.yml", "added": ["on: push"]}, ["finops", "devops"], "deep")
 
     def test_deep_rules(self):
         for path in ("agents/team-lead.md", "reference/handoff-contract.md", "hooks/gate.py",
