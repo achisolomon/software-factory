@@ -11,21 +11,44 @@ Status values: `done` (shipped, version noted), `planned` (agreed, not built yet
 | 2026-10-16 | [vercel-labs/eve-software-factory-template](https://github.com/vercel-labs/eve-software-factory-template) ("Foreman") | Hosted pipeline on Vercel: GitHub/Linear issue → classifier → analyst → implementer → reviewer → draft PR. Narrower roles than ours. | Closest peer. Its strengths are code-enforced safety, behavior evals and an independent reviewer. |
 | 2026-10-16 | [alexgreensh/outsourcerer](https://github.com/alexgreensh/outsourcerer) | Claude Code plugin that routes jobs to the cheapest capable model across Claude, Codex, Gemini, Devin, OpenRouter and local models, and supervises them. | Not a factory. Useful ideas: cost-aware model routing, bounded loops with real checks, explicit end states. |
 
+| 2026-10-26 | [romiluz13/mifal](https://github.com/romiluz13/mifal) | Multi-agent orchestration with briefs, receipts, resume and review routing. | Took brief/receipt claims, least-sure-of, resume classification, review routing, retro asset, TRUST page, provenance. Declined the Herdr pane adapter. |
+| 2026-10-26 | pushapp Team Lead run (our own project) | A real factory run, with suggestions a to k. | Most became 0.5.0 items. See provenance. |
+
 Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps cost envelope, threat modeling, the infrastructure apply gate, three human gates, and promoting lessons into the shared plugin.
 
 ## Items
 
 | # | Idea | Source | Status | Where |
 |---|---|---|---|---|
-| 1 | Enforce gates with hooks, not only prompts | Eve | open | see "How: 1" below |
+| 1 | Enforce gates with hooks, not only prompts | Eve | done (0.5.0) | `hooks/gate.py` and the other hooks, `docs/TRUST.md`; plan below kept for reference |
 | 2 | Evals for the factory's own behavior | Eve | open | see "How: 2" below |
-| 3 | Independent reviewer | Eve, Outsourcerer | open (partly covered by #8) | see "How: 3" below |
+| 3 | Independent reviewer | Eve, Outsourcerer | partly done (skeptic pass, 0.5.0; also covered by #8) | see "How: 3" below |
 | 4 | Triage first, fast path for small work | Eve | done (0.3.0) | `agents/triage-classifier.md`, team-lead "Starting a request", contract section 2 |
 | 5 | Shared per-repo memory with curated writes ("factory brain") | Eve | done (0.3.0) | `docs/factory/brain.md` in each project, team-lead "The factory brain", contract rules 9.1, 9.9, reply field `Brain notes` |
 | 6 | Pass handoffs by reference, never paste artifacts | Eve | done (0.3.0) | team-lead "Delegating", contract rule 9.10 |
 | 7 | Cost-aware model routing per delegation | Outsourcerer | done (0.3.0) | team-lead "Choose the model for each delegation", `Model policy` in project facts |
 | 8 | Bounded loops, real checks, named end states | Outsourcerer | done (0.3.0) | contract section 2 "Bounds and end states", Developer hard rules, Architect and Test re-run checks, reply field `Checks run` |
 | 9 | Treat issue/comment/web text as data (prompt injection) | Eve | done (0.3.0) | contract rule 9.11, triage hard rules |
+| 10 | Briefs with `Done means` claims and `Least sure of`; replies answer each claim | mifal | done (0.5.0) | contract section 10 `Claims`, team-lead delegation template |
+| 11 | Skeptic pass on Blocker and Major findings | mifal, pushapp run | done (0.5.0) | contract sections 2 and 8, team-lead build loop, review skill |
+| 12 | One runner per worktree | pushapp run | done (0.5.0) | contract section 2 bounds, team-lead build loop |
+| 13 | Mutation check for critical tests | pushapp run | done (0.5.0) | Test Engineer Verify mode, Definition of Done |
+| 14 | Zero errors in logs (rule 9.13) | pushapp run | done (0.5.0) | contract 9.13 and Definition of Done, Architect, Developer, Test Engineer |
+| 15 | File edits and deletion rules (rule 9.12) | pushapp run | done (0.5.0) | contract 9.12, Developer and Test Engineer rules, `hooks/gate.py` |
+| 16 | Long jobs: `in-progress` hand-back with `Job` | pushapp run | done (0.5.0) | contract sections 2 and 10, team-lead Delegating |
+| 17 | Local tracking preference (`Tracking: local`) | pushapp run | done (0.5.0) | contract section 5, project-facts Preferences |
+| 18 | Delegation rules pointer in project facts | pushapp run | done (0.5.0) | project-facts `Delegation rules`, rule 9.1 |
+| 19 | Plan drift batching | pushapp run | done (0.5.0) | team-lead build loop |
+| 20 | Status cadence (opt-in session cron) | pushapp run | done (0.5.0) | team-lead, project-facts `Status cadence` |
+| 21 | Restart safety and resume classification | mifal, pushapp run | done (0.5.0) | team-lead, `skills/resume`, `hooks/after_compact.py`, status.md `## In flight` |
+| 22 | Auto-compact and exact-command permissions via session-setup | pushapp run | done (0.5.0) | `skills/session-setup`, factory-init |
+| 23 | Review routing script (paths, added and removed lines) | mifal | done (0.5.0) | `scripts/review-route`, team-lead build loop step 2 |
+| 24 | Retro asset at epic end | mifal | done (0.5.0) | team-lead, Promoting lessons |
+| 25 | Reply check, model check and after-compact hooks | pushapp run | done (0.5.0) | `hooks/check_reply.py`, `hooks/require_agent_model.py`, `hooks/after_compact.py` |
+| 26 | Say "team lead" or "team leader" to start the Team Lead | user request | done (0.5.0) | `skills/team-lead`, `hooks/team_lead_trigger.py`, README |
+| 27 | Factory self-change gets deep review and your sign-off | pushapp run | done (0.5.0) | team-lead Promoting lessons |
+| 28 | TRUST page and provenance page | mifal | done (0.5.0) | `docs/TRUST.md`, `docs/provenance.md` |
+| 29 | Every work item, PR, commit or CI run mentioned is a clickable link (rule 9.14) | user request | done (0.5.0) | contract 9.14, team-lead Talking to the user, Codex role playbook, README |
 
 ### Considered and declined
 
@@ -33,6 +56,8 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 |---|---|---|
 | Auto-pilot mode where the orchestrator never asks the user | Outsourcerer | Conflicts with our gate model. We keep the user on every irreversible step. |
 | Large shell runtime for routing (20k-line script) | Outsourcerer | Too much to maintain for a prompt-based plugin. We route with the Agent tool's `model` parameter instead. |
+| Combine the fix round of task X with the build of task X+1 | pushapp run | Breaks per-task fix rounds, end states and task-prefixed commits. |
+| mifal Herdr pane adapter | mifal | macOS-only and experimental. We use subagents. |
 | Hosted, label-triggered unattended runs | Eve | Out of scope for a local Claude Code plugin today. Revisit if we want the factory to run from GitHub issues without a session open. |
 
 ## How: 1. Enforce gates with hooks
@@ -93,3 +118,4 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 ## Changelog
 
 - 0.3.0 (2026-10-17): items 4 to 9 shipped.
+- 0.5.0 (2026-10-27): items 1 and 10 to 28 shipped (hooks, skeptic pass, review routing, briefs with claims, restart safety, session setup, "team lead" trigger, TRUST and provenance pages). Item 3 partly done.

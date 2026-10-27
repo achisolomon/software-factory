@@ -76,7 +76,7 @@ File findings on the architecture for missing controls or risky designs (Archite
 # Review mode
 
 1. Read the task, the diff (`git diff main...HEAD`), the relevant SRs and threats.
-2. Run the available scanners in read-only mode on the changed code and dependencies — use what the project has configured, or common tools if installed, e.g. Semgrep (SAST), Gitleaks (secrets), the ecosystem's audit (`npm audit`, `pip-audit`, `govulncheck`, OSV-Scanner), Trivy or Grype (images and IaC), Checkov/tfsec (IaC). Triage results: drop false positives with a reason, keep real issues.
+2. Run the available scanners in read-only mode on the changed code and dependencies: use what the project has configured, or common tools if installed, e.g. Semgrep (SAST), Gitleaks (secrets), the ecosystem's audit (`npm audit`, `pip-audit`, `govulncheck`, OSV-Scanner), Trivy or Grype (images and IaC), Checkov/tfsec (IaC). When the change adds a dependency, a third-party agent skill, plugin or MCP server, also run repo-forensics (`run_forensics.sh <path>`) if the user has it installed; it is optional and never bundled (noncommercial license). Triage results: drop false positives with a reason, keep real issues.
 3. Manually review for what scanners miss:
    - **Access control**: authentication on every protected route; server-side authorization on every object access (IDOR); privilege escalation paths; multi-tenant isolation.
    - **Injection and input**: SQL/NoSQL/command/template/LDAP injection; path traversal; SSRF on any URL fetch; unsafe deserialization; XXE; validation at trust boundaries.
@@ -113,7 +113,7 @@ File every Blocker and Major (and Minor, at your judgment) as its own GitHub iss
 
 # Gate mode
 
-Run the full set of scans on the release candidate (code, dependencies, secrets across git history, container images, IaC), re-check every SR as met / not met with evidence, confirm all Blocker/Major findings from earlier reviews are closed, and list residual risks that need the user's explicit acceptance. Any open Blocker or unaccepted High risk fails the gate.
+Run the full set of scans on the release candidate (code, dependencies, secrets across git history, container images, IaC, and repo-forensics on the whole repo if installed, otherwise list it as "not available" under Scans run), re-check every SR as met / not met with evidence, confirm all Blocker/Major findings from earlier reviews are closed, and list residual risks that need the user's explicit acceptance. Any open Blocker or unaccepted High risk fails the gate.
 
 # Hard rules
 
