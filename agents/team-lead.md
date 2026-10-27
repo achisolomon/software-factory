@@ -212,15 +212,18 @@ GitHub Project: <url, or "none — no remote yet, using tasks.md">
 
 # Team table
 
-Whenever anything is running (an agent, a workflow or a background process) and you give the user a status, start with this table. Build it from `## In flight`, `## Background processes` and the tool results you have, never from memory.
+Whenever you give the user a status during a run (anything running, just finished, or queued next), start with this table. Build it from `## In flight`, `## Background processes` and the tool results you have, never from memory.
 
-**Agents**
+**Agents** (`HH:MM`)
 
-| Agent | Agent ID | Model | Worktree | Issue | Task | Since / last update |
-|---|---|---|---|---|---|---|
-| Workflow `<name>` | `<workflow id>` | none (coordinator; runs the 2 agents below) | `<worktree>` | n/a | `<what the workflow does>` | `~HH:MM` |
-| Developer, lane A | `<agent id>` | sonnet | `lane-a` | [#41](https://github.com/<owner>/<repo>/issues/41) | `<one line>` | `~HH:MM` |
-| Test Engineer (verify) | `<agent id>` | sonnet (inherited from the session) | `lane-a` | T-027 (local) | `<one line>` | `~HH:MM` |
+| Status | Agent | Agent ID | Model | Worktree | Issue | Task | Since / last update |
+|---|---|---|---|---|---|---|---|
+| running | Workflow `<name>` | `<workflow id>` | none (coordinator; runs the 2 agents below) | `<worktree>` | n/a | `<what the workflow does>` | `~HH:MM` |
+| running | Developer, lane A | `<agent id>` | sonnet | `lane-a` | [#41](https://github.com/<owner>/<repo>/issues/41) | `<one line>` | `~HH:MM` |
+| running | Test Engineer (verify) | `<agent id>` | sonnet (inherited from the session) | `lane-a` | T-027 (local) | `<one line>` | `~HH:MM` |
+| done | Developer, lane F | `<agent id>` | sonnet | `lane-f` | [#45](https://github.com/<owner>/<repo>/issues/45) | F1 built; Architect and Security passed, QA passed with minors | `HH:MM` |
+| to do | Developer (fix) | n/a | sonnet | `lane-e` | [#44](https://github.com/<owner>/<repo>/issues/44) | fix the E1 and E2 Blocker and Major findings | next |
+| to do | Team Lead | n/a | n/a | main | n/a | integrate the six lanes once all finish | after the lanes |
 
 **Background processes** (shell commands: no model, no token cost)
 
@@ -229,6 +232,8 @@ Whenever anything is running (an agent, a workflow or a background process) and 
 | `<dev stack>` | `<command>`, ports `<n>` | `<worktree>` | `~HH:MM` |
 
 Rules:
+- One table holds the whole picture; no separate "Finished" or "Next" lists. Status is `running`, `done`, `to do`, or `blocked` (`blocked: needs you` when it waits on the user). Order the rows running, blocked, done, to do.
+- Keep it short. `done` rows are only what finished since your last status, with the outcome in Task (built, review verdict, fix needed or not); older done work is in `status.md` and the issues. `to do` rows are only the next steps, at most five; if more are queued, end with one row `to do | ... | +N more, see <tracker link or tasks.md>`. A `to do` row has Agent ID `n/a` and the model you plan to use.
 - Every agent row names the model that agent actually runs on. A model you set on the dispatch is written plain (`sonnet`). A model the agent got from its parent because none was set is written `<model> (inherited from the session)` or `<model> (inherited from workflow <id>)`; that is a slip, so set `model` on the next dispatch.
 - A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and its own ID in Agent ID. List its agents directly under its row, each with its own Agent ID and model; do not repeat the workflow ID on them.
 - Agent ID is the agent's own ID (the one you resume it with via SendMessage), not its parent's. Write `pending` until you have it.
