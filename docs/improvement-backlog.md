@@ -126,3 +126,4 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 - 0.5.3 (2026-10-27): `hooks/version_check.py` shows the running version at session start and whether a newer one is published, with the update command; the Team Lead's first status names the version.
 - 0.5.4 (2026-10-27): the team table gains a Status column (running, blocked, done, to do) and replaces the separate "Finished" and "Next" lists; done rows only since the last status, at most five to do rows.
 - 0.5.5 (2026-10-27): updating is one line for the VS Code terminal, or the user asks Claude to "update the software factory" and approves the command.
+- 0.5.6 (2026-10-28): team table `done` rows keep the agent's real ID (copied from In flight before the row is cleared); Issue is always a link (issue, else PR, else plan file) or `none`, never a repo name or bare label.
