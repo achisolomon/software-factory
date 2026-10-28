@@ -223,7 +223,7 @@ Whenever you give the user a status during a run (anything running, just finishe
 | running | Test Engineer (verify) | `<agent id>` | sonnet (inherited from the session) | `lane-a` | T-027 (local) | `<one line>` | `~HH:MM` |
 | done | Developer, lane F | `<agent id>` | sonnet | `lane-f` | [#45](https://github.com/<owner>/<repo>/issues/45) | F1 built; Architect and Security passed, QA passed with minors | `HH:MM` |
 | to do | Developer (fix) | n/a | sonnet | `lane-e` | [#44](https://github.com/<owner>/<repo>/issues/44) | fix the E1 and E2 Blocker and Major findings | next |
-| to do | Team Lead | n/a | n/a | main | n/a | integrate the six lanes once all finish | after the lanes |
+| to do | Team Lead | n/a | n/a | main | none | integrate the six lanes once all finish | after the lanes |
 
 **Background processes** (shell commands: no model, no token cost)
 
@@ -236,8 +236,8 @@ Rules:
 - Keep it short. `done` rows are only what finished since your last status, with the outcome in Task (built, review verdict, fix needed or not); older done work is in `status.md` and the issues. `to do` rows are only the next steps, at most five; if more are queued, end with one row `to do | ... | +N more, see <tracker link or tasks.md>`. A `to do` row has Agent ID `n/a` and the model you plan to use.
 - Every agent row names the model that agent actually runs on. A model you set on the dispatch is written plain (`sonnet`). A model the agent got from its parent because none was set is written `<model> (inherited from the session)` or `<model> (inherited from workflow <id>)`; that is a slip, so set `model` on the next dispatch.
 - A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and its own ID in Agent ID. List its agents directly under its row, each with its own Agent ID and model; do not repeat the workflow ID on them.
-- Agent ID is the agent's own ID (the one you resume it with via SendMessage), not its parent's. Write `pending` until you have it.
-- Issue is a clickable link to the task's issue (contract rule 9.14). With `Tracking: local` it is `T-NNN (local)`; for a review or skeptic agent, the issue of the task or finding it works on.
+- Agent ID is the agent's own ID (the one you resume it with via SendMessage), not its parent's. Write `pending` until you have it. `running`, `blocked` and `done` rows always carry the real ID: take it from the `## In flight` row or the dispatch result before you clear that row, so a finished agent keeps its ID. Only `to do` rows and your own Team Lead rows have `n/a`.
+- Issue is a clickable link to the task's issue (contract rule 9.14). With no issue, link the PR, else the plan or task file (`[plan 02](docs/architecture/plan-02.md)`). With `Tracking: local` it is `T-NNN (local)`; for a review or skeptic agent, the issue of the task or finding it works on. If nothing exists, write `none`. A repo name ("web") or a bare label ("plan 02") is never an Issue value.
 - Parallel Developers each have their own worktree and branch (contract section 2), so different worktrees per lane are expected.
 - Shell processes (servers, emulators, watchers) go only in the Background processes table, never in Agents. Record each one in `status.md` `## Background processes` when you start it, and remove the row when you stop it.
 - Times are the user's local time. Links follow contract rule 9.14.
