@@ -53,6 +53,14 @@ class ReviewRouteTests(unittest.TestCase):
             out = self.assert_routes(change, ["security"])
             self.assertTrue(any(r.startswith("security: ") for r in out["reasons"]), change)
 
+    def test_agent_instruction_files_need_security_and_deep_review(self):
+        for path in ("CLAUDE.md", "node_modules/pkg/AGENTS.md", "vendor/x/GEMINI.md", ".cursorrules",
+                     ".cursor/rules/a.mdc", ".github/copilot-instructions.md", "tools/skills/x/SKILL.md",
+                     ".mcp.json", ".codex/config.toml"):
+            out = self.assert_routes({"path": path, "added": ["x"]}, ["security"], "deep")
+            self.assertIn(f"security: {path}", out["reasons"])
+        self.assert_routes({"path": "docs/claude-notes.md", "added": ["x"]}, [])
+
     def test_security_words_need_a_boundary_for_short_terms(self):
         self.assert_routes({"path": "src/processor.py", "added": ["miracle = oracle_like"]}, [])
 
