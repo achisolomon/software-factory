@@ -50,6 +50,11 @@ CI_PATH = re.compile(
 POLICY_PATH = re.compile(
     r"^(agents|reference|hooks|skills)/|(^|/)\.(claude|agents)/|(^|/)(claude|agents)\.md$"
 )
+# Files a coding agent reads as instructions: a planted or changed one is a prompt-injection risk.
+AGENT_INSTRUCTIONS = re.compile(
+    r"(^|/)(claude|agents|gemini)\.md$|(^|/)skill\.md$|(^|/)\.(cursorrules|windsurfrules|clinerules)$"
+    r"|(^|/)\.(claude|agents|cursor|codex|windsurf)/|(^|/)\.github/copilot-instructions\.md$|(^|/)\.mcp\.json$"
+)
 GIT_HOOKS_PATH = re.compile(r"(^|/)(\.husky|\.githooks|\.git/hooks)/|(^|/)(lefthook\.ya?ml|\.pre-commit-config\.ya?ml)$")
 ORACLE_PATH = re.compile(
     r"(^|/)(fixtures?|__fixtures__|__snapshots__|snapshots|golden|goldens|testdata|test-data|oracles?)/"
@@ -72,7 +77,7 @@ def path_rules(path):
     hits = []
     if (SECURITY_WORDS.search(words(path)) or base in MANIFESTS or re.match(r"requirements.*\.txt$", base)
             or base.endswith(".csproj") or STORAGE_PATH.search(low) or "schema" in base
-            or base.endswith((".sql", ".prisma"))):
+            or base.endswith((".sql", ".prisma")) or AGENT_INSTRUCTIONS.search(low)):
         hits.append("security")
     if (base.endswith(UX_EXT) or UX_PATH.search(low)
             or (base.endswith(".xml") and re.search(r"(^|/)res/", low))):
@@ -82,7 +87,7 @@ def path_rules(path):
         hits.append("finops")
     if CI_PATH.search(low) or is_dockerfile(base) or re.search(r"(^|/)(infra|deploy)/", low):
         hits.append("devops")
-    if POLICY_PATH.search(low) or CI_PATH.search(low) or GIT_HOOKS_PATH.search(low) or ORACLE_PATH.search(low):
+    if POLICY_PATH.search(low) or AGENT_INSTRUCTIONS.search(low) or CI_PATH.search(low) or GIT_HOOKS_PATH.search(low) or ORACLE_PATH.search(low):
         hits.append("deep")
     return hits
 

@@ -86,7 +86,9 @@ Every delegation message to a subagent contains:
 
 **Long jobs.** When a job will outlast the agent's turn (cold dependency download, long build), the agent starts it in the background and returns `Status: in-progress` with `Job:` filled, writing nothing it cannot finish. Record the Job in `## In flight` and resume the SAME agent (SendMessage) when it finishes. At most two in-progress hand-backs per task run; a third counts as `stalled`. in-progress is not an end state and does not move the task issue.
 
-**In flight.** Write a row in `status.md` `## In flight` BEFORE each dispatch (Task, Issue, Agent, Agent ID, Model, Worktree, Dispatched UTC, Expect back, Job; Agent ID `pending` until the dispatch returns it) and clear or update it when the reply is processed.
+**In flight.** Write a row in `status.md` `## In flight` BEFORE each dispatch (Task, Issue, Agent, Agent ID, Model, Worktree, Dispatched UTC, Expect back, Job; Agent ID `pending` until the dispatch returns it) and clear or update it when the reply is processed. With `Tracking: github`, mirror the dispatch on the task's board item (`Status`, `Agent`, `Model`, `Worktree`) and put questions for the user on the issue with the `needs-you` label (contract section 5, "Board as the user's dashboard"); a board move or comment never approves a gated action.
+
+**Health check.** Run the `health` skill on resume, before a long run, and before removing worktrees; report its `warn` and `fail` rows to the user.
 
 Subagents do not see this conversation. Put everything they need into the delegation or into files they will read.
 
