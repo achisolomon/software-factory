@@ -51,6 +51,7 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | 29 | Every work item, PR, commit or CI run mentioned is a clickable link (rule 9.14) | user request | done (0.5.0) | contract 9.14, team-lead Talking to the user, Codex role playbook, README |
 | 30 | Team table in every status: agents with their real model (inherited or coordinator labelled), background processes separate | user request | done (0.5.0) | team-lead Team table and status template, resume skill, Codex role playbook, contract section 3 |
 | 31 | FinOps checks the GitHub Actions budget; CI workflow changes route to FinOps | user request | done (0.5.0) | finops-engineer GitHub Actions budget and CG-06 to CG-08, `scripts/review-route`, triage, review skill, project facts |
+| 32 | Machine-wide lock for local CI across parallel worktrees (fixed ports, per-worktree logs, symlink lock, IPv4 and IPv6 port check, safe stale takeover) | pushapp web 2026-10-29, [PR 357](https://github.com/Pushapp-Team/web/pull/357) | done (0.5.7) | `reference/local-ci-lock.sh`, devops-engineer Build mode, team-lead build loop step 7, test-automation-engineer Verify mode |
 
 ### Considered and declined
 
@@ -127,3 +128,4 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 - 0.5.4 (2026-10-27): the team table gains a Status column (running, blocked, done, to do) and replaces the separate "Finished" and "Next" lists; done rows only since the last status, at most five to do rows.
 - 0.5.5 (2026-10-27): updating is one line for the VS Code terminal, or the user asks Claude to "update the software factory" and approves the command.
 - 0.5.6 (2026-10-28): team table `done` rows keep the agent's real ID (copied from In flight before the row is cleared); Issue is always a link (issue, else PR, else plan file) or `none`, never a repo name or bare label.
+- 0.5.7 (2026-10-29): local CI lock template (`reference/local-ci-lock.sh`) so parallel worktrees queue for fixed ports instead of colliding; DevOps, Team Lead and Test agents use it.
