@@ -1,6 +1,6 @@
 {
   "name": "software-factory",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "A multi-agent software factory for planning, building, reviewing, and releasing software with approval gates.",
   "author": {
     "name": "Achi Solomon",
