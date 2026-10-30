@@ -13,6 +13,8 @@ import sys
 import time
 import urllib.request
 
+from factory_scope import factory_roots
+
 LATEST_URL = "https://raw.githubusercontent.com/achisolomon/software-factory/main/.claude-plugin/plugin.json"
 CACHE_SECONDS = 6 * 3600
 VERSION = re.compile(r"^\d+(\.\d+){1,3}$")
@@ -64,11 +66,23 @@ def as_tuple(version):
     return tuple(int(part) for part in version.split("."))
 
 
+def compact_note(cwd):
+    """Context for the Team Lead when a factory session starts without an auto-compact threshold, else ''."""
+    if os.environ.get("CLAUDE_AUTOCOMPACT_PCT_OVERRIDE") or not factory_roots(cwd):
+        return ""
+    settings = Path(cwd) / ".claude" / "settings.json"
+    return (f" No auto-compact threshold is set for sessions started in {cwd}, so compaction waits until the "
+            f"context is nearly full. If you act as the Team Lead, tell the user once and offer "
+            f"/software-factory:session-setup, which writes env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE to {settings} "
+            f"(the folder sessions start from, which covers every repo below it).")
+
+
 def main():
     try:
-        json.load(sys.stdin)
+        payload = json.load(sys.stdin)
     except ValueError:
-        pass
+        payload = None
+    cwd = str((payload.get("cwd") if isinstance(payload, dict) else None) or os.getcwd())
     current = installed()
     if not current:
         return 0
@@ -88,6 +102,13 @@ def main():
                    f"status this session with \"Software Factory v{current}\". If the user asks to update the "
                    f"Software Factory, run this with Bash (the user approves it): {UPDATE}. Then tell them to run "
                    f"Developer: Reload Window (or restart Claude Code) and start a new chat.")
+    try:
+        note = compact_note(cwd)
+    except Exception:  # never block the session start over this check
+        note = ""
+    if note:
+        context += note
+        message += " Auto-compact threshold not set for this folder: run /software-factory:session-setup."
     print(json.dumps({"systemMessage": message,
                       "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}))
     return 0

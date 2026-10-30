@@ -13,6 +13,8 @@ from pathlib import Path
 import re
 import sys
 
+from factory_scope import factory_roots
+
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
 MAX_DEPTH = 6
 EXTERNAL = "irreversible or external (contract rule 9.7)"
@@ -638,7 +640,7 @@ def scan(text, ctx, depth=0):
 
 
 def in_factory_project(cwd):
-    return any(os.path.isfile(os.path.join(p, "docs", "factory", "status.md")) for p in [cwd, *map(str, Path(cwd).parents)])
+    return bool(factory_roots(cwd))
 
 
 def decision(findings):

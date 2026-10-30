@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: retro-names-asset
+# Backlog 24: the retro has at most two changes, each with an owner and a check, and is complete only when it
+# names the asset produced (rule, check, test, eval or brain note) or says none is needed and why.
+context:
+  scaffold_script: scaffold.sh

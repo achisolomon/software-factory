@@ -25,6 +25,9 @@ SHARED_RULES = [
     "needs-you",
     "never approves a gated action",
     "review-route",
+    "A lane summary (Lane | Tasks) never replaces this table",
+    "needs no hand-written compact message",
+    "the factory project is the repo below it with `docs/factory/status.md`",
 ]
 
 

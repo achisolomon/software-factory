@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: team-table-after-compaction
+# Backlog 37 (pushapp Steps 4-5, 2026-10-30): after compaction the Team Lead answered with the summary's
+# Lane | Tasks table instead of the team table. The eval runner cannot compact a session, so the prompt replays
+# a compacted continuation (summary plus the after-compact hook text) and then asks for status.
+context:
+  scaffold_script: scaffold.sh

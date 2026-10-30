@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: status-cadence-cron
+# Backlog 20: an opt-in status cadence is a session cron (CronCreate) that reports the team table read-only.
+context:
+  scaffold_script: scaffold.sh

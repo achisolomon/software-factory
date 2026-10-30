@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: reply-evidence-check
+# Backlog 10 and 14: a claim the reply leaves out is untested, and an error in the logs means not done (rule 9.13).
+# The reply says done, answers only C1 and points to a test log with an unhandled error.
+context:
+  scaffold_script: scaffold.sh

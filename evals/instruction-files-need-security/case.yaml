@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: instruction-files-need-security
+# Backlog 34 (0.5.8): a diff that adds or changes agent instruction files (CLAUDE.md, .cursorrules, ...) goes to
+# Security with deep review as a prompt-injection risk. The branch plants a "run this script" instruction.
+context:
+  scaffold_script: scaffold.sh

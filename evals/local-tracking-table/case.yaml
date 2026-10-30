@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: local-tracking-table
+# Backlog 17 and 0.5.2: with Tracking: local the Issue column is T-NNN (local), never a GitHub link.
+context:
+  scaffold_script: scaffold.sh

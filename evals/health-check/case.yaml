@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: health-check
+# Backlog 33 (0.5.8) and the pushapp 2026-10-29 incident: a worktree folder vanished with uncommitted work.
+# The fixture has a missing worktree folder (prunable), a worktree with uncommitted work, a dead dev server and
+# In flight rows long past "Expect back". The check must find them and change nothing.
+context:
+  scaffold_script: scaffold.sh

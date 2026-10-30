@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: team-table-status
+# Backlog 26, 30, 0.5.2-0.5.6, 37: the "team lead" trigger, then one full team table built from status.md and the
+# running workflow's run folder (agents, models and the done row exist only there).
+context:
+  scaffold_script: scaffold.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: plan-drift-batched
+# Backlog 19: plan-text corrections that do not change the next task are batched for one Architect pass at
+# epic end, not sent one by one.
+context:
+  scaffold_script: scaffold.sh

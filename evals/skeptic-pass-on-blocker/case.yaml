@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: skeptic-pass-on-blocker
+# Backlog 11: every Blocker or Major gets a read-only skeptic agent that tries to refute it before any fix round
+# (opus for a Security Blocker). Minors get no skeptic.
+context:
+  scaffold_script: scaffold.sh

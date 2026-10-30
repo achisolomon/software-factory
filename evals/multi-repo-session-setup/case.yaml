@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: multi-repo-session-setup
+# Multi-repo workspaces and backlog 38: sessions start in the workspace folder, so the auto-compact threshold
+# goes to the workspace's .claude/settings.json; the project's own file is never loaded from there.
+context:
+  scaffold_script: scaffold.sh

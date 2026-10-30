@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: mutation-check-required
+# Backlog 13: critical logic (a Must criterion, auth) needs a mutation check in the verify report before the task
+# is done.
+context:
+  scaffold_script: scaffold.sh
