@@ -21,7 +21,7 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | # | Idea | Source | Status | Where |
 |---|---|---|---|---|
 | 1 | Enforce gates with hooks, not only prompts | Eve | done (0.5.0) | `hooks/gate.py` and the other hooks, `docs/TRUST.md`; plan below kept for reference |
-| 2 | Evals for the factory's own behavior | Eve | open | see "How: 2" below |
+| 2 | Evals for the factory's own behavior | Eve | done (0.5.9): 18 cases, one per finding of 2026-10-27 to 10-30 | `evals/` (run with `claude plugin eval`), coverage map in `evals/README.md`, offline checks in `tests/test_evals.py` |
 | 3 | Independent reviewer | Eve, Outsourcerer | partly done (skeptic pass, 0.5.0; also covered by #8) | see "How: 3" below |
 | 4 | Triage first, fast path for small work | Eve | done (0.3.0) | `agents/triage-classifier.md`, team-lead "Starting a request", contract section 2 |
 | 5 | Shared per-repo memory with curated writes ("factory brain") | Eve | done (0.3.0) | `docs/factory/brain.md` in each project, team-lead "The factory brain", contract rules 9.1, 9.9, reply field `Brain notes` |
@@ -56,6 +56,8 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | 34 | Agent instruction files (`CLAUDE.md`, `AGENTS.md`, `SKILL.md`, `.cursorrules`, `.mcp.json` and the like) in a diff route to Security and deep review as a prompt-injection risk | same post (nightly scan for planted instruction files) | done (0.5.8) | `scripts/review-route`, security-engineer Review mode |
 | 35 | Drift test: key Team Lead rules must be in both `agents/team-lead.md` and the Codex role playbook | same post (routine prompts drifting from their copies) | done (0.5.8) | `tests/test_prompt_sync.py`; it found the 0.5.7 lock rule missing from the playbook |
 | 36 | GitHub Project as the user's dashboard: `Agent`, `Model`, `Worktree` fields, a `needs-you` label and "Needs you" view, answers by issue comment from the user's login; never approval for a gated action | same post (Factory Dashboard decision cards), user request | done (0.5.8) | contract section 5, team-lead In flight, Codex role playbook |
+| 37 | After compaction the Team Lead dropped the team table for a Lane / Tasks summary: the compact hook only said "re-read", and Workflow agents are not in the Team Lead's tool results | pushapp Steps 4-5 session, 2026-10-30 (skill-mode Team Lead, 6 compactions, team-lead.md read once) | done (0.5.9) | `hooks/after_compact.py` injects the Team table section; team-lead and Codex playbook: read Workflow agents from progress or `journal.jsonl` |
+| 38 | User typed `/compact` by hand: no `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` was set where the session starts (workspace parent folder, not the project) | same session | done (0.5.9) | `session-setup` default 30 and writes to the start folder's settings; Team Lead keeps state on disk after every wave and never asks for `/compact` |
 
 ### Considered and declined
 
@@ -133,4 +135,5 @@ Points 1 and 2 are a few lines in `team-lead.md`; 4 and 5 are a new optional ste
 - 0.5.5 (2026-10-27): updating is one line for the VS Code terminal, or the user asks Claude to "update the software factory" and approves the command.
 - 0.5.6 (2026-10-28): team table `done` rows keep the agent's real ID (copied from In flight before the row is cleared); Issue is always a link (issue, else PR, else plan file) or `none`, never a repo name or bare label.
 - 0.5.7 (2026-10-29): local CI lock template (`reference/local-ci-lock.sh`) so parallel worktrees queue for fixed ports instead of colliding; DevOps, Team Lead and Test agents use it.
+- 0.5.9 (2026-10-30): the after-compact hook injects the Team table rules; Workflow agents are read from the workflow's progress or journal; a lane summary never replaces the table; auto-compact default 30, set in the folder the session starts from; state kept on disk after every wave so compaction needs no hand-written message. Behavior evals in `evals/` (18 cases simulating each finding of the week, graded on the reply and tool calls), offline suite checks, and unit tests for the local CI lock. Multi-repo workspaces: hooks find the factory project below the start folder (`hooks/factory_scope.py`; the gate hook was silent there before), the session-start hook flags a missing auto-compact threshold, and the Team Lead uses the project below the workspace.
 - 0.5.8 (2026-10-29): `health` skill (read-only factory health check); agent instruction files route to Security and deep review; prompt drift test between Claude Code and Codex; GitHub Project as the user's dashboard (fields, `needs-you` label and view, comment answers, never gate approval).

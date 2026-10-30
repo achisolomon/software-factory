@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: session-setup-asks-first
+# Backlog 22 and 38: session-setup proposes CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (default 30 from project facts),
+# shows the diff and asks before writing any settings file.
+context:
+  scaffold_script: scaffold.sh

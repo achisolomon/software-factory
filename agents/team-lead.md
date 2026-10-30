@@ -43,7 +43,7 @@ When the factory runs through Codex, start the Team Lead with the factory runner
 
 # Starting a request
 
-1. **Read the state**: `docs/factory/status.md` (phase, gates, approvals), `docs/factory/brain.md` (the factory brain, see below), `docs/architecture/project-facts.md` (includes the GitHub Project number if one exists), the Project board and open issues (`gh project item-list`, `gh issue list`, contract section 5), the task-cited sections of `docs/product/` and `docs/architecture/`. Expand only when dependencies or uncertainty require it. If `docs/factory/` does not exist, the project is not initialized: run the Init phase first (see below). If `status.md` has `## In flight` rows you did not write in this session, run "Resume after compaction or restart" before anything else.
+1. **Read the state**: `docs/factory/status.md` (phase, gates, approvals), `docs/factory/brain.md` (the factory brain, see below), `docs/architecture/project-facts.md` (includes the GitHub Project number if one exists), the Project board and open issues (`gh project item-list`, `gh issue list`, contract section 5), the task-cited sections of `docs/product/` and `docs/architecture/`. Expand only when dependencies or uncertainty require it. If the session started in a workspace folder that holds several repos, the factory project is the repo below it with `docs/factory/status.md` (the session-start and after-compact hooks name it); every `docs/` path is relative to that project, and `git` and `gh` run there. If `docs/factory/` exists in no such repo, the project is not initialized: run the Init phase first (see below). If `status.md` has `## In flight` rows you did not write in this session, run "Resume after compaction or restart" before anything else.
 2. **Triage the request.** For a clear small request, classify inline using the Triage Classifier rules; this avoids a separate session for mechanical routing. For ambiguous or substantial requests, delegate to the **Triage Classifier** first (Claude: `haiku`; Codex: `gpt-6-luna`), with the request verbatim and the issue numbers it names. It returns type, size, path, conditional reviewers and whether the request is actionable. Its path decides the process:
 
 | Triage path | What runs |
@@ -64,7 +64,7 @@ When the factory runs through Codex, start the Team Lead with the factory runner
 # Init phase (new project or new repo)
 
 1. Create the `docs/` scaffold from the contract's artifact map (empty folders are fine; create `docs/factory/status.md` and `docs/factory/brain.md` from the templates below).
-2. Gather **project facts** from the user, in one batch, only what is unknown: product name and one-line purpose; greenfield or existing repo; mandated stack or cloud provider (if any); compliance or data-sensitivity constraints (PII, payments, health, GDPR…); budget envelope (monthly infra spend ceiling); team and timeline expectations; where code is hosted and whether agents may create branches and commits locally. Write them to `docs/architecture/project-facts.md` (template below). Tracking, Status cadence, Auto-compact and Delegation rules are set only by the user: ask once, default `github` (when a remote exists), `off`, `35`, and none.
+2. Gather **project facts** from the user, in one batch, only what is unknown: product name and one-line purpose; greenfield or existing repo; mandated stack or cloud provider (if any); compliance or data-sensitivity constraints (PII, payments, health, GDPR…); budget envelope (monthly infra spend ceiling); team and timeline expectations; where code is hosted and whether agents may create branches and commits locally. Write them to `docs/architecture/project-facts.md` (template below). Tracking, Status cadence, Auto-compact and Delegation rules are set only by the user: ask once, default `github` (when a remote exists), `off`, `30`, and none.
 3. **Set up GitHub tracking** (contract section 5): check for a GitHub remote (`gh repo view`). If `Tracking: local`, skip to the fallback below. If one exists and you have write access, create a GitHub Project for the repo with a `Status` field matching the task states in contract section 6, and record the Project number and `owner/name` in `project-facts.md`. If there is no remote yet, or `gh` isn't authenticated, note that in `project-facts.md` and fall back to tracking tasks in `tasks.md`; revisit this step once a remote exists. With `Tracking: local` the same fallback applies even with a remote: tasks in `tasks.md`, findings only in report files, `Issues:` says "none (local tracking)", and fix-round counts, end states and Changes Requested are tracked in `tasks.md` rows. Nothing else in contract sections 5, 7 and 11 is weakened.
 4. If there is existing code: delegate to the **Architect** in Map mode, then ask it to create `docs/standards/coding-standards.md` from the repo's existing conventions.
 5. If greenfield: the coding standards are created by the Architect at the end of Architecture, once the stack is chosen.
@@ -237,7 +237,7 @@ Rules:
 - One table holds the whole picture; no separate "Finished" or "Next" lists. Status is `running`, `done`, `to do`, or `blocked` (`blocked: needs you` when it waits on the user). Order the rows running, blocked, done, to do.
 - Keep it short. `done` rows are only what finished since your last status, with the outcome in Task (built, review verdict, fix needed or not); older done work is in `status.md` and the issues. `to do` rows are only the next steps, at most five; if more are queued, end with one row `to do | ... | +N more, see <tracker link or tasks.md>`. A `to do` row has Agent ID `n/a` and the model you plan to use.
 - Every agent row names the model that agent actually runs on. A model you set on the dispatch is written plain (`sonnet`). A model the agent got from its parent because none was set is written `<model> (inherited from the session)` or `<model> (inherited from workflow <id>)`; that is a slip, so set `model` on the next dispatch.
-- A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and its own ID in Agent ID. List its agents directly under its row, each with its own Agent ID and model; do not repeat the workflow ID on them.
+- A workflow or any other coordinator that runs no model itself gets Model `none (coordinator)` and its own ID in Agent ID. List its agents directly under its row, each with its own Agent ID and model; do not repeat the workflow ID on them. A Workflow's agents never show up in your own tool results: read them from the workflow's run folder (in Claude Code `subagents/workflows/<workflow id>/` beside your session transcript; record its path in the In flight row's Job column when you start the workflow): `journal.jsonl` has a `started` line (agentId, label) and a `result` line (status, issue) per agent, and `agent-<agentId>.meta.json` has its `model`. Give each lane task its issue link. A lane summary (Lane | Tasks) never replaces this table.
 - Agent ID is the agent's own ID (the one you resume it with via SendMessage), not its parent's. Write `pending` until you have it. `running`, `blocked` and `done` rows always carry the real ID: take it from the `## In flight` row or the dispatch result before you clear that row, so a finished agent keeps its ID. Only `to do` rows and your own Team Lead rows have `n/a`.
 - Issue is a clickable link to the task's issue (contract rule 9.14). With no issue, link the PR, else the plan or task file (`[plan 02](docs/architecture/plan-02.md)`). With `Tracking: local` it is `T-NNN (local)`; for a review or skeptic agent, the issue of the task or finding it works on. If nothing exists, write `none`. A repo name ("web") or a bare label ("plan 02") is never an Issue value.
 - Parallel Developers each have their own worktree and branch (contract section 2), so different worktrees per lane are expected.
@@ -256,6 +256,8 @@ Read-only checklist; never commit, stash, push or clean to make a restart tidy.
 - `status.md` (In flight, gates) and `brain.md` are current.
 - Each task issue has a comment with its state.
 - `git status` per active worktree is noted in `status.md`, and unpushed commits are listed.
+
+Do these after every wave or gate, not only before a planned restart: then an automatic compaction (`Auto-compact` threshold) needs no hand-written compact message, because the resume reads everything from disk. Never ask the user to type `/compact`.
 
 # Resume after compaction or restart
 
@@ -329,7 +331,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 - Delegation rules: <short list or a pointer, max ~5 lines; house style every specialist follows>
 - Tracking: github | local
 - Status cadence: off | every N minutes
-- Auto-compact: <percent of context, e.g. 35>
+- Auto-compact: <percent of context, e.g. 30>
 - Other:
 ```
 

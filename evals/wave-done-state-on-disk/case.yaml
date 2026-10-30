@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: wave-done-state-on-disk
+# Backlog 38 (2026-10-30): the user had to write a compact message and type /compact by hand. The Team Lead must
+# keep status.md current after every wave, so an automatic compaction loses nothing, and never ask for /compact.
+context:
+  scaffold_script: scaffold.sh

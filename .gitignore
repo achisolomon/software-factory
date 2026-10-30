@@ -3,3 +3,6 @@
 # Local Python verification artifacts
 __pycache__/
 .ruff_cache/
+
+# Plugin eval results
+evals/results/

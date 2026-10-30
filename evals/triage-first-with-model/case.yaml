@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: triage-first-with-model
+# Backlog 4 and 25, and the user's model rule: every request goes to the Triage Classifier first, every dispatch
+# names its model, and a one-line fix takes the fast path (no PM, UX or FinOps). Dispatches real subagents: slow.
+context:
+  scaffold_script: scaffold.sh

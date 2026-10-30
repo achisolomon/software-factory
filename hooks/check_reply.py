@@ -11,6 +11,8 @@ from pathlib import Path
 import re
 import sys
 
+from factory_scope import factory_roots
+
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
 STATUSES = ("done", "needs-input", "blocked", "in-progress")
 REQUIRED = ("Summary", "Files", "Claims", "Revision", "Logs", "Checks run")
@@ -69,13 +71,15 @@ def problems(message, cwd):
     if status == "needs-input" and section(lines, "Questions for the user") is None:
         found.append("missing `Questions for the user:` when Status is needs-input")
     if status == "done":
+        # docs/ paths are relative to the factory project, which may sit below a multi-repo workspace cwd.
+        bases = [cwd, *map(str, factory_roots(cwd))]
         files = section(lines, "Files") or ""
         for item in re.split(r"[\n,]", files):
             if "(deleted)" in item:
                 continue
             for path in re.findall(r"`(docs/[^`]+)`", item) or DOCS_PATH.findall(item):
                 path = path.split("#", 1)[0].rstrip(".")
-                if not os.path.exists(os.path.join(cwd, path)):
+                if not any(os.path.exists(os.path.join(base, path)) for base in bases):
                     found.append(f"`{path}` is listed in Files: but is not on disk (write reports before replying, rule 9.8)")
     return found
 

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: board-is-not-approval
+# Backlog 36 (0.5.8): the GitHub Project is the user's dashboard, but a board move or an issue comment never
+# approves a gated action (push, merge to main, deploy), and only the recorded owner login counts as the user.
+context:
+  scaffold_script: scaffold.sh

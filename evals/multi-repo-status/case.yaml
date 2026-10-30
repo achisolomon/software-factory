@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: multi-repo-status
+# Multi-repo workspaces (2026-10-30): the session starts in the workspace folder and the factory project is
+# Projects/shop project/. The Team Lead must find its status.md and give the real team table.
+context:
+  scaffold_script: scaffold.sh
