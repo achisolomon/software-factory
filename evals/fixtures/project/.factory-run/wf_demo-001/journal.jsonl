@@ -1,0 +1,6 @@
+{"type":"launched"}
+{"type":"started","key":"v2:k21","agentId":"a21c0up0n5dev0001","label":"dev:coupons:T-21","phase":"Build"}
+{"type":"started","key":"v2:k22","agentId":"a22c0up0n5u10002","label":"dev:coupons-ui:T-22","phase":"Build"}
+{"type":"started","key":"v2:k23","agentId":"a23ana1yt1c50003","label":"dev:analytics:T-23","phase":"Build"}
+{"type":"result","key":"v2:k22","agentId":"a22c0up0n5u10002","result":{"status":"done","commit":"9f1e2d3","issue":"https://github.com/acme/shop/issues/22","summary":"Coupon list screen built; unit tests pass"}}
+{"type":"started","key":"v2:k22r","agentId":"a22rev1ew5ec0004","label":"security:coupons-ui:T-22","phase":"Review"}

@@ -382,7 +382,12 @@ class AfterCompactTests(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k != "CLAUDE_PLUGIN_ROOT"}
             result = subprocess.run([sys.executable, str(HOOKS / "after_compact.py")], input=json.dumps({"cwd": cwd}),
                                     capture_output=True, text=True, env=env)
-            self.assertIn("the plugin's agents/team-lead.md", result.stdout)
+            context = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+            self.assertIn(str(HOOKS.parent / "agents" / "team-lead.md"), context)
+            # The Team table section itself is injected, ending before the next section.
+            self.assertIn("# Team table", context)
+            self.assertIn("A lane summary (Lane | Tasks) never replaces this table", context)
+            self.assertNotIn("# Status cadence", context)
 
     def test_silent_elsewhere(self):
         with tempfile.TemporaryDirectory() as cwd:
@@ -430,6 +435,76 @@ class VersionCheckTests(unittest.TestCase):
 
     def test_silent_without_installed_version(self):
         self.assertIsNone(self.check("not-a-version", json.dumps({"version": "0.5.2"})))
+
+
+class MultiRepoWorkspaceTests(unittest.TestCase):
+    """A session started in a workspace folder that holds several repos (pushapp/ with Projects/pushapp project/)."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.ws = Path(os.path.realpath(self.temp.name)) / "workspace"
+        self.project = self.ws / "Projects" / "shop project"
+        for folder in (self.project, self.ws / "Projects" / "infra", self.ws / "handovers"):
+            folder.mkdir(parents=True)
+        (self.project / "docs" / "factory").mkdir(parents=True)
+        (self.project / "docs" / "factory" / "status.md").write_text("# Shop — Factory Status\n")
+        (self.project / "docs" / "reports").mkdir()
+        (self.project / "docs" / "reports" / "T-1.md").write_text("report\n")
+
+    def plant(self, *parts):
+        folder = self.ws.joinpath(*parts, "docs", "factory")
+        folder.mkdir(parents=True)
+        (folder / "status.md").write_text("decoy\n")
+
+    def test_factory_roots(self):
+        sys.path.insert(0, str(HOOKS))
+        self.addCleanup(sys.path.remove, str(HOOKS))
+        from factory_scope import factory_roots
+        self.plant("node_modules", "pkg")
+        self.plant("Projects", "app", "fixtures", "sample")
+        self.plant(".claude", "worktrees", "lane-a")
+        self.plant("a", "b", "c", "d")  # deeper than MAX_DEPTH
+        self.plant("Projects", "worktrees", "lane-b")
+        (self.ws / "Projects" / "worktrees" / "lane-b" / ".git").write_text("gitdir: /elsewhere\n")  # a git worktree
+        self.assertEqual(factory_roots(self.ws), [self.project])
+        (self.project / "src").mkdir()
+        self.assertEqual(factory_roots(self.project / "src"), [self.project])
+        self.assertEqual(factory_roots(self.ws / "handovers"), [])
+
+    def test_gate_asks_from_the_workspace_folder(self):
+        payload = {"tool_name": "Bash", "tool_input": {"command": "git push origin main"}, "cwd": str(self.ws)}
+        out = json.loads(run("gate.py", payload).stdout)["hookSpecificOutput"]
+        self.assertEqual(out["permissionDecision"], "ask")
+        payload["cwd"] = str(self.ws / "handovers")
+        self.assertEqual(run("gate.py", payload).stdout, "")
+
+    def test_after_compact_names_the_project(self):
+        out = json.loads(run("after_compact.py", {"cwd": str(self.ws)}).stdout)["hookSpecificOutput"]
+        self.assertIn(str(self.project / "docs" / "factory" / "status.md"), out["additionalContext"])
+
+    def test_reply_check_finds_reports_in_the_project(self):
+        message = ("Status: done\nSummary: x\nFiles: docs/reports/T-1.md\nClaims: C1 passed\nRevision: abc\n"
+                   "Logs: clean\nChecks run: npm test\n")
+        payload = {"agent_type": DEV, "last_assistant_message": message, "cwd": str(self.ws)}
+        self.assertEqual(run("check_reply.py", payload).stdout.strip(), "")
+        payload["last_assistant_message"] = message.replace("T-1.md", "T-2.md")
+        self.assertIn("T-2.md", run("check_reply.py", payload).stdout)
+
+    def test_session_start_flags_missing_auto_compact(self):
+        env = {"CLAUDE_PLUGIN_DATA": str(self.ws / "data"), "SOFTWARE_FACTORY_LATEST_URL": "file:///nonexistent"}
+        env_no = {k: v for k, v in os.environ.items() if k != "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"}
+        env_no.update(env)
+        result = subprocess.run([sys.executable, str(HOOKS / "version_check.py")], capture_output=True, text=True,
+                                input=json.dumps({"source": "startup", "cwd": str(self.ws)}), env=env_no)
+        out = json.loads(result.stdout)
+        self.assertIn("session-setup", out["systemMessage"])
+        self.assertIn(str(self.ws / ".claude" / "settings.json"), out["hookSpecificOutput"]["additionalContext"])
+        out = json.loads(run("version_check.py", {"source": "startup", "cwd": str(self.ws)},
+                             env={**env, "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "30"}).stdout)
+        self.assertNotIn("session-setup", out["systemMessage"])
+        out = json.loads(run("version_check.py", {"source": "startup", "cwd": str(self.ws / "handovers")}, env=env).stdout)
+        self.assertNotIn("auto-compact", out["hookSpecificOutput"]["additionalContext"].lower())
 
 
 class TeamLeadTriggerTests(unittest.TestCase):
