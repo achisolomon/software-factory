@@ -50,7 +50,7 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 17 | Local tracking | eval `local-tracking-table` |
 | 18 | Delegation rules pointer in project facts | not covered: a pointer in a template, no behavior to grade |
 | 19 | Plan drift batching | eval `plan-drift-batched` |
-| 20 | Status cadence (session cron) | eval `status-cadence-cron` |
+| 20 | Status cadence (session cron) | eval `status-cadence-cron`, eval `status-cadence-default` |
 | 21 | Restart safety and resume | unit `test_hooks.AfterCompactTests`; eval `team-table-after-compaction` |
 | 22 | Auto-compact threshold via session-setup | eval `session-setup-asks-first` |
 | 23 | Review routing script | unit `test_review_route` |

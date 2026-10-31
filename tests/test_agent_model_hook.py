@@ -60,6 +60,41 @@ class LookupOnHaikuTests(unittest.TestCase):
             self.assertEqual(self.explore("sonnet", cwd=plain).returncode, 0)
 
 
+class NoFableUnlessAskedTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self.tmp.name)
+        (self.project / "docs" / "factory").mkdir(parents=True)
+        (self.project / "docs" / "factory" / "status.md").write_text("# Status\n")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def dispatch(self, model, prompt="Design review T-3", cwd=None):
+        return run_hook({"subagent_type": "software-factory:software-architect", "model": model, "prompt": prompt},
+                        cwd or str(self.project))
+
+    def test_blocks_fable_in_factory_project(self):
+        for model in ("fable", "claude-fable-5-1"):
+            result = self.dispatch(model)
+            self.assertEqual(result.returncode, 2, model)
+            self.assertIn("Fable requested by user:", result.stderr)
+
+    def test_allows_fable_when_user_asked(self):
+        result = self.dispatch("fable", "Design review T-3\nFable requested by user: use fable for this design")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_empty_request_does_not_count(self):
+        self.assertEqual(self.dispatch("fable", "Design T-3\nFable requested by user:").returncode, 2)
+
+    def test_allows_opus(self):
+        self.assertEqual(self.dispatch("opus").returncode, 0)
+
+    def test_ignores_fable_outside_factory_projects(self):
+        with tempfile.TemporaryDirectory() as plain:
+            self.assertEqual(self.dispatch("fable", cwd=plain).returncode, 0)
+
+
 class AgentModelHookTests(unittest.TestCase):
     def test_blocks_factory_agent_without_model(self):
         for agent in ("software-factory:software-architect", "software-architect"):

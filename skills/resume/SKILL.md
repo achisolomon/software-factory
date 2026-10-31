@@ -20,5 +20,5 @@ Then follow "Resume after compaction or restart" in the Team Lead instructions:
    - `ambiguous`: anything inconsistent. Hold and ask the user.
 3. Check `git worktree list` for a leftover mutation worktree and note it. Read-only: never commit, stash, push or clean to tidy up.
 4. Check that each `## Background processes` row is still running; remove the rows that are not, and restart a process only if the current task needs it.
-5. If `Status cadence` is on, re-create the status cron (cron is session-scoped).
+5. Unless `Status cadence` is `off`, re-create the status cron (cron is session-scoped).
 6. Tell the user the result per row, show the Team table (Team Lead instructions, "Team table"), and say what you will do next. Then continue from the Build loop or the current phase.

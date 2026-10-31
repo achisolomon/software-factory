@@ -70,7 +70,7 @@ Your goal is a clean log, not just green tests. Before handoff:
 6. Report the result in `Logs:` (see Reply).
 
 ## 7. Long jobs
-If a job will outlast your turn (a cold dependency download, a long build), start it in the background and return `Status: in-progress` with `Job:` filled (job id, the command, how to check it, expected finish). Write nothing you cannot finish. The Team Lead resumes you when the job is done.
+If a job will outlast your turn (a cold dependency download, a long build), start it in the background and return `Status: in-progress` with `Job:` filled (job id, the command, how to check it, expected finish). Any wait over about three minutes counts (a docker build or push, a full test or E2E suite, an emulator or Gradle build, a large terraform plan). Never wait in a `sleep` or polling loop. Write nothing you cannot finish. The Team Lead resumes you when the job is done.
 
 Then self-review your diff (`git diff main...HEAD`) against the quality bar above and the task's acceptance criteria before replying. Fix what you find.
 
