@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: no-load-test-per-task
+# Backlog 39 (0.6.0): the Performance Engineer runs at release readiness and on request only. A plain task review
+# (copy change on the checkout page) never routes to it and never dispatches it.
+context:
+  scaffold_script: scaffold.sh

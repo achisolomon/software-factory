@@ -67,7 +67,7 @@ task="$*"
 [[ -n "$task" ]] || { printf '%s\n' 'A task is required.' >&2; usage >&2; exit 2; }
 
 case "$role" in
-  team-lead|triage-classifier|product-manager|software-architect|software-developer|test-automation-engineer|devops-engineer|finops-engineer|security-engineer|ux-ui-designer)
+  team-lead|triage-classifier|product-manager|software-architect|software-developer|test-automation-engineer|devops-engineer|finops-engineer|security-engineer|ux-ui-designer|performance-engineer)
     ;;
   *)
     printf 'Unknown Software Factory role: %s\n' "$role" >&2

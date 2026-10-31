@@ -16,6 +16,7 @@ This is the shared contract for every agent in the Software Factory. Every agent
 | DevOps Engineer | `software-factory:devops-engineer` | Containers, CI/CD, infrastructure as code, environments, observability, runbooks | Yes — infra and pipeline code |
 | FinOps Engineer | `software-factory:finops-engineer` | Cost model, cost guardrails, cost reviews | No |
 | Security Engineer | `software-factory:security-engineer` | Threat model, security requirements, security reviews, scans | No |
+| Performance Engineer | `software-factory:performance-engineer` | Performance assessment, sizing, load test plan, load/stress/soak tests and reports. Runs at release readiness and on request only, not per task | Yes — load test code |
 
 The Team Lead runs as the main session (it is the only role that can talk to the user). Every other role runs as a subagent: it cannot ask the user questions directly. When a subagent needs a decision from the user, it stops and returns `Status: needs-input` with its questions (see section 10); the Team Lead asks the user and resumes the agent with the answers.
 
@@ -41,7 +42,7 @@ flowchart LR
 | 2. Architecture | Software Architect | UX/UI Designer (screen specs, design system) | Architecture, ADRs, contracts, `tasks.md`, screen specs, design system | — |
 | 2b. Design reviews | Security, FinOps, DevOps, Test, UX/UI Designer (in parallel) | Architect resolves findings | Threat model, cost model, deployment plan, test strategy, usability review | **Gate 2**: no open Blockers; user approves design and cost envelope |
 | 3. Build loop | Developer | Test, Architect (code review), UX/UI Designer (UI diffs), Security, FinOps when relevant | Code, tests, review reports per task | Task meets the Definition of Done (section 8) |
-| 4. Release readiness | DevOps | Security (final gate), FinOps (cost check), Test (regression), UX/UI Designer (UX gate), PM (acceptance) | Pipelines, IaC, runbook, release notes | **Gate 3**: user approves release |
+| 4. Release readiness | DevOps | Security (final gate), FinOps (cost check), Test (regression), Performance (assessment, load tests, sizing), UX/UI Designer (UX gate), PM (acceptance) | Pipelines, IaC, runbook, load test report, release notes | **Gate 3**: user approves release |
 | 5. Deploy & operate | DevOps | FinOps (actual vs forecast), Security (post-deploy checks) | Deployment, monitoring, cost tracking | — |
 
 Phases are scoped by triage. Every new request (except a status question) is classified first using the Triage Classifier rules: the Team Lead may classify clear small requests inline; ambiguous or substantial requests go to the Triage Classifier, and its `Path` decides how much of the lifecycle runs: `full-lifecycle`, `feature-slice` (Discovery for one epic, the Architecture slice it touches, the Build loop), `build-loop-only`, `fast-path` (one task: Developer, Architect review, Test verification, plus any conditional reviewer triage marked `yes`), `review-only` or `answer-only`. The Team Lead may add process with a stated reason, never remove it without the user.
@@ -126,6 +127,10 @@ docs/
   testing/
     test-strategy.md              # Test Engineer
     reports/T-NNN.md              # Test Engineer
+  performance/
+    assessment.md                 # Performance Engineer — findings and sizing
+    load-test-plan.md             # Performance Engineer
+    reports/<date>-<scope>.md     # Performance Engineer — load test results
   security/
     threat-model.md               # Security
     security-requirements.md      # Security
@@ -141,6 +146,7 @@ docs/
     T-NNN-architecture.md         # Architect
     T-NNN-security.md             # Security
     T-NNN-finops.md               # FinOps
+    T-NNN-performance.md          # Performance Engineer (on request only)
     T-NNN-ux.md                   # UX/UI Designer
     <YYYY-MM-DD>-<scope>-<role>.md   # reviews not tied to a task
   releases/
@@ -153,7 +159,8 @@ Code ownership:
 |---|---|
 | Application source (`src/`, `app/`, `lib/`, packages) | Developer |
 | Unit tests next to or mirroring the source | Developer |
-| Integration, contract, E2E, performance tests (`tests/integration`, `tests/e2e`, …) and test tooling config | Test Engineer |
+| Integration, contract, E2E tests (`tests/integration`, `tests/e2e`, …) and test tooling config | Test Engineer |
+| Load, stress and soak tests (`tests/load`, …) and their tooling | Performance Engineer |
 | `Dockerfile`, `docker-compose*`, `.github/workflows/`, CI config, `infra/`, `deploy/`, Helm/Kustomize | DevOps |
 | Dependency manifests (`package.json`, `pyproject.toml`, `go.mod`, …) | Developer, with DevOps for build/CI scripts. Security reviews every new dependency |
 | `README.md` | Developer (setup and usage), DevOps (run and deploy sections) |
@@ -185,7 +192,7 @@ Tasks and findings are tracked as GitHub Issues on a GitHub Project (board) in t
 
 **Tasks as issues:** the Architect creates one GitHub issue per task instead of (or in addition to, for narrative detail) a row in `tasks.md`. Issue title: `T-NNN: <title>`. Body: the stories it implements, the ADR/SR/CG rules it must respect, acceptance criteria, dependencies on other tasks. Add it to the Project with `Status: Todo`.
 
-**Findings as issues:** every reviewer that raises a Blocker, Major or Minor finding (Architect, Security, FinOps; Test Engineer for failed acceptance criteria) files it as its own GitHub issue in the same repo, not only as a row in its report file. Title: `<severity>(<area>): <short description>`. Body follows section 7's finding format. Label with the severity (`blocker`, `major`, `minor`, `nit`) and `bug` or `enhancement` as fits. Link it to the task issue it's found on (reference `T-NNN` in the body) when there is one. Nits may be noted in the report only, without an issue, at the reviewer's judgment. The report file stays the detailed record; the issue is what makes the finding visible and trackable outside the repo's docs.
+**Findings as issues:** every reviewer that raises a Blocker, Major or Minor finding (Architect, Security, FinOps, Performance; Test Engineer for failed acceptance criteria and behavior untestable by automation) files it as its own GitHub issue in the same repo, not only as a row in its report file. Title: `<severity>(<area>): <short description>`. Body follows section 7's finding format. Label with the severity (`blocker`, `major`, `minor`, `nit`) and `bug` or `enhancement` as fits. Link it to the task issue it's found on (reference `T-NNN` in the body) when there is one. Nits may be noted in the report only, without an issue, at the reviewer's judgment. The report file stays the detailed record; the issue is what makes the finding visible and trackable outside the repo's docs.
 
 **Who may create and update issues:** any specialist whose role owns the finding or task under section 1 and section 3 may run `gh issue create`, `gh issue edit`, `gh issue comment`, `gh project item-add` and `gh project item-edit` (to move the `Status` field) for issues/items in that project's own repo, without a separate per-action approval (this is part of doing the work the Team Lead already delegated, not a new external or irreversible action under rule 9.7). This is narrow: it does not extend to `gh pr create`/`gh pr merge`, `git push`, closing or deleting someone else's issue, changing repo settings, or any `gh` command against a repo other than the one the task is in. Those stay gated exactly as rule 9.7 already requires.
 
@@ -223,6 +230,7 @@ Every review report starts with a verdict: `Approve`, `Approve with changes` (Mi
 A task is done when all of these hold:
 
 - [ ] Every acceptance criterion of its stories that the task covers is met and demonstrated by a test.
+- [ ] Every behavior the task adds or changes is reachable through an API, contract, CLI or event, so an automated test drives it; the Test Engineer's report names the interface per criterion. Behavior testable only by hand is a Major finding for the Architect and the Developer, and the task waits until it is testable.
 - [ ] Unit tests (Developer) and the relevant integration/E2E tests (Test Engineer) pass; the test report is written.
 - [ ] Formatter, linter, type checker and the configured static analysis pass with zero errors and no new warnings.
 - [ ] Test runs, app/server logs and the browser console during the task's tests and smoke run show no errors, unhandled exceptions or new warnings (rule 9.13). Pre-existing log errors are listed as handoffs.
@@ -281,7 +289,8 @@ The Team Lead stops and gets the user's explicit approval at:
 
 - **Gate 1** — PRD and MVP scope.
 - **Gate 2** — Architecture, threat model and cost envelope.
-- **Gate 3** — Release.
+- **Gate 3** — Release (includes the Performance Engineer's load test report; a missed Must NFR is an open Blocker).
+- **Load against a shared, staging or cloud environment**: needs the user's approval naming the environment and the load ceiling, quoted in the delegation. Local targets need none. Production is never a load target.
 - **Infrastructure apply gate**: every `terraform plan` (or equivalent) against a real environment. DevOps self-reviews, then the Architect and FinOps each review and must approve, before the Team Lead presents it to the user. Only on the user's explicit approval does DevOps apply it (Team Lead "Infrastructure apply gate", DevOps agent "Infrastructure apply gate").
 - **Any irreversible or external action** (rule 9.7): push, merge to main, deploy, infrastructure apply, paid resources, data deletion, external messages. (Filing/updating issues and Project items under the section 5 exception is not one of these.) In Claude Code the plugin's gate hook enforces part of rule 9.7 by asking before such commands; in Codex only the prompts enforce it.
 - **Any deferred Blocker or Major**, and any escalation after three fix rounds.
