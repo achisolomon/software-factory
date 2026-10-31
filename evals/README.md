@@ -5,12 +5,16 @@ The unit tests in `tests/` check the scripts and that the rules are written down
 ## Run
 
 ```sh
-claude plugin eval . --scaffold --trust-plugin --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$PWD/**)" --runs 1 --tag fast --max-cost-usd 5
+scripts/behavior-check --tag fast                    # every fast case, with the no-plugin baseline
+scripts/behavior-check lookup-on-haiku team-table-status   # named cases, no baseline
+scripts/behavior-check team-table-status -- --keep-temp --runs 3   # extra runner flags after --
 ```
+
+The script wraps `claude plugin eval . --scaffold --trust-plugin --no-publish --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$PWD/**)" --runs 1 --max-cost-usd 5`, and runs named cases one call each (the runner keeps only the last `--case`). From Claude Code, run it outside the Bash sandbox (`dangerouslyDisableSandbox`); its name has no "eval" in it, so worktree guards that refuse that word let it through.
 
 - `--scaffold` is required: without it the fixture project is never built.
 - `--allow-tools` is required: a case's `allowed_tools` only takes effect for tools granted on the command line. Without it the agent has no shell and cannot write, and those cases fail for the wrong reason. Grep and Glob are needed for search subagents. `"Read(/$PWD/**)"` lets the agents read the plugin's own instruction files (run it from the plugin folder); without it the Team Lead cannot read `agents/team-lead.md` and improvises.
-- Run from your own terminal, not from inside a Claude Code session: there, Bash in the eval sessions fails to start its sandbox (`EPERM ... srt-mux ... sock`).
+- Inside Claude Code's Bash sandbox, Bash in the eval sessions fails to start its own sandbox (`EPERM ... srt-mux ... sock`), and every case that needs a shell fails for the wrong reason. Run the script unsandboxed, or from a terminal.
 - Each case also runs once without the plugin, as a baseline (the report's Δ column). `--ablation none` skips the baseline and halves the cost.
 - `--keep-temp` keeps each run's sandbox and `trace.jsonl`, so you can read the full reply when a grader fails.
 - `--tag fast` covers one-decision cases. `triage-first-with-model` is tagged `slow` because it dispatches real subagents.
