@@ -7,5 +7,5 @@ echo "draft copy" > .worktrees/lane-copy/checkout-copy.md
 # A worktree whose folder is gone: git lists it as prunable.
 git worktree add -q .worktrees/lane-coupons -b lane-coupons
 rm -r .worktrees/lane-coupons
-# The fixture's In flight rows were dispatched 2026-10-30 09:10-09:30 UTC with Expect back 10:15-10:30, so they are
-# overdue now, and nothing listens on the dev stack ports 3000 and 8080.
+# Age the In flight rows to 2026-10-01 so they are long overdue; nothing listens on the dev stack ports 3000 and 8080.
+perl -pi -e 's/\d{4}-\d{2}-\d{2} (\d{2}:\d{2}) \|/2026-10-01 $1 |/g' docs/factory/status.md

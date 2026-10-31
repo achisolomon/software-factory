@@ -5,6 +5,9 @@
 set -e
 FIXTURES="${FIXTURES:-$(cd "$(dirname "$0")/../fixtures" && pwd)}"
 cp -R "$FIXTURES/project/." .
+# Dates are the day of the run, so in-flight work is not overdue (health-check ages them back on purpose).
+TODAY="$(date -u +%Y-%m-%d)"
+perl -pi -e "s/2026-10-30/$TODAY/g" docs/factory/status.md
 git init -q -b main
 git -c user.name=eval -c user.email=eval@example.com add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m "fixture"
