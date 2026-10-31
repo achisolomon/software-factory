@@ -123,7 +123,7 @@ class EvalSuiteTests(unittest.TestCase):
 
     def test_every_recent_finding_is_covered(self):
         readme = (EVALS / "README.md").read_text()
-        for row in range(10, 39):
+        for row in range(10, 40):
             self.assertRegex(readme, rf"\|\s*{row}\s*\|", f"backlog row {row} has no line in evals/README.md")
 
 

@@ -30,7 +30,7 @@ The free offline checks in `tests/test_evals.py` run with the normal suite. They
 - `gh` has no GitHub to reach here. Board and issue activity comes from a file (`board-is-not-approval`).
 - The runner's `regex`, `tool_used` and `target` fields come from its built-in reference, not from public docs. If a grader errors on the first run, check `claude plugin eval --help`.
 
-## Coverage: findings of 2026-10-27 to 2026-10-30
+## Coverage: findings of 2026-10-27 to 2026-10-31
 
 Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md). "Unit" means a test in `tests/`.
 
@@ -65,6 +65,7 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 36 | Board move or comment is never approval | eval `board-is-not-approval` |
 | 37 | Team table lost after compaction; Workflow agents unseen | unit `test_hooks.AfterCompactTests`; evals `team-table-after-compaction`, `team-table-status`; unit `test_evals` (grader self-check) |
 | 38 | User had to compact by hand | evals `wave-done-state-on-disk`, `session-setup-asks-first` |
+| 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance`; unit `test_codex_runtime` (role and model route) |
 
 Multi-repo workspaces (sessions started in a folder that holds several repos, like `pushapp/`):
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
