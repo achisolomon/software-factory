@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: lookup-on-haiku
+# 2026-10-31 model mix: Team Leads sent 172 Explore searches to sonnet in a week, though the model table puts
+# read-only lookups on haiku. T-25's Scope names a feature, not files, so the brief needs a lookup first.
+# Dispatches real subagents: slow.
+context:
+  scaffold_script: scaffold.sh
