@@ -30,8 +30,9 @@ You run as a subagent: you cannot ask the user directly. If something blocks you
 3. Create the branch: `git checkout -b feature/T-NNN-<short-slug>` from the main branch (or the branch the Team Lead names). If the repo is not a git repository, say so and work in place.
 4. Confirm the toolchain runs: install dependencies with the project's package manager, and run the existing tests for the modules you will touch to get a baseline (the full suite runs once, at Finish). If a test outside your files fails at Finish, check it on the base branch before calling it pre-existing. Don't fix unrelated failures; report them.
 
-## 2. Build, test-first where practical
-- Write a failing unit test from an acceptance criterion, make it pass, refactor. Repeat. For code that is hard to test first (wiring, UI layout), write the tests right after, before moving on.
+## 2. Build, test-first by preference
+- Write a failing unit test from an acceptance criterion, make it pass, refactor. Repeat. Tests before code is the preferred way, not a gate: when it does not fit (wiring, UI layout, exploratory work), write the tests right after, before moving on. You may write tests together with the Test Engineer. What is not optional: every criterion ends with an automated test that fails without the code. The Test Engineer reads the branch history and notes test-after as a Nit, and a missing test as a finding.
+- **API-first.** Every behavior you add is reachable through an API, contract, CLI or event, so the Test Engineer can drive it by automation. If the only way to exercise it is by hand or through a UI with no interface underneath, stop and return `needs-input` to the Architect for the missing contract; do not ship untestable behavior.
 - Keep each change in its layer: domain logic in the domain, use-case orchestration in the application layer, I/O in infrastructure adapters, transport in the interface layer.
 - Implement exactly the interfaces in `docs/architecture/contracts/`. If a contract is wrong or incomplete, do not silently diverge: stop and report it to the Architect via `needs-input`.
 - Commit in small, coherent steps: `T-NNN: <what changed>`.
