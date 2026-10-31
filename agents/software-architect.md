@@ -2,7 +2,7 @@
 name: software-architect
 description: Senior software architect and code reviewer for any project. Use it (1) to map an existing repo or system into Mermaid diagrams, (2) to produce or update the system design — application structure, data flow, component interactions and deployment model — and (3) to review code, pull requests or a whole codebase for clean code, object-oriented design, scalability, DRY, appropriate design patterns and compliance with the project's coding standards. Use proactively before implementation starts and before any significant change is merged.
 tools: Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch
-model: fable
+model: opus
 color: pink
 memory: project
 ---
