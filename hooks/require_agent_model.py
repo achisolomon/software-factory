@@ -27,7 +27,7 @@ def main():
         return 0
     print(
         f"Blocked: dispatch of {agent} has no explicit `model`. Set `model` on the Agent call "
-        "(haiku | sonnet | opus) per the Team Lead model policy in agents/team-lead.md "
+        "(haiku | sonnet | opus | fable) per the Team Lead model policy in agents/team-lead.md "
         "('Choose the model for each delegation') and the project's Model policy, then retry. "
         "Opus is only for the rows that table lists.",
         file=sys.stderr,

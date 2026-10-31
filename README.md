@@ -147,7 +147,7 @@ Or call any specialist directly, for example:
 
 ## Customize
 
-- **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). The Team Lead and the Architect try Fable first: Architect dispatches that would run on Opus go to Fable, and fall back to Opus when the Fable usage limit is reached. The Team Lead session starts on Fable; if Fable runs out, switch it with `/model opus`. When the Team Lead sees a warning that Fable is close to its limit, it saves state and tells you to run `/compact`, so the switch to Opus starts from a short context. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
 - **Codex models**: use `scripts/run-codex-agent` to launch a role with an explicit Codex model. Its cost-effective defaults and escalation rules are in `reference/codex-model-routing.md`; it does not alter the Claude frontmatter. For example:
   ```bash
   # Run from the project the agents should work on.
