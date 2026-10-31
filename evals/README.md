@@ -5,10 +5,14 @@ The unit tests in `tests/` check the scripts and that the rules are written down
 ## Run
 
 ```sh
-claude plugin eval . --scaffold --trust-plugin --runs 1 --tag fast --max-cost-usd 5
+claude plugin eval . --scaffold --trust-plugin --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$PWD/**)" --runs 1 --tag fast --max-cost-usd 5
 ```
 
 - `--scaffold` is required: without it the fixture project is never built.
+- `--allow-tools` is required: a case's `allowed_tools` only takes effect for tools granted on the command line. Without it the agent has no shell and cannot write, and those cases fail for the wrong reason. Grep and Glob are needed for search subagents. `"Read(/$PWD/**)"` lets the agents read the plugin's own instruction files (run it from the plugin folder); without it the Team Lead cannot read `agents/team-lead.md` and improvises.
+- Run from your own terminal, not from inside a Claude Code session: there, Bash in the eval sessions fails to start its sandbox (`EPERM ... srt-mux ... sock`).
+- Each case also runs once without the plugin, as a baseline (the report's Δ column). `--ablation none` skips the baseline and halves the cost.
+- `--keep-temp` keeps each run's sandbox and `trace.jsonl`, so you can read the full reply when a grader fails.
 - `--tag fast` covers one-decision cases. `triage-first-with-model` is tagged `slow` because it dispatches real subagents.
 - `--runs 1` is a smoke run. Before a release, use the default 3 runs: the agents are not deterministic, so one pass proves little.
 - `--model` picks the model under test. The pushapp failures happened on Opus, so run on Opus before a release.
@@ -66,6 +70,10 @@ Multi-repo workspaces (sessions started in a folder that holds several repos, li
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
 - The Team Lead finds the project's status: eval `multi-repo-status`.
 - session-setup targets the workspace's settings file: eval `multi-repo-session-setup`.
+
+Model mix (2026-10-31: 172 Explore searches went to sonnet in one week):
+- The model hook blocks an Explore dispatch off `haiku` in a factory project, unless the prompt has `Why not haiku: <reason>`: unit `test_agent_model_hook.LookupOnHaikuTests`.
+- The Team Lead sends a brief's file lookup to `haiku` unprompted: eval `lookup-on-haiku` (slow).
 
 Releases from the same days with no backlog row:
 - 0.5.3, version in the first status: `team-table-status` (`version-named`).
