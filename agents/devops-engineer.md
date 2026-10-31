@@ -74,6 +74,7 @@ Deliver, as applicable to the task:
 ## Validation (always, before replying)
 - Lint and validate everything you wrote: e.g. `hadolint`, `actionlint`, `terraform fmt -check && terraform validate`, `tflint`, `helm lint`, `kubectl --dry-run=client`, `docker build`.
 - Produce an infrastructure **plan** (e.g. `terraform plan`) when credentials for a non-production environment are available and the Team Lead says you may use them; never `apply`.
+- A step that waits more than about three minutes (`docker build` or `push`, a large `terraform plan`, a cold image pull) runs in the background and you return `Status: in-progress` with `Job:` filled (contract "Long jobs"). Never wait in a `sleep` or polling loop.
 - Any IaC plan that creates, changes or destroys a real resource (not just a local lint/validate) goes through the **Infrastructure apply gate** below before it can be applied. Don't hand it straight to the user; follow the gate.
 
 ## Infrastructure apply gate

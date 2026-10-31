@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: status-cadence-default
+# Backlog 20 (0.6.2): with no Status cadence preference, the cadence is on by default (every 15 minutes).
+context:
+  scaffold_script: scaffold.sh

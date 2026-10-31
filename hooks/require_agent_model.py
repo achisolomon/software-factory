@@ -6,6 +6,9 @@ hides the Team Lead's per-delegation model choice and inflates Opus usage.
 In a factory project it also blocks a read-only Explore search on a bigger
 model than haiku, unless the prompt says why ("Why not haiku: ..."). The model
 table puts lookups on haiku, yet Team Leads sent 172 of them to sonnet in one week.
+
+It also blocks any dispatch on fable in a factory project unless the prompt says
+the user asked for it ("Fable requested by user: ..."): Fable used up the weekly allowance.
 """
 
 import json
@@ -19,6 +22,7 @@ from factory_scope import factory_roots
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
 LOOKUP_AGENTS = {"Explore"}
 WHY_NOT_HAIKU = re.compile(r"why not haiku\s*:\s*\S", re.I)
+FABLE_REQUESTED = re.compile(r"fable requested by user\s*:\s*\S", re.I)
 
 
 def main():
@@ -31,6 +35,15 @@ def main():
         return 0
     agent = str(tool_input.get("subagent_type") or "")
     model = str(tool_input.get("model") or "").strip()
+    if ("fable" in model.lower() and not FABLE_REQUESTED.search(str(tool_input.get("prompt") or ""))
+            and factory_roots(str(payload.get("cwd") or os.getcwd()))):
+        print(
+            f"Blocked: {agent or 'this agent'} on `fable`. Fable is used only when the user asks for it. "
+            "Retry on the model the table in agents/team-lead.md gives (`opus` for the heavy rows). "
+            "If the user asked for Fable, add a line 'Fable requested by user: <their words>' to the prompt.",
+            file=sys.stderr,
+        )
+        return 2
     if agent in LOOKUP_AGENTS:
         # A missing model counts as not haiku: it inherits the session's model, often opus.
         if ("haiku" not in model.lower() and not WHY_NOT_HAIKU.search(str(tool_input.get("prompt") or ""))
@@ -51,7 +64,7 @@ def main():
         return 0
     print(
         f"Blocked: dispatch of {agent} has no explicit `model`. Set `model` on the Agent call "
-        "(haiku | sonnet | opus | fable) per the Team Lead model policy in agents/team-lead.md "
+        "(haiku | sonnet | opus) per the Team Lead model policy in agents/team-lead.md "
         "('Choose the model for each delegation') and the project's Model policy, then retry. "
         "Opus is only for the rows that table lists.",
         file=sys.stderr,

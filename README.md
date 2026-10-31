@@ -134,6 +134,7 @@ In the project you want the team to work on:
 | `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
 | `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
 | `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
+| `/software-factory:status` | Shows the Team table now: who is running, blocked, done, and what is next. Read-only. The Team Lead also posts it every 15 minutes during a run (`Status cadence: off` in project facts turns that off) |
 | `/software-factory:review [task \| branch \| path \| all]` | Parallel architecture, security, test and (if relevant) cost review with one consolidated verdict |
 
 You can also run the whole session as the Team Lead: `claude --agent software-factory:team-lead`. Adding `--permission-mode auto` is recommended; the gate hook still asks before irreversible actions.
@@ -147,7 +148,7 @@ Or call any specialist directly, for example:
 
 ## Customize
 
-- **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). The Team Lead and the Architect try Fable first: Architect dispatches that would run on Opus go to Fable, and fall back to Opus when the Fable usage limit is reached. The Team Lead session starts on Fable; if Fable runs out, switch it with `/model opus`. When the Team Lead sees a warning that Fable is close to its limit, it saves state and tells you to run `/compact`, so the switch to Opus starts from a short context. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Fable runs only when you ask for it. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Set `Pace: speed` (or say "I want speed") to trade extra checking for speed: fewer optional reviewers and skeptic runs, independent tasks in parallel; gates, approvals and Security stay. Each agent's frontmatter `model:` is only the fallback.
 - **Codex models**: use `scripts/run-codex-agent` to launch a role with an explicit Codex model. Its cost-effective defaults and escalation rules are in `reference/codex-model-routing.md`; it does not alter the Claude frontmatter. For example:
   ```bash
   # Run from the project the agents should work on.
@@ -226,7 +227,7 @@ software-factory/
 │   ├── install-codex-factory
 │   ├── review-route
 │   └── run-codex-agent
-├── skills/          factory-init, build, team-lead, review, resume, session-setup, factory-protocol, frontend-testing
+├── skills/          factory-init, build, team-lead, review, resume, status, health, session-setup, factory-protocol, frontend-testing
 ├── reference/
 │   ├── codex-model-routing.md
 │   └── handoff-contract.md

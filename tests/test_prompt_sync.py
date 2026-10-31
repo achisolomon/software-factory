@@ -29,6 +29,10 @@ SHARED_RULES = [
     "needs no hand-written compact message",
     "the factory project is the repo below it with `docs/factory/status.md`",
     "naming the environment and the load ceiling",
+    "Pace: speed",
+    "up to three Developers",
+    "three minutes",
+    "polling loop",
 ]
 
 
@@ -41,6 +45,9 @@ class PromptSyncTests(unittest.TestCase):
 
     def test_health_skill_exists(self):
         self.assertTrue((ROOT / "skills" / "health" / "SKILL.md").is_file())
+
+    def test_status_skill_exists(self):
+        self.assertTrue((ROOT / "skills" / "status" / "SKILL.md").is_file())
 
 
 if __name__ == "__main__":
