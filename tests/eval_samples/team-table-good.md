@@ -1,4 +1,4 @@
-Software Factory v0.5.9
+Software Factory v0.6.0
 
 **Agents** (`10:05`)
 

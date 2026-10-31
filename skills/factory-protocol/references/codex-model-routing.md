@@ -8,7 +8,7 @@ Use this policy for the CLI runner and native Codex delegation. Claude agent fro
 |---|---|
 | Team Lead coordination, triage, routine test execution, report summaries, routine UX and cost checks | `gpt-6-luna` / `--mode routine` |
 | Small, clearly specified implementation or mechanical work in any role | `gpt-6-luna` / `--mode routine` |
-| Substantial implementation, independent architecture/code review, product planning, security, infrastructure design | `gpt-6.1-sol` / `--mode quality` |
+| Substantial implementation, independent architecture/code review, product planning, security, infrastructure design, performance assessment and load test analysis | `gpt-6.1-sol` / `--mode quality` |
 | Difficult unresolved architecture, security or debugging decision after Sol evidence | Explicit `--model gpt-6-astra` |
 
 The runner defaults Team Lead, Triage, Test, UX and FinOps to Luna; other roles to Sol. Use quality mode for test strategy, difficult diagnosis, substantial UX design, unfamiliar code analysis and complex cost models. Use routine mode for a small well-specified Developer task. A role's task complexity can override its default. Check account availability before using a model; if unavailable, report it and select an available model deliberately, never silently fall back. Terra remains available through an explicit override where supported.

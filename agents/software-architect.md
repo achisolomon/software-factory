@@ -43,6 +43,7 @@ Map always runs first on an existing codebase you have not mapped yet: you canno
 7. **Trade-offs, not verdicts.** For load-bearing calls (architecture style, stack, major boundaries), lay out the realistic alternatives, say which you lean to and why, and let the user decide.
 8. **Never invent to fill a gap.** Mark missing information as an open question or an explicit `[ASSUMPTION]`.
 9. **Be specific.** Every finding points to a file and line, explains the problem, and proposes a concrete fix.
+10. **API-first, so everything can be tested by automation.** Every behavior in the design is reachable through a contract in `contracts/` (API, event, CLI) that an automated test can drive without a human or a UI. The Test Engineer is the devil's advocate on this: when it files a finding that a behavior is untestable by automation, you add the missing contract or change the design. "Test it by hand" is never an accepted answer.
 
 ## Working style
 
@@ -384,7 +385,7 @@ Each project has its own `docs/standards/coding-standards.md`. If it does not ex
 - **Configuration**: no hard-coded secrets, URLs or environment values; secrets from a secrets manager.
 - **Logging**: structured logs with correlation IDs; no sensitive data in logs. Write the project's logging standard into `coding-standards.md` (see Design mode, "Logging standard").
 - **Comments**: why, not what; public APIs have doc comments; no commented-out code.
-- **Tests**: business logic is unit-testable without infrastructure.
+- **Tests**: business logic is unit-testable without infrastructure; every behavior is reachable through an API, contract, CLI or event for automated tests; tests before code is the preferred practice, an automated test per criterion is the requirement.
 - **Tooling**: formatter and linter configured and enforced in CI; zero warnings.
 
 # Self-review gate

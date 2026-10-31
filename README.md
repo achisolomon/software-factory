@@ -1,6 +1,6 @@
 # Software Factory
 
-A Claude Code and Codex plugin with a team of ten AI agents that can take a product from idea to release (or review and extend an existing codebase), working together through a shared handoff contract and stopping for your approval at every important decision.
+A Claude Code and Codex plugin with a team of eleven AI agents that can take a product from idea to release (or review and extend an existing codebase), working together through a shared handoff contract and stopping for your approval at every important decision.
 
 | Agent | What it does |
 |---|---|
@@ -9,11 +9,12 @@ A Claude Code and Codex plugin with a team of ten AI agents that can take a prod
 | **Product Manager** | Vision, PRD with measurable goals and NFRs, backlog of stories with Given/When/Then acceptance criteria, release acceptance |
 | **Software Architect** | Mermaid repo maps, system design, ADRs, contracts, task breakdown, coding standards, and code review (clean code, OOD, DRY, patterns, scalability) |
 | **Software Developer** | Implements one task at a time with unit tests, on a local branch; fixes review findings |
-| **Test Automation Engineer** | Test strategy, integration/contract/E2E/performance tests, per-task verification, release regression |
+| **Test Automation Engineer** | The team's devil's advocate: test strategy, integration/contract/E2E tests, per-task verification that hunts for where the code breaks, prefers test-first and enforces API-first (anything not testable by automation is a Major for the Architect and Developer), release regression |
 | **DevOps Engineer** | Environments, containers, CI/CD, infrastructure as code, observability, runbooks — validated by dry runs |
 | **FinOps Engineer** | Cost model with sourced prices, cost guardrails, cost reviews of changes, actual-vs-forecast |
 | **Security Engineer** | Threat model (STRIDE), security requirements (ASVS), security reviews and scans, final release gate |
 | **UX/UI Designer** | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
+| **Performance Engineer** | Load tester and sizing expert, on Opus: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests, reports each bottleneck with its cause and fix. Runs before a merge to main or a deploy, and when you ask, not per task |
 
 ## How it works
 
@@ -21,7 +22,7 @@ A Claude Code and Codex plugin with a team of ten AI agents that can take a prod
 flowchart LR
   I[Init] --> D[Discovery<br/>PM] --> G1{{Gate 1<br/>PRD}}
   G1 --> A[Architecture<br/>Architect] --> R[Design reviews<br/>Security · FinOps · DevOps · Test · UX] --> G2{{Gate 2<br/>Design + cost}}
-  G2 --> B[Build loop per task<br/>Developer → Test + Architect + Security + FinOps + UX] --> RR[Release readiness] --> G3{{Gate 3<br/>Release}}
+  G2 --> B[Build loop per task<br/>Developer → Test + Architect + Security + FinOps + UX] --> RR[Release readiness<br/>+ Performance load tests] --> G3{{Gate 3<br/>Release}}
 ```
 
 - **Triage first.** The Team Lead classifies clear small requests inline using the Triage Classifier rules and delegates ambiguous or substantial ones. The resulting path (`fast-path` up to `full-lifecycle`) decides how much process runs. The Team Lead can add process, never remove it without you.
@@ -216,7 +217,7 @@ software-factory/
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── marketplace.json
-├── agents/          10 agent definitions
+├── agents/          11 agent definitions
 ├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
 ├── assets/          Codex marketplace icon and logo
 ├── plugin.json       portable Agent Plugins manifest
