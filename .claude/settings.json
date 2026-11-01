@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m http.server 8765 --bind 127.0.0.1 --directory /private/tmp/claude-501/-Users-achisolomon-Documents-Git-Achi-gmail-software-factory/e59e381c-3bc1-4844-a325-e4b73aa0a12f/scratchpad)",
+      "ClaudeInChromeDomain(127.0.0.1:8765)",
+      "Bash(gh api *)",
+      "Bash(bash /private/tmp/claude-501/-Users-achisolomon-Documents-Git-Achi-gmail-software-factory/e59e381c-3bc1-4844-a325-e4b73aa0a12f/scratchpad/wait-pages.sh)"
+    ]
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true,
+    "ponytail@ponytail": true
+  },
   "extraKnownMarketplaces": {
     "caveman": {
       "source": {
@@ -12,9 +24,5 @@
         "repo": "DietrichGebert/ponytail"
       }
     }
-  },
-  "enabledPlugins": {
-    "caveman@caveman": true,
-    "ponytail@ponytail": true
   }
 }
