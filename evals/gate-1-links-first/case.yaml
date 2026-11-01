@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: gate-1-links-first
+# Backlog 41 (0.6.2): at Gate 1 the Team Lead asked the user to approve the PRD and backlog without links to them.
+# It must give a clickable link to each document before (and with) the approval question.
+context:
+  scaffold_script: scaffold.sh
