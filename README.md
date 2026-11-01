@@ -1,6 +1,22 @@
+<p align="center">
+  <img src="assets/hero.svg" alt="Software Factory: an open-source AI engineering team that takes your idea to release, and stops for your approval at every important decision" width="100%">
+</p>
+
 # Software Factory
 
-A Claude Code and Codex plugin with a team of eleven AI agents that can take a product from idea to release (or review and extend an existing codebase), working together through a shared handoff contract and stopping for your approval at every important decision.
+**Describe what you want to build. A team of eleven AI agents plans it, designs it, builds it, tests it, reviews it for security, cost and UX, and gets it ready to release. You approve every important decision.**
+
+A Claude Code and Codex plugin. It works on a new product or an existing codebase, and the agents hand work to each other through one shared contract.
+
+**What you get:**
+
+- **A full engineering team in your editor**: Product Manager, Architect, Developer, Test, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
+- **Quality you can check**: every task is tested and reviewed, and "done" means re-run command output, not an agent's word.
+- **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
+
+## Let's build it together
+
+Anyone can build a software factory on their own. But one person only sees their own projects, mistakes and stack. Built in the open, every user's lesson (a better review rule, a new agent, a sharper gate) makes the factory better for everyone. The goal is simple: the best software factory in the world, built by the people who use it. See [Contribute](#contribute) to join in.
 
 | Agent | What it does |
 |---|---|
@@ -208,6 +224,14 @@ The add command works from any directory and requires GitHub access. If the plug
 For a private repository, authenticate Git with GitHub first (`gh auth login` or SSH/HTTPS Git credentials). The marketplace command uses those credentials; users do not need to clone this repository.
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
+
+## Contribute
+
+Every improvement you make for your own projects can make the factory better for everyone:
+
+- **Found a gap?** Open an issue: a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
+- **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`.
+- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then propose it in an issue.
 
 ## Layout
 
