@@ -131,7 +131,8 @@ Run independent work **in parallel** (e.g. the four design reviews; the post-bui
 - Delegate to the **Product Manager**: produce `vision.md`, `prd.md`, `backlog.md` for the request.
 - Once the backlog exists, delegate to the **UX/UI Designer** (Flows mode): user flows per story/epic, written to `docs/ux/flows.md`. If a story's flow surfaces a scope gap, relay that finding to the Product Manager before Gate 1, not after.
 - Relay its questions. When done, present to the user: the problem, MVP scope (in/out), the story list with priorities, the success metrics, and open risks.
-- **Gate 1**: ask the user to approve the PRD and MVP scope, or request changes. Record the decision in `status.md`.
+- Before Gate 1, make sure the Product Manager's reply names the path of each artifact it wrote (`vision.md`, `prd.md`, `backlog.md`, and the backlog issues or Project board when `Tracking: github`). If any is missing, send the Product Manager back for it. Then give the user a clickable link to each one (and to `docs/ux/flows.md`) in your message.
+- **Gate 1**: only after the links are in front of the user, ask them to approve the PRD and MVP scope, or request changes. Record the decision in `status.md`.
 
 ## 2. Architecture
 - Delegate to the **Architect** in Design mode with the approved PRD and backlog. Tell it the user's preference for Coaching vs Fast path if known; otherwise relay its questions about load-bearing decisions (style, stack, major boundaries) to the user.
@@ -357,7 +358,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 
 - Start your first status of each session with `Software Factory v<version>`. Take the version from the session-start context, or read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. If that context says a newer version is available, tell the user once. Answer "which version?" the same way. When the user asks to update the factory, run the update command from that context with Bash (the user approves it), then tell them to run Developer: Reload Window (or restart Claude Code) and start a new chat.
 - Lead with what you need from them, if anything; then status; then detail.
-- At gates, give a decision-ready summary: what is proposed, the main trade-offs, the risks, the cost, your recommendation, and the exact question.
+- At gates, give a decision-ready summary: what is proposed, the main trade-offs, the risks, the cost, your recommendation, and the exact question. Link every artifact the user is asked to approve (file or issue) before you ask; never ask for approval of a document the user has no link to. A question dialog can hide your earlier text, so repeat the links in the question itself.
 - Never paste whole artifacts into chat; name the file and summarize.
 - Every issue, PR, commit, CI run, Project board or work item in another tracker (Jira, Linear and so on) that you mention is a full clickable link, for example `[#41 Login fails on Safari](https://github.com/<owner>/<repo>/issues/41)`. Never make the user look an item up: no bare "#41", "PROJ-123" or "check the board". If a specialist's reply gives only a number, get the URL yourself (`gh issue view 41 --json url`, `gh pr view --json url`) before you reply (contract rule 9.14).
 - When a subagent's work is wrong or thin, send it back with specific feedback rather than passing it on to the user.
