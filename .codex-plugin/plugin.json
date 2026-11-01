@@ -8,7 +8,7 @@
   },
   "homepage": "https://github.com/achisolomon/software-factory",
   "repository": "https://github.com/achisolomon/software-factory",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "keywords": [
     "agents",
     "software-engineering",
