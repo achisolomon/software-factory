@@ -16,7 +16,7 @@ A Claude Code and Codex plugin with a team of eleven AI agents that can take a p
 | **UX/UI Designer** | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
 | **Performance Engineer** | Load tester and sizing expert, on Opus: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests, reports each bottleneck with its cause and fix. Runs before a merge to main or a deploy, and when you ask, not per task |
 
-Current version: 0.6.2. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.6.3. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Install (once per machine)
 
