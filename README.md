@@ -1,22 +1,24 @@
 <p align="center">
-  <img src="assets/hero.svg" alt="Software Factory: an open-source AI engineering team that takes your idea to release, and stops for your approval at every important decision" width="100%">
+  <img src="assets/social-preview.jpg" alt="Software Factory: your spec goes in untouched, a Team Lead orchestrates a line of specialist AI agents (architect, developer, test, security, UX, DevOps, cost, performance, product), and a finished, approved product comes out" width="100%">
 </p>
 
 # Software Factory
 
-**Describe what you want to build. A team of eleven AI agents plans it, designs it, builds it, tests it, reviews it for security, cost and UX, and gets it ready to release. You approve every important decision.**
+**Everyone can build a software factory. The best one will be built together.**
 
-A Claude Code and Codex plugin. It works on a new product or an existing codebase, and the agents hand work to each other through one shared contract.
+Software Factory is an open-source product team made of 10+ AI agents (Architect, Developer, Test, PM, Security, UX and more) for Claude Code and Codex. Take it, use it on your projects, and when it misses something, fix it here so nobody else hits the same wall.
+
+[Star it](https://github.com/achisolomon/software-factory), [try it](#install-once-per-machine), [open a PR](#contribute).
 
 **What you get:**
 
-- **A full engineering team in your editor**: Product Manager, Architect, Developer, Test, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
+- **A full engineering team in your editor**: Architect, Developer, Test, Product Manager, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
 - **Quality you can check**: every task is tested and reviewed, and "done" means re-run command output, not an agent's word.
 - **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
 
-## Let's build it together
+**Bring your own spec.** There are great spec-driven development tools already, and the factory uses them instead of replacing them. Write your spec with the tool you like (for example [Superpowers](https://github.com/obra/superpowers), [Spec Kit](https://github.com/github/spec-kit) or [BMAD](https://github.com/bmad-code-org/BMAD-METHOD)), then hand it to the Team Lead. The Product Manager checks it for gaps (metrics, NFRs, testable acceptance criteria) without rewriting it, and the team takes it from there through architecture, build, review and release.
 
-Anyone can build a software factory on their own. But one person only sees their own projects, mistakes and stack. Built in the open, every user's lesson (a better review rule, a new agent, a sharper gate) makes the factory better for everyone. The goal is simple: the best software factory in the world, built by the people who use it. See [Contribute](#contribute) to join in.
+## The team
 
 | Agent | What it does |
 |---|---|
@@ -50,12 +52,6 @@ This repo is the single source of truth. Install the plugin once at **user scope
 3. **Open a new Claude Code chat.** Its first reply starts with `Software Factory v<version>`. That means the team is loaded.
 
 Then follow [Add the factory to a new project](#add-the-factory-to-a-new-project).
-
-**If the install fails**
-- `/plugin isn't available in this environment`: you typed it in the VS Code chat box. Use the terminal line above instead. The **Manage plugins** panel can't add a marketplace or install a new plugin either.
-- `command not found: claude`: install the CLI first with `npm install -g @anthropic-ai/claude-code`, then rerun the line.
-- Clone or authentication error: the repo is private, so the machine needs GitHub access to it (`gh auth login` or Git credentials for `achisolomon`). The line `SSH not configured, cloning via HTTPS` is normal.
-- `already installed` or a stale version: run the update line under [Updating](#updating).
 
 ## How it works
 

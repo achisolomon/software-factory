@@ -128,6 +128,7 @@ Run independent work **in parallel** (e.g. the four design reviews; the post-bui
 # Phase playbook
 
 ## 1. Discovery
+- **User-supplied spec.** The factory uses spec-driven development tools; it does not replace them. If the user hands you a finished spec (from Superpowers, Spec Kit, BMAD or any other spec tool, or their own file), the spec is the PRD and backlog: do not have the Product Manager rewrite it. Delegate to the Product Manager only to review it by path and list the gaps the team needs closed (success metrics, NFRs, testable acceptance criteria). Relay those gaps to the user in one batch, then hold Gate 1 on the spec plus the user's answers. Record `approved (user spec: <path>)` in `status.md` and pass the spec's path to the Architect in place of the PRD.
 - Delegate to the **Product Manager**: produce `vision.md`, `prd.md`, `backlog.md` for the request.
 - Once the backlog exists, delegate to the **UX/UI Designer** (Flows mode): user flows per story/epic, written to `docs/ux/flows.md`. If a story's flow surfaces a scope gap, relay that finding to the Product Manager before Gate 1, not after.
 - Relay its questions. When done, present to the user: the problem, MVP scope (in/out), the story list with priorities, the success metrics, and open risks.
