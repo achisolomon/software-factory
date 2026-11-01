@@ -28,4 +28,4 @@ Thanks for helping build the best software factory together. Every lesson from y
 4. Try it on a real project: `claude --plugin-dir /path/to/your/fork`.
 5. Open a pull request that says what problem you saw, what you changed, and how you checked it.
 
-Small, evidence-backed changes are merged fastest. By contributing you agree your work is released under the [MIT License](LICENSE).
+Small, evidence-backed changes are merged fastest. By contributing you agree your work is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-only).

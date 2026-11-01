@@ -22,9 +22,9 @@ Software Factory is an open-source product team made of 10+ AI agents (Architect
 
 ## See it work
 
-A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work (sped up 2x; [watch the full video](assets/demo.mp4)).
+A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work (sped up 2x; click it to open full size).
 
-[![Software Factory demo: the Team Lead runs a team of agents on a real project and posts the team table](assets/demo.gif)](assets/demo.mp4)
+[![Software Factory demo: the Team Lead runs a team of agents on a real project and posts the team table](assets/demo.gif)](assets/demo.gif)
 
 ## Contribute
 
@@ -36,7 +36,7 @@ Use it, enjoy it, and make it better. Every improvement you make for your own pr
 - **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
 - **Like it?** Give it a star and tell a friend.
 
-Released under the [MIT License](LICENSE).
+Released under the [GNU AGPL-3.0](LICENSE): free to use, change and share, including at work. If you distribute a modified version or run it as a service for others, you must publish your source under the same license. The code the agents write in your own project is yours; the license covers the factory itself.
 
 ## The team
 
@@ -195,7 +195,7 @@ software-factory/
 │   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
 ├── CHANGELOG.md     release notes
 ├── CONTRIBUTING.md  how to contribute
-├── LICENSE          MIT
+├── LICENSE          AGPL-3.0
 └── README.md
 ```
 
