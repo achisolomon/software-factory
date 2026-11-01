@@ -24,7 +24,7 @@ Software Factory is an open-source product team made of 10+ AI agents (Architect
 
 A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work. Press play, pause any time, or open it full screen.
 
-https://github.com/user-attachments/assets/d3ba3655-e66e-4ae4-b988-73b25effd499
+https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
 ## Contribute
 
