@@ -18,6 +18,15 @@ Software Factory is an open-source product team made of 10+ AI agents (Architect
 
 **Bring your own spec.** There are great spec-driven development tools already, and the factory uses them instead of replacing them. Write your spec with the tool you like (for example [Superpowers](https://github.com/obra/superpowers), [BMAD](https://github.com/bmad-code-org/BMAD-METHOD), [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit); [compare spec-driven tools](https://aitoolreview.ai/?subcategory=spec-driven)), then hand it to the Team Lead. The Team Lead expects a good spec before the team starts. The Product Manager checks it for gaps (metrics, NFRs, testable acceptance criteria) without rewriting it, and the team takes it from there through architecture, build, review and release.
 
+## Contribute
+
+Use it, enjoy it, and make it better. Every improvement you make for your own projects can make the factory better for everyone:
+
+- **Found a gap?** [Open an issue](https://github.com/achisolomon/software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
+- **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`.
+- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then propose it in an issue.
+- **Like it?** Give it a star and tell a friend.
+
 ## The team
 
 | Agent | What it does |
@@ -118,13 +127,13 @@ In the project you want the team to work on:
 
 | Command | What happens |
 |---|---|
-| `/software-factory:factory-init [description]` | Creates the `docs/` scaffold, captures project facts, maps an existing repo and derives coding standards |
 | `team lead, <request>` | Say it in any message. Your session becomes the Team Lead (same as `build`). A bare "team lead" gives the status summary |
-| `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
-| `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
-| `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
-| `/software-factory:status` | Shows the Team table now: who is running, blocked, done, and what is next. Read-only. The Team Lead also posts it every 15 minutes during a run (`Status cadence: off` in project facts turns that off) |
+| `/software-factory:status` | The one you'll use most. Shows the Team table now: who is running, blocked, done, and what is next. Read-only. The Team Lead also posts it every 15 minutes during a run (`Status cadence: off` in project facts turns that off) |
 | `/software-factory:review [task \| branch \| path \| all]` | Parallel architecture, security, test and (if relevant) cost review with one consolidated verdict |
+| `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
+| `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
+| `/software-factory:factory-init [description]` | Creates the `docs/` scaffold, captures project facts, maps an existing repo and derives coding standards (the Team Lead runs it for you the first time) |
+| `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
 
 You can also run the whole session as the Team Lead: `claude --agent software-factory:team-lead`. Adding `--permission-mode auto` is recommended; the gate hook still asks before irreversible actions.
 
@@ -195,14 +204,6 @@ The add command works from any directory and requires GitHub access. If the plug
 For a private repository, authenticate Git with GitHub first (`gh auth login` or SSH/HTTPS Git credentials). The marketplace command uses those credentials; users do not need to clone this repository.
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
-
-## Contribute
-
-Every improvement you make for your own projects can make the factory better for everyone:
-
-- **Found a gap?** Open an issue: a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
-- **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`.
-- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then propose it in an issue.
 
 ## Layout
 
