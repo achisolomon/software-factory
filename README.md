@@ -8,7 +8,7 @@
 
 Software Factory is an open-source product team made of 10+ AI agents (Architect, Developer, Tester, PM, Security, UX and more) for Claude Code and Codex. Take it, use it on your projects, and when it misses something, fix it here so nobody else hits the same wall.
 
-[Star it](https://github.com/achisolomon/software-factory), [try it](#install-once-per-machine), [open a PR](#contribute).
+**[Use it](#install-once-per-machine). [Improve it](#contribute). [Star it](https://github.com/achisolomon/software-factory).** Together we can make it the best software factory ever.
 
 **What you get:**
 
