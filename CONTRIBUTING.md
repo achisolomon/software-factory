@@ -7,7 +7,6 @@ Thanks for helping build the best software factory together. Every lesson from y
 - **Use it and report what happened.** A review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens: [open an issue](https://github.com/achisolomon/software-factory/issues/new) with what you asked, what the team did, and what you expected.
 - **Pick a starter issue.** Issues labelled [`good first issue`](https://github.com/achisolomon/software-factory/labels/good%20first%20issue) are small and well scoped.
 - **Propose an idea.** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first (it lists what is done, planned and declined), then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
-- **Try Codex.** Codex support exists but has not been tested end to end. Reports from Codex users are very welcome.
 
 ## Where things live
 
@@ -18,12 +17,12 @@ Thanks for helping build the best software factory together. Every lesson from y
 | `hooks/` | Code-enforced gates (push, merge, deploy, reply checks) |
 | `skills/` | Slash commands and the "team lead" trigger |
 | `evals/` | Behavior evals for the agents themselves |
-| `tests/` | Offline tests for hooks, scripts and prompt sync |
+| `tests/` | Offline tests for hooks and scripts |
 
 ## Making a change
 
 1. Fork the repo and create a branch.
-2. Make one focused change. If you change a Team Lead rule, change it in `agents/team-lead.md` and in the Codex role playbook too (`tests/test_prompt_sync.py` checks this).
+2. Make one focused change.
 3. Run the tests: `python3 -m unittest discover -s tests`.
 4. Try it on a real project: `claude --plugin-dir /path/to/your/fork`.
 5. Open a pull request that says what problem you saw, what you changed, and how you checked it.
