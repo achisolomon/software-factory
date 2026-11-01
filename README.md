@@ -22,9 +22,11 @@ Software Factory is an open-source product team made of 10+ AI agents (Architect
 
 ## See it work
 
-A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work (sped up 2x; click it to open full size).
+A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work.
 
 [![Software Factory demo: the Team Lead runs a team of agents on a real project and posts the team table](assets/demo.gif)](assets/demo.gif)
+
+**[▶ Open the demo full size](assets/demo.gif)**
 
 ## Contribute
 
