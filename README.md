@@ -8,7 +8,7 @@
 
 Everyone can build a software factory. The best one will be built together.
 
-Software Factory is an open-source product team made of 10+ AI agents (Architect, Developer, Tester, PM, Security, UX and more) for Claude Code, with experimental Codex support. Take it, use it on your projects, and when it misses something, fix it here so nobody else hits the same wall.
+Software Factory is an open-source product team made of 10+ AI agents (Architect, Developer, Tester, PM, Security, UX and more) for Claude Code. Take it, use it on your projects, and when it misses something, fix it here so nobody else hits the same wall.
 
 **[Use it](#install-once-per-machine). [Improve it](#contribute). [Star it](https://github.com/achisolomon/software-factory).** Together we can make it the best software factory ever.
 
@@ -54,7 +54,7 @@ Released under the [GNU AGPL-3.0](LICENSE): free to use, change and share, inclu
 | **UX/UI Designer** | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
 | **Performance Engineer** | Load tester and sizing expert, on Opus: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests, reports each bottleneck with its cause and fix. Runs before a merge to main or a deploy, and when you ask, not per task |
 
-Current version: 0.6.4. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.7.0. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Install (once per machine)
 
@@ -124,7 +124,7 @@ claude plugin marketplace update software-factory-marketplace && claude plugin u
 
 Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and start a new chat. A chat that is already open keeps the old instructions.
 
-Editing this checkout does not update an installed plugin or another repo's local runtime. Before publishing a release, bump the matching version in `plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/plugin.json`, then commit and push through the usual approval process.
+Editing this checkout does not update an installed plugin. Before publishing a release, bump `version` in `.claude-plugin/plugin.json`, then commit and push through the usual approval process.
 
 To test the current checkout locally in Claude Code before publishing, run from this repository root:
 
@@ -161,7 +161,7 @@ Or call any specialist directly, for example:
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 
-**About "marketplace".** This repo is its own plugin marketplace (`software-factory-marketplace`, defined in `.claude-plugin/marketplace.json`). It is not listed in the official Claude Code or Codex marketplaces; the install line registers this repo directly.
+**About "marketplace".** This repo is its own plugin marketplace (`software-factory-marketplace`, defined in `.claude-plugin/marketplace.json`). It is not listed in the official Claude Code marketplace; the install line registers this repo directly.
 
 **Frontend testing.** The Test Automation Engineer uses the bundled `frontend-testing` skill for web UI work: page analysis, canonical tests, accessible selectors, network mocking, real-backend critical journeys, trace-based diagnosis and targeted stability runs.
 
@@ -169,25 +169,16 @@ Or call any specialist directly, for example:
 
 ```
 software-factory/
-├── .agents/plugins/
-│   └── marketplace.json
-├── .codex-plugin/
-│   └── plugin.json
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── marketplace.json
 ├── agents/          11 agent definitions
 ├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
-├── assets/          README images, marketplace icon and logo
-├── plugin.json       portable Agent Plugins manifest
+├── assets/          README and link-preview images
 ├── scripts/
-│   ├── install-codex-plugin
-│   ├── install-codex-factory
-│   ├── review-route
-│   └── run-codex-agent
-├── skills/          factory-init, build, team-lead, review, resume, status, health, session-setup, factory-protocol, frontend-testing
+│   └── review-route
+├── skills/          factory-init, build, team-lead, review, resume, status, health, session-setup, frontend-testing
 ├── reference/
-│   ├── codex-model-routing.md
 │   └── handoff-contract.md
 ├── docs/
 │   ├── TRUST.md                 what code enforces and what relies on prompts
@@ -198,101 +189,3 @@ software-factory/
 ├── LICENSE          AGPL-3.0
 └── README.md
 ```
-
-## Codex (experimental, untested)
-
-Codex support exists (installers, a role runner and model routing, all with offline tests), but nobody has run it end to end on a real project yet. If you use Codex, please try it and [tell us what breaks](https://github.com/achisolomon/software-factory/issues/new).
-
-- **Codex models**: use `scripts/run-codex-agent` to launch a role with an explicit Codex model. Its cost-effective defaults and escalation rules are in `reference/codex-model-routing.md`; it does not alter the Claude frontmatter. For example:
-  ```bash
-  # Run from the project the agents should work on.
-  /path/to/software-factory/scripts/run-codex-agent software-developer -- 'Implement task T-027 and run its unit tests.'
-  /path/to/software-factory/scripts/run-codex-agent test-automation-engineer --mode routine -- 'Verify task T-027 against its acceptance criteria.'
-  /path/to/software-factory/scripts/run-codex-agent team-lead -- 'Plan and deliver task T-027 through the factory.'
-  ```
-  Pass `--model <model-id>` only for a supported, deliberate escalation. Run `codex debug models` to see the models your account can use.
-  Add `--dry-run` to inspect the resolved role and model without starting a Codex session.
-  The interactive `team-lead` role requires the target project to be a Git repository; run `git init` first for a new project. Specialist roles support non-Git targets.
-- **Install Codex support in another project**: run this from the factory repository, once per target project. It installs the agents, contract, model policy, and runner to the project-local `.codex/software-factory/` directory without changing the project's `AGENTS.md`:
-  ```bash
-  ./scripts/install-codex-factory --project-dir /path/to/project
-  cd /path/to/project
-  ./.codex/software-factory/scripts/run-codex-agent team-lead -- 'Build a dashboard for support tickets.'
-  ```
-  For an existing installation, use `--update`; the installer preserves the previous runtime in a sibling backup directory. It includes bundled skills and leaves project documents and `AGENTS.md` alone.
-
-### Install as a Codex plugin
-
-Codex installs this plugin into its own cache, not into your project. The quickest GitHub installation is the included installer (run from a checkout of this repository):
-
-```bash
-./scripts/install-codex-plugin --project-dir /path/to/project
-```
-
-It installs the marketplace once for your Codex user, installs the plugin, and enables it for the specified project. Start a new Codex chat afterwards and ask Codex to use Software Factory.
-
-To install it manually, or from GitHub without cloning the repository, run:
-
-```bash
-codex plugin marketplace add achisolomon/software-factory --sparse .agents/plugins
-codex plugin add software-factory@software-factory-marketplace
-```
-
-Enable it in a specific existing repository by adding this to `<project>/.codex/config.toml` (create the directory and file if needed):
-
-```toml
-[plugins."software-factory@software-factory-marketplace"]
-enabled = true
-```
-
-Restart Codex or begin a new chat after installation. Each release must bump the matching version in `plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/plugin.json` before it is published.
-
-To update a GitHub marketplace installation, run `codex plugin marketplace upgrade software-factory-marketplace`, then start a new chat. If Codex reports that the marketplace is not configured as Git (for example, it was added from a local path), replace that entry with the GitHub marketplace:
-
-```bash
-codex plugin marketplace remove software-factory-marketplace
-codex plugin marketplace add achisolomon/software-factory --sparse .agents/plugins
-codex plugin marketplace upgrade software-factory-marketplace
-```
-
-The add command works from any directory and requires GitHub access. If the plugin isn't installed after the marketplace refresh, install it with `codex plugin add software-factory@software-factory-marketplace`. Start a new chat to load the updated plugin. Marketplace upgrades fetch committed GitHub content; local changes appear only after they are pushed to `main`.
-
-### Codex model routing
-
-Codex routing defaults coordination and routine QA/UX/cost checks to GPT-6 Luna; substantial implementation and independent code review use GPT-6.1 Sol. Any role can use `--mode routine` for a small specified task, or `--mode quality` for complex work. Astra requires an explicit escalation after Sol evidence. See [the routing policy](reference/codex-model-routing.md). Choose Standard speed in the app; the runner does not change the main chat's model, speed or reasoning settings.
-
-Keep task context focused, classify clear small requests inline, run conditional specialists only when relevant, and return bounded evidence. Required reviews and user gates remain in place. Model selection for native delegation depends on the host's available controls; disclose when it cannot be enforced.
-
-### Update a project-local Codex runtime (`.codex/software-factory/`)
-
-Run from this factory checkout, replacing the target path:
-
-```bash
-./scripts/install-codex-factory --project-dir /path/to/other-repo --update
-```
-
-The updater stages the new runtime, backs up the previous directory to `.codex/software-factory-backup.<unique-suffix>/`, and installs agents, skills, reference and scripts. Local runtime customizations remain in that backup; compare and reapply deliberate customizations. It does not overwrite `docs/`, project code, `AGENTS.md` or Codex configuration. Stop active factory agents before updating.
-
-Verify the selected model without spending inference quota:
-
-```bash
-cd /path/to/other-repo
-./.codex/software-factory/scripts/run-codex-agent team-lead --dry-run -- 'Check the factory setup.'
-./.codex/software-factory/scripts/run-codex-agent software-developer --mode routine --dry-run -- 'Check routine routing.'
-```
-
-Both commands should report `model=gpt-6-luna`. For substantial work, `--mode quality` should report `model=gpt-6.1-sol`. Start work with:
-
-```bash
-./.codex/software-factory/scripts/run-codex-agent team-lead -- 'Implement task T-027 with economical model routing.'
-```
-
-### Update the Codex plugin
-
-After a new version is pushed to `main`, update the user-level marketplace and start a new chat in the target repo:
-
-```bash
-codex plugin marketplace upgrade software-factory-marketplace
-```
-
-If the target also has a project-local runtime, update that separately using the command above. In the new chat select GPT-6 Luna at Standard speed for coordination and invoke Software Factory. An already-running chat keeps its current model and loaded instructions.
