@@ -34,7 +34,6 @@ These are instructions the model is asked to follow. Hooks do not check them.
 
 - **Regex hooks can be evaded.** The gate reads the command text. A command that is built at run time, encoded, fetched and piped to a shell, or hidden behind an unusual wrapper can get past it. The gate fails closed when it cannot parse a command, but it cannot see everything.
 - **Hooks are feedback, not a security boundary.** They catch honest mistakes and drift. They are not a sandbox. Do not rely on them against a hostile agent or a hostile repo.
-- **Codex has no hook enforcement.** The Codex plugin and the project-local runtime carry the prompts, contract and review-route script, but nothing runs the hooks. Every gate there is a prompt.
 - **The reply check looks at shape, not truth.** It confirms the fields exist and the reports are on disk. It cannot tell whether a claim is correct. Evidence still comes from checks the Test Engineer and Architect re-run.
 - **Coverage is Bash and subagents.** File edits through the Edit and Write tools, and actions in other tools or MCP servers, are not gated by `gate.py`.
 
