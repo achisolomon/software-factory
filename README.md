@@ -22,11 +22,9 @@ Software Factory is an open-source product team made of 10+ AI agents (Architect
 
 ## See it work
 
-A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work.
+A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work. Press play, pause any time, or open it full screen.
 
-[![Software Factory demo: the Team Lead runs a team of agents on a real project and posts the team table](assets/demo.gif)](assets/demo.gif)
-
-**[▶ Open the demo full size](assets/demo.gif)**
+https://github.com/user-attachments/assets/d3ba3655-e66e-4ae4-b988-73b25effd499
 
 ## Contribute
 
@@ -180,7 +178,7 @@ software-factory/
 │   └── marketplace.json
 ├── agents/          11 agent definitions
 ├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
-├── assets/          README images, demo video, marketplace icon and logo
+├── assets/          README images, marketplace icon and logo
 ├── plugin.json       portable Agent Plugins manifest
 ├── scripts/
 │   ├── install-codex-plugin
