@@ -55,23 +55,24 @@ flowchart LR
 
 This repo is the single source of truth. Install the plugin once at **user scope**, so every project on the machine gets the team. You don't need to install it again per project.
 
-In the Claude Code chat box in VS Code (these are chat commands, not shell commands):
+1. **Paste this one line into a terminal** (in VS Code: Terminal > New Terminal, not the Claude chat box):
 
-```text
-/plugin marketplace add achisolomon/software-factory
-/plugin install software-factory@software-factory-marketplace
-```
+   ```bash
+   claude plugin marketplace add achisolomon/software-factory && claude plugin install software-factory@software-factory-marketplace --scope user
+   ```
 
-When asked for the scope, choose **Install for you** (user scope).
+   It ends with `Successfully installed plugin: software-factory@software-factory-marketplace (scope: user)`.
 
-Or from a regular terminal:
+2. **Reload VS Code**: Cmd+Shift+P, then **Developer: Reload Window**.
+3. **Open a new Claude Code chat.** Its first reply starts with `Software Factory v<version>`. That means the team is loaded.
 
-```bash
-claude plugin marketplace add achisolomon/software-factory
-claude plugin install software-factory@software-factory-marketplace --scope user
-```
+Then follow [Add the factory to a new project](#add-the-factory-to-a-new-project).
 
-The repo is private, so the machine needs GitHub access to it (`gh auth login` or Git credentials for `achisolomon`).
+**If the install fails**
+- `/plugin isn't available in this environment`: you typed it in the VS Code chat box. Use the terminal line above instead. The **Manage plugins** panel can't add a marketplace or install a new plugin either.
+- `command not found: claude`: install the CLI first with `npm install -g @anthropic-ai/claude-code`, then rerun the line.
+- Clone or authentication error: the repo is private, so the machine needs GitHub access to it (`gh auth login` or Git credentials for `achisolomon`). The line `SSH not configured, cloning via HTTPS` is normal.
+- `already installed` or a stale version: run the update line under [Updating](#updating).
 
 ## Add the factory to a new project
 
@@ -88,6 +89,7 @@ The repo is private, so the machine needs GitHub access to it (`gh auth login` o
    /software-factory:factory-init a mobile app for booking dog walkers
    ```
    The slash menu matches skill names, so typing `/software` or `/so` won't find it. Type `/factory`.
+   Init first checks whether the project is already set up, so Claude may ask you to allow a few read-only commands (`ls`, `git log`). Choose **Yes**. Check that the folder it names is the one you meant to set up (a worktree path means it will init that worktree).
 5. **Answer the project-facts questions** in one batch: stack or cloud, compliance (PII, payments, GDPR...), monthly budget, whether agents may create local branches and commits, and similar.
 6. **Review what it created** (init also offers `/software-factory:session-setup`, which proposes auto-compact and exact-command permission rules for `.claude/settings.json` and writes them only after you approve the diff):
    - `docs/factory/status.md`: phase, gates, open questions.
@@ -101,7 +103,7 @@ Run init once per project. Running it again on an initialized project just summa
 
 **Troubleshooting**
 - "No matching commands": open a new chat, or reload VS Code (`Cmd+Shift+P` → **Developer: Reload Window**), then type `/factory`.
-- Check what is installed with `/plugin` in the chat, or `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
+- Check what is installed with `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
 
 ## Updating
 
@@ -286,4 +288,4 @@ If the target also has a project-local runtime, update that separately using the
 
 ### Claude Code marketplace plugin
 
-After publication, run `/plugin marketplace update software-factory-marketplace`, then `/plugin update software-factory@software-factory-marketplace` in Claude Code and restart the session. Codex model names do not apply to Claude; its existing model policy remains separate.
+After publication, run the one-line update command from [Updating](#updating) in a terminal and restart the session. Codex model names do not apply to Claude; its existing model policy remains separate.
