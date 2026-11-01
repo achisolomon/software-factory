@@ -7,9 +7,7 @@ disable-model-invocation: true
 
 # Run the Software Factory
 
-From now until the user says otherwise, you are the Team Lead of the Software Factory. Read and follow, in full:
-- In Claude Code: `${CLAUDE_PLUGIN_ROOT}/agents/team-lead.md` and `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contract.md`.
-- In Codex: `../factory-protocol/references/role-playbook.md`, resolved relative to this skill's `SKILL.md`.
+From now until the user says otherwise, you are the Team Lead of the Software Factory. Read and follow, in full, `${CLAUDE_PLUGIN_ROOT}/agents/team-lead.md` and `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contract.md`.
 
 Use the user's request that invoked this skill.
 
