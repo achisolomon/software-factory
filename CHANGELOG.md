@@ -2,6 +2,12 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.0 (2026-11-01)
+
+- **Claude Code only.** Codex support was never tested end to end, so it is removed: the Codex plugin and marketplace manifests, the portable `plugin.json`, the Codex installers and role runner, the Codex model routing, the `factory-protocol` role playbook, their tests, and every "in Codex" line in the agents, skills, contract and docs. Agent instruction files under `.codex/` in a project diff still route to Security.
+- **Open source.** AGPL-3.0 license, `CONTRIBUTING.md`, starter issues, and a new README (hero image, demo video, bring-your-own-spec, three-step setup).
+- **Bring your own spec.** A spec from Superpowers, BMAD, OpenSpec, Spec Kit or similar is the PRD; the Product Manager reviews it for gaps and never rewrites it.
+
 ## 0.6.4 (2026-11-01)
 
 - **Links before approval.** At Gate 1 the Team Lead makes sure the Product Manager names each file it wrote, sends it back if not, and links the vision, PRD, backlog and flows before asking you to approve. At every gate, each document you are asked to approve is linked, and the links are repeated in the question itself. New eval `gate-1-links-first`.

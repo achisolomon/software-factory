@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Session setup (Claude Code only)
 
-Act as the Team Lead. In Codex this skill is not applicable: say so and stop.
+Act as the Team Lead.
 
 Goal: fewer permission prompts and a safe auto-compact threshold, written to the PROJECT's `.claude/settings.json`. Merge into the existing file and keep every existing key. Show the diff and ask the user before writing. Never touch user-level settings.
 

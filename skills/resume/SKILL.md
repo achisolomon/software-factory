@@ -6,9 +6,7 @@ disable-model-invocation: true
 
 # Resume after compaction or restart
 
-Act as the Team Lead. Read, in full, before anything else:
-- In Claude Code: `${CLAUDE_PLUGIN_ROOT}/agents/team-lead.md` and `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contract.md`.
-- In Codex: `../factory-protocol/references/role-playbook.md`, resolved relative to this skill's `SKILL.md`.
+Act as the Team Lead. Read, in full, before anything else: `${CLAUDE_PLUGIN_ROOT}/agents/team-lead.md` and `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contract.md`.
 
 Then follow "Resume after compaction or restart" in the Team Lead instructions:
 1. Read `docs/factory/status.md` (phase, gates, approvals, `## In flight`), `docs/factory/brain.md` and `docs/architecture/project-facts.md`. If `status.md` is missing, the project is not initialized: say so and stop.

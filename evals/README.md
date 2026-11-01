@@ -66,11 +66,11 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 32 | Machine-wide local CI lock | unit `test_local_ci_lock` (queueing, stale takeover, busy port) |
 | 33 | Health check | eval `health-check` |
 | 34 | Agent instruction files go to Security, deep review | unit `test_review_route.test_agent_instruction_files_need_security_and_deep_review`; eval `instruction-files-need-security` |
-| 35 | Prompt drift between Claude Code and Codex | unit `test_prompt_sync` |
+| 35 | Prompt drift between Claude Code and Codex | none (Codex support removed in 0.7.0) |
 | 36 | Board move or comment is never approval | eval `board-is-not-approval` |
 | 37 | Team table lost after compaction; Workflow agents unseen | unit `test_hooks.AfterCompactTests`; evals `team-table-after-compaction`, `team-table-status`; unit `test_evals` (grader self-check) |
 | 38 | User had to compact by hand | evals `wave-done-state-on-disk`, `session-setup-asks-first` |
-| 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance`; unit `test_codex_runtime` (role and model route) |
+| 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance` |
 
 Multi-repo workspaces (sessions started in a folder that holds several repos, like `pushapp/`):
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
