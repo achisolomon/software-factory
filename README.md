@@ -75,31 +75,18 @@ flowchart LR
 
 ## Add the factory to a new project
 
-1. **Open the project folder in VS Code.** Ideally it's a Git repo with a GitHub remote, so the team can track work as GitHub issues.
-2. **Make sure `gh` is logged in with the `project` scope** so the Team Lead can create the GitHub Project board:
-   ```bash
-   gh auth status
-   gh auth refresh -s project   # only if "project" is missing from the scopes
-   ```
-   Without it, init still works, and tasks are tracked in `docs/architecture/tasks.md` instead.
-3. **Start a new Claude Code chat** (plugins load when a session starts; a chat opened before the install won't see the plugin).
-4. **Write a good spec first.** The Team Lead expects a clear spec before the team starts. Write it with a spec-driven development tool such as Superpowers, BMAD, OpenSpec or Spec Kit ([compare spec-driven tools on AI Tool Review](https://aitoolreview.ai/?subcategory=spec-driven)). The Product Manager reviews the spec for gaps before work starts, but writing the spec is not the team's focus: a better spec gives a better product.
-5. **Run init**: type `/factory` in the chat box and pick `factory-init`, optionally followed by a one-line description:
+1. **Open the project folder in VS Code** and start a new Claude Code chat (a chat opened before the install won't see the plugin).
+2. **Write a good spec.** The Team Lead expects a clear spec before the team starts. Write it with a spec-driven development tool such as Superpowers, BMAD, OpenSpec or Spec Kit ([compare spec-driven tools on AI Tool Review](https://aitoolreview.ai/?subcategory=spec-driven)). The Product Manager reviews the spec for gaps before work starts, but writing the spec is not the team's focus: a better spec gives a better product.
+3. **Say "team lead".** That's it:
    ```text
-   /software-factory:factory-init a mobile app for booking dog walkers
+   team lead, build docs/spec.md
    ```
-   The slash menu matches skill names, so typing `/software` or `/so` won't find it. Type `/factory`.
-   Init first checks whether the project is already set up, so Claude may ask you to allow a few read-only commands (`ls`, `git log`). Choose **Yes**. Check that the folder it names is the one you meant to set up (a worktree path means it will init that worktree).
-6. **Answer the project-facts questions** in one batch: stack or cloud, compliance (PII, payments, GDPR...), monthly budget, whether agents may create local branches and commits, and similar.
-7. **Review what it created** (init also offers `/software-factory:session-setup`, which proposes auto-compact and exact-command permission rules for `.claude/settings.json` and writes them only after you approve the diff):
-   - `docs/factory/status.md`: phase, gates, open questions.
-   - `docs/architecture/project-facts.md`: your answers, plus the GitHub Project link.
-   - For an existing codebase: `docs/architecture/repo-map.md` (Mermaid map) and `docs/standards/coding-standards.md`.
-   - A GitHub Project board for the repo, with columns Todo, In Progress, In Review, Changes Requested, Done, Blocked.
-8. **Commit the `docs/` folder** so the team's state is versioned with the code.
-9. **Start building**: give the Team Lead your spec, for example `team lead, build docs/spec.md` (or "team leader"), or use `/software-factory:build <what to build>`. Name the GitHub issues you want worked on (for example `#12 and #15`). The Team Lead never picks issues by itself.
+   ("team leader" works too.) The first time in a project, the Team Lead offers to set the factory up: it asks a few project questions in one batch (stack, compliance, budget, whether agents may commit locally) and creates `docs/factory/` and a GitHub Project board. Then the team goes to work, and stops for your approval at every important decision.
 
-Run init once per project. Running it again on an initialized project just summarizes the current state.
+**Tips**
+- For GitHub issue tracking, give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
+- Commit the `docs/` folder now and then, so the team's state is versioned with the code.
+- To set up without starting work, run `/software-factory:factory-init` (type `/factory` in the chat box to find it).
 
 **Troubleshooting**
 - "No matching commands": open a new chat, or reload VS Code (`Cmd+Shift+P` → **Developer: Reload Window**), then type `/factory`.
