@@ -1,6 +1,44 @@
+<p align="center">
+  <img src="assets/social-preview.jpg" alt="Software Factory: your spec goes in untouched, a Team Lead orchestrates a line of specialist AI agents (architect, developer, test, security, UX, DevOps, cost, performance, product), and a finished, approved product comes out" width="100%">
+</p>
+
 # Software Factory
 
-A Claude Code and Codex plugin with a team of eleven AI agents that can take a product from idea to release (or review and extend an existing codebase), working together through a shared handoff contract and stopping for your approval at every important decision.
+**Your spec in. A tested, reviewed, release-ready product out.**
+
+Everyone can build a software factory. The best one will be built together.
+
+Software Factory is an open-source product team made of 10+ AI agents (Architect, Developer, Tester, PM, Security, UX and more) for Claude Code, with experimental Codex support. Take it, use it on your projects, and when it misses something, fix it here so nobody else hits the same wall.
+
+**[Use it](#install-once-per-machine). [Improve it](#contribute). [Star it](https://github.com/achisolomon/software-factory).** Together we can make it the best software factory ever.
+
+**What you get:**
+
+- **A full engineering team in your editor**: Architect, Developer, Tester, Product Manager, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
+- **Quality you can check**: every task is tested and reviewed, and "done" means re-run command output, not an agent's word.
+- **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
+
+**Bring your own spec.** There are great spec-driven development tools already, and the factory uses them instead of replacing them. Write your spec with the tool you like (for example [Superpowers](https://github.com/obra/superpowers), [BMAD](https://github.com/bmad-code-org/BMAD-METHOD), [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit); [compare spec-driven tools](https://aitoolreview.ai/?subcategory=spec-driven)), then hand it to the Team Lead. The Team Lead expects a good spec before the team starts. The Product Manager checks it for gaps (metrics, NFRs, testable acceptance criteria) without rewriting it, and the team takes it from there through architecture, build, review and release.
+
+## See it work
+
+A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatches the Product Manager, Architect, UX Designer, Developer and DevOps, and posts the team table as they work. Press play, pause any time, or open it full screen.
+
+https://github.com/user-attachments/assets/d3ba3655-e66e-4ae4-b988-73b25effd499
+
+## Contribute
+
+Use it, enjoy it, and make it better. Every improvement you make for your own projects can make the factory better for everyone:
+
+- **Found a gap?** [Open an issue](https://github.com/achisolomon/software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
+- **Want to start small?** Pick a [`good first issue`](https://github.com/achisolomon/software-factory/labels/good%20first%20issue).
+- **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
+- **Like it?** Give it a star and tell a friend.
+
+Released under the [GNU AGPL-3.0](LICENSE): free to use, change and share, including at work. If you distribute a modified version or run it as a service for others, you must publish your source under the same license. The code the agents write in your own project is yours; the license covers the factory itself.
+
+## The team
 
 | Agent | What it does |
 |---|---|
@@ -16,7 +54,7 @@ A Claude Code and Codex plugin with a team of eleven AI agents that can take a p
 | **UX/UI Designer** | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
 | **Performance Engineer** | Load tester and sizing expert, on Opus: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests, reports each bottleneck with its cause and fix. Runs before a merge to main or a deploy, and when you ask, not per task |
 
-Current version: 0.6.3. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.6.4. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Install (once per machine)
 
@@ -34,12 +72,6 @@ This repo is the single source of truth. Install the plugin once at **user scope
 3. **Open a new Claude Code chat.** Its first reply starts with `Software Factory v<version>`. That means the team is loaded.
 
 Then follow [Add the factory to a new project](#add-the-factory-to-a-new-project).
-
-**If the install fails**
-- `/plugin isn't available in this environment`: you typed it in the VS Code chat box. Use the terminal line above instead. The **Manage plugins** panel can't add a marketplace or install a new plugin either.
-- `command not found: claude`: install the CLI first with `npm install -g @anthropic-ai/claude-code`, then rerun the line.
-- Clone or authentication error: the repo is private, so the machine needs GitHub access to it (`gh auth login` or Git credentials for `achisolomon`). The line `SSH not configured, cloning via HTTPS` is normal.
-- `already installed` or a stale version: run the update line under [Updating](#updating).
 
 ## How it works
 
@@ -63,30 +95,18 @@ flowchart LR
 
 ## Add the factory to a new project
 
-1. **Open the project folder in VS Code.** Ideally it's a Git repo with a GitHub remote, so the team can track work as GitHub issues.
-2. **Make sure `gh` is logged in with the `project` scope** so the Team Lead can create the GitHub Project board:
-   ```bash
-   gh auth status
-   gh auth refresh -s project   # only if "project" is missing from the scopes
-   ```
-   Without it, init still works, and tasks are tracked in `docs/architecture/tasks.md` instead.
-3. **Start a new Claude Code chat** (plugins load when a session starts; a chat opened before the install won't see the plugin).
-4. **Run init**: type `/factory` in the chat box and pick `factory-init`, optionally followed by a one-line description:
+1. **Open the project folder in VS Code** and start a new Claude Code chat (a chat opened before the install won't see the plugin).
+2. **Write a good spec.** The Team Lead expects a clear spec before the team starts. Write it with a spec-driven development tool such as Superpowers, BMAD, OpenSpec or Spec Kit ([compare spec-driven tools on AI Tool Review](https://aitoolreview.ai/?subcategory=spec-driven)). The Product Manager reviews the spec for gaps before work starts, but writing the spec is not the team's focus: a better spec gives a better product.
+3. **Say "team lead".** That's it:
    ```text
-   /software-factory:factory-init a mobile app for booking dog walkers
+   team lead, build docs/spec.md
    ```
-   The slash menu matches skill names, so typing `/software` or `/so` won't find it. Type `/factory`.
-   Init first checks whether the project is already set up, so Claude may ask you to allow a few read-only commands (`ls`, `git log`). Choose **Yes**. Check that the folder it names is the one you meant to set up (a worktree path means it will init that worktree).
-5. **Answer the project-facts questions** in one batch: stack or cloud, compliance (PII, payments, GDPR...), monthly budget, whether agents may create local branches and commits, and similar.
-6. **Review what it created** (init also offers `/software-factory:session-setup`, which proposes auto-compact and exact-command permission rules for `.claude/settings.json` and writes them only after you approve the diff):
-   - `docs/factory/status.md`: phase, gates, open questions.
-   - `docs/architecture/project-facts.md`: your answers, plus the GitHub Project link.
-   - For an existing codebase: `docs/architecture/repo-map.md` (Mermaid map) and `docs/standards/coding-standards.md`.
-   - A GitHub Project board for the repo, with columns Todo, In Progress, In Review, Changes Requested, Done, Blocked.
-7. **Commit the `docs/` folder** so the team's state is versioned with the code.
-8. **Start building**: just say `team lead, <what to build>` (or "team leader"), or use `/software-factory:build <what to build>`. Name the GitHub issues you want worked on (for example `#12 and #15`). The Team Lead never picks issues by itself.
+   ("team leader" works too.) The first time in a project, the Team Lead offers to set the factory up: it asks a few project questions in one batch (stack, compliance, budget, whether agents may commit locally) and creates `docs/factory/` and a GitHub Project board. Then the team goes to work, and stops for your approval at every important decision.
 
-Run init once per project. Running it again on an initialized project just summarizes the current state.
+**Tips**
+- For GitHub issue tracking, give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
+- Commit the `docs/` folder now and then, so the team's state is versioned with the code.
+- To set up without starting work, run `/software-factory:factory-init` (type `/factory` in the chat box to find it).
 
 **Troubleshooting**
 - "No matching commands": open a new chat, or reload VS Code (`Cmd+Shift+P` → **Developer: Reload Window**), then type `/factory`.
@@ -104,7 +124,7 @@ claude plugin marketplace update software-factory-marketplace && claude plugin u
 
 Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and start a new chat. A chat that is already open keeps the old instructions.
 
-Editing this checkout does not update an installed plugin or another repo's local runtime. Before publishing a release, bump the matching version in `plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/plugin.json`, then commit and push through the usual approval process. Follow [Update the factory in another repository](#update-the-factory-in-another-repository) for installation-specific commands.
+Editing this checkout does not update an installed plugin or another repo's local runtime. Before publishing a release, bump the matching version in `plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/plugin.json`, then commit and push through the usual approval process.
 
 To test the current checkout locally in Claude Code before publishing, run from this repository root:
 
@@ -118,13 +138,13 @@ In the project you want the team to work on:
 
 | Command | What happens |
 |---|---|
-| `/software-factory:factory-init [description]` | Creates the `docs/` scaffold, captures project facts, maps an existing repo and derives coding standards |
 | `team lead, <request>` | Say it in any message. Your session becomes the Team Lead (same as `build`). A bare "team lead" gives the status summary |
-| `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
-| `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
-| `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
-| `/software-factory:status` | Shows the Team table now: who is running, blocked, done, and what is next. Read-only. The Team Lead also posts it every 15 minutes during a run (`Status cadence: off` in project facts turns that off) |
+| `/software-factory:status` | The one you'll use most. Shows the Team table now: who is running, blocked, done, and what is next. Read-only. The Team Lead also posts it every 15 minutes during a run (`Status cadence: off` in project facts turns that off) |
 | `/software-factory:review [task \| branch \| path \| all]` | Parallel architecture, security, test and (if relevant) cost review with one consolidated verdict |
+| `/software-factory:resume` | After a restart or compaction, reconciles the `## In flight` table before any new dispatch |
+| `/software-factory:build <request>` | Your session becomes the Team Lead and runs the full process for a product, feature or fix |
+| `/software-factory:factory-init [description]` | Creates the `docs/` scaffold, captures project facts, maps an existing repo and derives coding standards (the Team Lead runs it for you the first time) |
+| `/software-factory:session-setup` | Proposes project settings (auto-compact, exact-command allow rules) and writes them after you approve |
 
 You can also run the whole session as the Team Lead: `claude --agent software-factory:team-lead`. Adding `--permission-mode auto` is recommended; the gate hook still asks before irreversible actions.
 
@@ -138,6 +158,51 @@ Or call any specialist directly, for example:
 ## Customize
 
 - **Claude Code models**: the Team Lead picks the model for each delegation by the kind of work (Haiku for triage and mechanical steps, Sonnet for routine build and review, Opus for PRD, architecture, threat modeling and final gates). Fable runs only when you ask for it. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Set `Pace: speed` (or say "I want speed") to trade extra checking for speed: fewer optional reviewers and skeptic runs, independent tasks in parallel; gates, approvals and Security stay. Each agent's frontmatter `model:` is only the fallback.
+- **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
+- **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
+
+**About "marketplace".** This repo is its own plugin marketplace (`software-factory-marketplace`, defined in `.claude-plugin/marketplace.json`). It is not listed in the official Claude Code or Codex marketplaces; the install line registers this repo directly.
+
+**Frontend testing.** The Test Automation Engineer uses the bundled `frontend-testing` skill for web UI work: page analysis, canonical tests, accessible selectors, network mocking, real-backend critical journeys, trace-based diagnosis and targeted stability runs.
+
+## Layout
+
+```
+software-factory/
+├── .agents/plugins/
+│   └── marketplace.json
+├── .codex-plugin/
+│   └── plugin.json
+├── .claude-plugin/
+│   ├── plugin.json
+│   └── marketplace.json
+├── agents/          11 agent definitions
+├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
+├── assets/          README images, marketplace icon and logo
+├── plugin.json       portable Agent Plugins manifest
+├── scripts/
+│   ├── install-codex-plugin
+│   ├── install-codex-factory
+│   ├── review-route
+│   └── run-codex-agent
+├── skills/          factory-init, build, team-lead, review, resume, status, health, session-setup, factory-protocol, frontend-testing
+├── reference/
+│   ├── codex-model-routing.md
+│   └── handoff-contract.md
+├── docs/
+│   ├── TRUST.md                 what code enforces and what relies on prompts
+│   ├── provenance.md            outside sources we adapted
+│   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
+├── CHANGELOG.md     release notes
+├── CONTRIBUTING.md  how to contribute
+├── LICENSE          AGPL-3.0
+└── README.md
+```
+
+## Codex (experimental, untested)
+
+Codex support exists (installers, a role runner and model routing, all with offline tests), but nobody has run it end to end on a real project yet. If you use Codex, please try it and [tell us what breaks](https://github.com/achisolomon/software-factory/issues/new).
+
 - **Codex models**: use `scripts/run-codex-agent` to launch a role with an explicit Codex model. Its cost-effective defaults and escalation rules are in `reference/codex-model-routing.md`; it does not alter the Claude frontmatter. For example:
   ```bash
   # Run from the project the agents should work on.
@@ -156,7 +221,7 @@ Or call any specialist directly, for example:
   ```
   For an existing installation, use `--update`; the installer preserves the previous runtime in a sibling backup directory. It includes bundled skills and leaves project documents and `AGENTS.md` alone.
 
-## Install as a Codex plugin
+### Install as a Codex plugin
 
 Codex installs this plugin into its own cache, not into your project. The quickest GitHub installation is the included installer (run from a checkout of this repository):
 
@@ -190,57 +255,15 @@ codex plugin marketplace add achisolomon/software-factory --sparse .agents/plugi
 codex plugin marketplace upgrade software-factory-marketplace
 ```
 
-The add command works from any directory and requires GitHub access. If the plugin isn't installed after the marketplace refresh, install it with `codex plugin add software-factory@software-factory-marketplace`. Start a new chat to load the updated plugin. Marketplace upgrades fetch committed GitHub content; local changes appear only after they are committed and published to the configured branch.
+The add command works from any directory and requires GitHub access. If the plugin isn't installed after the marketplace refresh, install it with `codex plugin add software-factory@software-factory-marketplace`. Start a new chat to load the updated plugin. Marketplace upgrades fetch committed GitHub content; local changes appear only after they are pushed to `main`.
 
-For a private repository, authenticate Git with GitHub first (`gh auth login` or SSH/HTTPS Git credentials). The marketplace command uses those credentials; users do not need to clone this repository.
-- **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
-- **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
-
-## Layout
-
-```
-software-factory/
-├── .agents/plugins/
-│   └── marketplace.json
-├── .codex-plugin/
-│   └── plugin.json
-├── .claude-plugin/
-│   ├── plugin.json
-│   └── marketplace.json
-├── agents/          11 agent definitions
-├── hooks/           gate, reply check, model check, after-compact, team-lead trigger
-├── assets/          Codex marketplace icon and logo
-├── plugin.json       portable Agent Plugins manifest
-├── scripts/
-│   ├── install-codex-plugin
-│   ├── install-codex-factory
-│   ├── review-route
-│   └── run-codex-agent
-├── skills/          factory-init, build, team-lead, review, resume, status, health, session-setup, factory-protocol, frontend-testing
-├── reference/
-│   ├── codex-model-routing.md
-│   └── handoff-contract.md
-├── docs/
-│   ├── TRUST.md                 what code enforces and what relies on prompts
-│   ├── provenance.md            outside sources we adapted
-│   └── improvement-backlog.md   ideas from similar projects: done, planned, declined
-├── CHANGELOG.md     release notes
-└── README.md
-```
-
-## Economical operation (0.4.0)
-
-The existing Test Automation Engineer uses the bundled `frontend-testing` skill for web UI work; no extra QA agent is added. The skill covers page analysis, canonical tests, accessible selectors, network mocking, real-backend critical journeys, trace-based diagnosis and targeted stability runs.
+### Codex model routing
 
 Codex routing defaults coordination and routine QA/UX/cost checks to GPT-6 Luna; substantial implementation and independent code review use GPT-6.1 Sol. Any role can use `--mode routine` for a small specified task, or `--mode quality` for complex work. Astra requires an explicit escalation after Sol evidence. See [the routing policy](reference/codex-model-routing.md). Choose Standard speed in the app; the runner does not change the main chat's model, speed or reasoning settings.
 
 Keep task context focused, classify clear small requests inline, run conditional specialists only when relevant, and return bounded evidence. Required reviews and user gates remain in place. Model selection for native delegation depends on the host's available controls; disclose when it cannot be enforced.
 
-## Update the factory in another repository
-
-Changes in this checkout are available locally now. Marketplace commands receive them only after version 0.5.0 has been committed and published to the marketplace's configured GitHub source. Editing this checkout does not update cached plugins or project-local runtime copies. Start a new chat after updating.
-
-### Project-local Codex runtime (`.codex/software-factory/`)
+### Update a project-local Codex runtime (`.codex/software-factory/`)
 
 Run from this factory checkout, replacing the target path:
 
@@ -264,16 +287,12 @@ Both commands should report `model=gpt-6-luna`. For substantial work, `--mode qu
 ./.codex/software-factory/scripts/run-codex-agent team-lead -- 'Implement task T-027 with economical model routing.'
 ```
 
-### Codex marketplace plugin
+### Update the Codex plugin
 
-After publication, update the user-level marketplace and start a new chat in the target repo:
+After a new version is pushed to `main`, update the user-level marketplace and start a new chat in the target repo:
 
 ```bash
 codex plugin marketplace upgrade software-factory-marketplace
 ```
 
 If the target also has a project-local runtime, update that separately using the command above. In the new chat select GPT-6 Luna at Standard speed for coordination and invoke Software Factory. An already-running chat keeps its current model and loaded instructions.
-
-### Claude Code marketplace plugin
-
-After publication, run the one-line update command from [Updating](#updating) in a terminal and restart the session. Codex model names do not apply to Claude; its existing model policy remains separate.

@@ -6,6 +6,6 @@
   "author": {
     "name": "Achi Solomon"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "keywords": ["agents", "software-architecture", "code-review", "devops", "finops", "security", "testing", "product-management"]
 }
