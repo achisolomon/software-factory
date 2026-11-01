@@ -2,6 +2,12 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.6.3 (2026-11-01)
+
+- **One-line terminal install.** The README installs with one `claude plugin` line in a terminal, with first-run checks and fixes for common install errors. The `/plugin` chat command is not available in the VS Code extension.
+- The Team Lead gives the terminal update command (not `/plugin marketplace update`) when it tells you how a plugin change reaches a project.
+- Release notes moved from the README to this page.
+
 ## 0.6.2 (2026-10-31)
 
 - **Pace: speed.** Say "I want speed" (or set the speed preference) and the Team Lead runs a lighter loop: the skeptic pass only for Security findings and for auth, payments or data deletion; only the required reviewers plus Test and Architect; the Architect's fast check in parallel with tests; independent tasks in parallel, up to three Developers. Gates, approvals, Security and a deep review route are unchanged.
