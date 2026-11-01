@@ -33,6 +33,7 @@ Use it, enjoy it, and make it better. Every improvement you make for your own pr
 - **Found a gap?** [Open an issue](https://github.com/achisolomon/software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
 - **Want to start small?** Pick a [`good first issue`](https://github.com/achisolomon/software-factory/labels/good%20first%20issue).
 - **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Before submitting a PR:** run `python3 -m unittest discover -s tests` locally. GitHub Actions runs the same suite on pull requests and pushes to `main`.
 - **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
 - **Like it?** Give it a star and tell a friend.
 
