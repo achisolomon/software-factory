@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.6.4 (2026-11-01)
+
+- **Links before approval.** At Gate 1 the Team Lead makes sure the Product Manager names each file it wrote, sends it back if not, and links the vision, PRD, backlog and flows before asking you to approve. At every gate, each document you are asked to approve is linked, and the links are repeated in the question itself. New eval `gate-1-links-first`.
+
 ## 0.6.3 (2026-11-01)
 
 - **One-line terminal install.** The README installs with one `claude plugin` line in a terminal, with first-run checks and fixes for common install errors. The `/plugin` chat command is not available in the VS Code extension.
