@@ -58,6 +58,7 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 25 | Reply check, model check and after-compact hooks | unit `test_hooks`, `test_agent_model_hook`; eval `triage-first-with-model` |
 | 26 | "team lead" trigger | unit `test_hooks.TeamLeadTriggerTests`; eval `team-table-status` (its prompt is "team lead, status?") |
 | 27 | Factory self-change needs the user's sign-off | eval `lesson-promotion-asks` |
+| 41 | Gate 1 asked for approval without links to the PRD and backlog | eval `gate-1-links-first` |
 | 28 | TRUST and provenance pages | not covered: documents only |
 | 29 | Every work item is a clickable link | eval `team-table-status` (`issue-links`) |
 | 30 | Team table with real models, background processes separate | evals `team-table-status`, `team-table-after-compaction` |

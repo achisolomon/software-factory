@@ -73,6 +73,10 @@ class EvalSuiteTests(unittest.TestCase):
             "health-check": lambda w: ("prunable" in git(w, "worktree", "list", "--porcelain")
                                       and (w / ".worktrees/lane-copy/checkout-copy.md").is_file()),
             "board-is-not-approval": lambda w: "helpful-bot" in (w / "docs/factory/inbox/github-activity.md").read_text(),
+            "gate-1-links-first": lambda w: ("| Gate 1 — PRD | pending |" in (w / "docs/factory/status.md").read_text()
+                                            and "S-007" in (w / "docs/product/backlog.md").read_text()
+                                            and "Tracking: local" in (w / "docs/architecture/project-facts.md").read_text()
+                                            and "prd.md" not in (w / "docs/factory/inbox/pm-reply.md").read_text()),
             "instruction-files-need-security": lambda w: {"CLAUDE.md", ".cursorrules"} <= set(
                 git(w, "diff", "--name-only", "main...lane-docs").split()) and not (w / "CLAUDE.md").exists(),
             "wave-done-state-on-disk": lambda w: '"finished"' in (w / ".factory-run/wf_demo-001/journal.jsonl").read_text(),
