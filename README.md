@@ -196,6 +196,16 @@ For a private repository, authenticate Git with GitHub first (`gh auth login` or
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 
+## Contributing
+
+Before submitting a pull request, run the offline test suite locally:
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+Pull requests and pushes to `main` are also checked automatically with GitHub Actions.
+
 ## Layout
 
 ```
