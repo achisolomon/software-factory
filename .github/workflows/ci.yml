@@ -9,8 +9,13 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash  # GitHub then runs bash --noprofile --norc -eo pipefail; the implicit default is bash -e without pipefail
+
+# Each main commit gets its own group so a burst of merges is never cancelled; PRs cancel older runs on the same ref.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -37,4 +42,7 @@ jobs:
       - name: Run unit suite
         run: |
           python -m unittest discover -s tests 2>&1 | tee test.log
-          ! grep -q 'skipped' test.log
+          if grep -Eq '^OK \(.*skipped=' test.log; then
+            echo "::error::Tests were skipped; CI must run the whole suite (see the guard step)"
+            exit 1
+          fi
