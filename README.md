@@ -18,6 +18,13 @@ https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
 The agents are checked too: 25 behavior evals and 75 offline tests guard their rules and approval gates.
 
+## What you get
+
+- **A full AI software team in your editor**: Architect, Developer, Tester, Product Manager, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
+- **Quality you can check**: every task is tested and reviewed, and "done" means re-run command output, not an agent's word.
+- **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
+- **Sensible model costs**: each agent runs on the smallest model that does its job well (see [Meet the team](#meet-the-team)). Haiku handles triage and lookups, Sonnet builds and runs routine reviews, and Opus is kept for product, architecture, security and final gates. Say "conserve my limits" to go cheaper; that changes models, never steps or gates.
+
 ## Quick start
 
 1. **Install once per machine.** Paste this line into a terminal (in VS Code: Terminal > New Terminal, not the Claude chat box):
@@ -30,31 +37,36 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 
 2. **Write a good spec.** The Team Lead expects a clear spec before the team starts. Write it with the spec-driven tool you like, such as [Superpowers](https://github.com/obra/superpowers), [BMAD](https://github.com/bmad-code-org/BMAD-METHOD), [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit) ([compare spec-driven tools](https://aitoolreview.ai/?subcategory=spec-driven)). The factory uses these tools instead of replacing them: the Product Manager checks your spec for gaps (metrics, NFRs, testable acceptance criteria) but never rewrites it.
 
-3. **Open your project, start a new Claude Code chat and say "team lead":**
+3. **Set up the project, once.** Open your project in VS Code, start a new Claude Code chat and run:
+
+   ```text
+   /software-factory:factory-init
+   ```
+
+   (Type `/factory` in the chat box to find it.) The first reply starts with `Software Factory v<version>`, which means the team is loaded. Init asks a few project questions in one batch (stack, compliance, budget, whether agents may commit locally), then creates `docs/factory/`, maps an existing codebase and sets up a GitHub Project board.
+
+4. **Say "team lead":**
 
    ```text
    team lead, build docs/spec.md
    ```
 
-   The first reply starts with `Software Factory v<version>`, which means the team is loaded. The first time in a project, the Team Lead offers to set the factory up: a few questions in one batch (stack, compliance, budget, whether agents may commit locally), then `docs/factory/` and a GitHub Project board. Then the team goes to work, and stops for your approval at every important decision.
+   The team goes to work, and stops for your approval at every important decision. (If you skip step 3, the Team Lead offers to run init for you the first time.)
 
 **Tips**
 
+- **Spend less and go faster** with these skills, all on [AI Tool Review's cost-reduction list](https://aitoolreview.ai/?tag=cost-reduction):
+  - [Ponytail](https://aitoolreview.ai/tools/ponytail/): makes agents write the smallest change that solves the task.
+  - [Caveman](https://aitoolreview.ai/tools/caveman/): terse replies that cut output tokens.
+  - [Token Optimizer](https://aitoolreview.ai/tools/token-optimizer/): finds where your context and tokens go, and trims it.
+  - For writing the spec, [Superpowers](https://aitoolreview.ai/tools/superpowers/) is a good start.
 - For GitHub issue tracking, give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
 - Commit the `docs/` folder now and then, so the team's state is versioned with the code.
-- To set up without starting work, run `/software-factory:factory-init` (type `/factory` in the chat box to find it).
 
 **Troubleshooting**
 
 - "No matching commands": open a new chat, or reload VS Code (Cmd+Shift+P, **Developer: Reload Window**), then type `/factory`.
 - Check what is installed with `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
-
-## What you get
-
-- **A full AI software team in your editor**: Architect, Developer, Tester, Product Manager, Security, FinOps, DevOps, UX and Performance, led by a Team Lead you talk to.
-- **Quality you can check**: every task is tested and reviewed, and "done" means re-run command output, not an agent's word.
-- **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
-- **Sensible model costs**: each agent runs on the smallest model that does its job well (see [Meet the team](#meet-the-team)). Haiku handles triage and lookups, Sonnet builds and runs routine reviews, and Opus is kept for product, architecture, security and final gates. Say "conserve my limits" to go cheaper; that changes models, never steps or gates.
 
 ## Contribute
 
