@@ -1,12 +1,12 @@
 #!/bin/sh
 # Machine-wide lock for a local CI script whose tests bind fixed ports (emulators, a dev server).
 # Parallel sessions or worktrees on one machine queue behind each other for the port phase instead of colliding.
-# Source: pushapp web scripts/ci-local.sh, https://github.com/Pushapp-Team/web/pull/357 (2026-10-29).
+# Source: pushapp web scripts/ci-local.sh, Pushapp-Team/web pull request 357 (2026-10-29).
 #
 # Use in the project's local CI script:
 #   LOCK=/tmp/<project>-ci-local-lock      # fixed path, see below
 #   PORTS="8080 9099 3000"                 # every fixed port the locked phase uses
-#   LOGS="${TMPDIR:-/tmp}/ci-local-logs/$(basename "$PWD")"   # one log folder per worktree
+#   LOGS="${TMPDIR:-/tmp}/ci-local-logs/$(basename "$(pwd)")"   # one log folder per worktree
 #   . scripts/local-ci-lock.sh             # a copy of this file in the project, or paste the two functions
 #   <typecheck, lint, unit tests: no ports, stay parallel>
 #   take_lock
@@ -27,7 +27,7 @@
 # - Separate ports per worktree is the alternative only when no port is fixed by outside config (OAuth origins etc.).
 # - Accepted limits: no wait timeout, no PID-reuse guard, a microsecond take-over race (the port check is the backstop).
 
-ME="$$:$PWD"
+ME="$$:$(pwd)"
 
 release_lock() { [ "$(readlink "$LOCK" 2>/dev/null)" = "$ME" ] && rm -f "$LOCK"; return 0; }
 
