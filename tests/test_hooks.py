@@ -30,6 +30,12 @@ class GateTests(unittest.TestCase):
         cls.repo_cased = cls.make_repo("cased", "git@github.com:Achisolomon/Software-Factory.git")
         cls.no_origin = Path(cls.tmpdir, "plain")
         cls.no_origin.mkdir()
+        cls.workspace = Path(cls.tmpdir, "ws")  # no origin itself; holds one factory project that has one
+        (cls.workspace / "proj" / "docs" / "factory").mkdir(parents=True)
+        (cls.workspace / "proj" / "docs" / "factory" / "status.md").write_text("# Status\n")
+        subprocess.run(["git", "init", "-q", str(cls.workspace / "proj")], check=True)
+        subprocess.run(["git", "-C", str(cls.workspace / "proj"), "remote", "add", "origin",
+                        "https://github.com/achisolomon/software-factory.git"], check=True)
 
     @classmethod
     def make_repo(cls, name, origin):
@@ -49,8 +55,10 @@ class GateTests(unittest.TestCase):
             payload["agent_type"] = agent
         if agent_id:
             payload["agent_id"] = agent_id
-        # Blank PGHOST/PGHOSTADDR so the developer's own environment cannot change a verdict.
-        hook_env = {"TMPDIR": self.tmpdir, "PGHOST": "", "PGHOSTADDR": "", **(env or {})}
+        # Blank the variables the gate reads so the developer's own environment cannot change a verdict.
+        blank = dict.fromkeys(("PGHOST", "PGHOSTADDR", "PGSERVICE", "MYSQL_HOST", "DATABASE_URL", "GH_REPO",
+                               "DOCKER_HOST", "DOCKER_CONTEXT"), "")
+        hook_env = {"TMPDIR": self.tmpdir, **blank, **(env or {})}
         result = run("gate.py", payload, env=hook_env)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "", command)
@@ -328,6 +336,85 @@ class GateTests(unittest.TestCase):
         ], None, cwd=self.repo)
         self.assert_decision(
             ["gh issue create -R achisolomon/software-factory -t x -b y"], None, cwd=self.repo_cased)
+
+    def test_asks_for_round_one_db_and_runner_forms(self):
+        self.assert_decision([
+            "psql --dbname=postgres://u@db.example.com/x -c \"DELETE FROM t\"",  # #98
+            "psql -dpostgres://u@db.example.com/x -c \"DELETE FROM t\"",
+            "psql --dbname \"host=db.example.com dbname=x\" -c \"DELETE FROM t\"",
+            "psql -d postgres://u@db.example.com/x -c \"DELETE FROM t\"",
+            "docker run --rm -e PGHOST=db.example.com postgres psql -c \"DELETE FROM t\"",  # #99
+            "docker exec -e PGHOST=db.example.com db psql -c \"DELETE FROM t\"",
+            "docker compose run --rm app psql -h db.example.com -c \"DELETE FROM t\"",
+            "docker -H ssh://h run --rm postgres psql -c \"DELETE FROM t\"",
+            "kubectl run x --image=postgres --rm -it -- psql -h db.example.com -c \"DELETE FROM t\"",
+            "kubectl run x --image=postgres --rm -it -- psql -c \"DELETE FROM t\"",
+            "ssh h \"cd /srv && psql -c 'DELETE FROM t'\"",  # #117
+            "ssh h 'sudo -u postgres psql -c \"DELETE FROM t\"'",
+            "ssh h \"PGHOST=x psql -c 'DELETE FROM t'\"",
+            "ssh h 'psql -c \"SELECT 1\"; psql -c \"DELETE FROM t\"'",
+            "ssh h docker volume rm x",
+            "ssh h 'rm -rf /srv/x'",
+            "ssh h firebase firestore:delete --all-collections",
+            "kubectl exec pod -- sh -c \"cd /x && psql -c 'DELETE FROM t'\"",
+            "docker exec db sh -c \"psql -h db.example.com -c 'DELETE FROM t'\"",
+            "psql \"host = db.example.com dbname=shop\" -c \"DELETE FROM t\"",  # #101
+            "psql -qh db.example.com -c \"DELETE FROM t\"",
+            "sudo -iu postgres psql -h db.example.com -c \"DELETE FROM t\"",
+            "psql -h db.example.com -c \"\"",
+            "echo \"DROP DATABASE shop\" | psql -h localhost",  # #102
+            "psql -h localhost <<< \"drop database shop\"",
+            "psql -h localhost <<EOF\nDROP DATABASE shop\nEOF",
+            "psql -h localhost -c \"DROP/**/DATABASE shop\"",  # #118
+            "PGHOSTADDR=10.0.0.5 psql -h localhost -c \"DELETE FROM t\"",  # #106
+            "mysqladmin -h db.example.com drop shop",  # #118
+            "pg_restore -h db.example.com --clean -d x dump",
+            "mongorestore --host db.example.com --drop dump/",
+            "mongosh db.example.com/shop --eval \"db.x.find()\"",  # #107: host/db is a host
+        ], "ask")
+
+    def test_asks_for_round_one_firebase_and_docker_forms(self):
+        self.assert_decision([
+            "firebase functions:delete f", "firebase database:set / data.json",
+            "docker rm -v c", "docker compose rm -v", "docker compose down --volumes=true",
+        ], "ask")
+
+    def test_does_not_ask_for_round_one_safe_forms(self):
+        self.assert_decision([
+            "mongosh shop --eval \"db.x.find()\"",  # #107: a bare word is a local database
+            "ls $HOME/mysql-data",  # #109
+            "docker rm c",
+        ], None)
+        self.assert_decision(["gh pr checkout 5 --repo other/repo", "gh search issues x --repo other/repo"],
+                             None, cwd=self.repo)
+
+    def test_asks_when_hook_env_names_a_remote_target(self):
+        for env, command in [
+            ({"PGSERVICE": "prod"}, "psql -c \"DELETE FROM t\""),
+            ({"MYSQL_HOST": "db.example.com"}, "mysql -e \"DROP TABLE t\""),
+            ({"DATABASE_URL": "postgres://u@db.example.com/s"}, "psql -c \"DELETE FROM t\""),
+            ({"GH_REPO": "other/repo"}, "gh issue create -t x -b y"),
+            ({"DOCKER_HOST": "ssh://h"}, "docker exec db psql -c \"DELETE FROM t\""),
+            ({"DOCKER_CONTEXT": "prod"}, "docker exec db psql -c \"DELETE FROM t\""),
+        ]:
+            with self.subTest(env=env):
+                self.assert_decision([command], "ask", cwd=self.repo, env=env)
+
+    def test_gh_api_urls_dotdot_and_hostname(self):
+        self.assert_decision([
+            "gh api https://api.github.com/repos/other/repo/issues -f title=x",  # #115
+            "gh api https://ghe.example.com/api/v3/repos/achisolomon/software-factory/issues -f title=x",
+            "gh api --hostname ghe.example.com repos/achisolomon/software-factory/issues -f title=x",  # #118
+            "gh api -X POST repos/achisolomon/software-factory/../other/repo/issues -f title=x",  # #104
+            "gh api -X POST repos/other%2Frepo/issues -f title=x",
+        ], "ask", cwd=self.repo)
+        self.assert_decision(
+            ["gh api https://api.github.com/repos/achisolomon/software-factory/issues -f title=x"],
+            None, cwd=self.repo)
+
+    def test_gh_in_a_workspace_folder_uses_the_factory_project_origin(self):  # #103
+        self.assert_decision(["gh issue create -R achisolomon/software-factory -t x -b y"], None, cwd=self.workspace)
+        self.assert_decision(["gh issue create -R other/repo -t x -b y"], "ask", cwd=self.workspace)
 
     def test_denies_shell_file_writes_for_subagents(self):
         self.assert_decision([
