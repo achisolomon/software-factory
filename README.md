@@ -16,7 +16,7 @@ A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatch
 
 https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
-The agents are checked too: 25 behavior evals and 75 offline tests guard their rules and approval gates.
+The agents are checked too: 29 behavior evals and 134 offline tests guard their rules and approval gates.
 
 ## What you get
 
@@ -27,7 +27,7 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 
 ## Meet the team
 
-11 agents, what each one does and the model it runs on:
+12 agents, what each one does and the model it runs on:
 
 | Agent | Model | What it does |
 |---|---|---|
@@ -37,6 +37,7 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 | **Software Architect** | Opus for design, Sonnet for routine reviews | Mermaid repo maps, system design, ADRs, contracts, task breakdown, coding standards, and code review (clean code, OOD, DRY, patterns, scalability) |
 | **Software Developer** | Sonnet (Opus for a third fix round) | Implements one task at a time with unit tests, on a local branch; fixes review findings |
 | **Test Automation Engineer** | Sonnet | The team's devil's advocate: test strategy, integration, contract and E2E tests, per-task verification that hunts for where the code breaks, prefers test-first and enforces API-first, release regression |
+| **Exploratory QA Engineer** | Sonnet | Black-box bug hunter: explores the running app like a user at the end of an epic and on request, only in local or disposable environments, writes a failing repro test before reading code, and quarantines it with a marker |
 | **DevOps Engineer** | Sonnet | Environments, containers, CI/CD, infrastructure as code, observability, runbooks, all validated by dry runs |
 | **FinOps Engineer** | Sonnet | Cost model with sourced prices, cost guardrails, cost reviews of changes, actual-vs-forecast |
 | **Security Engineer** | Opus | Threat model (STRIDE), security requirements (ASVS), security reviews and scans, final release gate |
@@ -45,7 +46,7 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 
 Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
 
-Current version: 0.7.0. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.8.0. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Quick start
 
