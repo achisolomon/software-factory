@@ -4,7 +4,7 @@ What changed in each release of the Software Factory plugin, newest first. Back 
 
 ## 0.7.2 (2026-11-02)
 
-- **Plugin icon and links.** A square icon at `.claude-plugin/icon.png`, and `homepage` and `repository` in `plugin.json`, ready for the claude.ai plugin directory.
+- **Plugin icon and links.** A square plugin icon, and `homepage` and `repository` in `plugin.json`, ready for the claude.ai plugin directory.
 
 ## 0.7.1 (2026-11-02)
 
