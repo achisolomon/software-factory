@@ -1,5 +1,8 @@
 .DS_Store
 
+# Local Claude Code settings and worktrees
+.claude/
+
 # Local Python verification artifacts
 __pycache__/
 .ruff_cache/
