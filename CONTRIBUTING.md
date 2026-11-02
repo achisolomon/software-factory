@@ -43,7 +43,7 @@ Plugin files run on users' machines, so treat every pull request as untrusted co
 
 - Run `gh pr diff <n>` and read it before anything else.
 - Never run `claude --plugin-dir` on a fork until you have read its hooks and prompts. Hooks run code on your machine.
-- Do runtime tests in a throwaway VM or container.
+- Do runtime tests in a throwaway VM or container that holds no credentials: no mounted home directory, no `gh` or `git` auth, no API keys or tokens.
 - Read the full diff, line by line, for any change under `hooks/`, `agents/`, `skills/`, `reference/`, `scripts/`, `.claude-plugin/`, `.claude/`, or `.github/`. These ship to every user on merge.
 - Review Dependabot pull requests as code, not as routine bumps.
 
