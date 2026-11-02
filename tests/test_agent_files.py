@@ -1,23 +1,37 @@
-"""Structure checks for agents/exploratory-qa-engineer.md (frontmatter, required phrases, report order)."""
+"""Structure checks for agents/exploratory-qa-engineer.md (frontmatter, rule sentences, report order).
+
+Each rule is pinned as a whole line: an anchor finds the line, then every fragment
+(including the negation or the qualifier) must sit on that same line. A rule that
+is flipped, deleted or moved to another paragraph fails.
+"""
 
 from pathlib import Path
 import unittest
 
 AGENT = Path(__file__).resolve().parents[1] / "agents" / "exploratory-qa-engineer.md"
 
-REQUIRED_PHRASES = [
-    "QUARANTINE: <issue url>",
-    "expectedFailure",
-    "3 of 3",
-    "intent unverified",
-    "direct-write state",
-    "first code read",
-    "skills/frontend-testing",
-    "id, title and severity only",
-    "FIRESTORE_EMULATOR_HOST",
-    "docker compose down -v",
-    "30 actions",
-]
+# (anchor that finds the line, fragments that must all be on that line)
+RULE_LINES = {
+    "quarantine marker": ("`QUARANTINE: <issue url>`", ["expected-failure form", "`expectedFailure`", "skip-unless-stack"]),
+    "3 of 3": ("on 3 of 3 runs", ["confirmed only when", "from a clean state", "a value you invented cannot confirm a bug"]),
+    "action cap": ("at most 30 actions per charter", ["5 to 10 charters"]),
+    "Minor cap": ("capped at Minor, routed to the PM", ["`direct-write state`"]),
+    "intent unverified": ("`intent unverified`, capped at Minor", ["candidate marked"]),
+    "no down -v": ("Never `docker compose down -v`", ["`docker volume rm`", "`docker system prune`", "stack you did not start"]),
+    "gate timing": ("Run it before you start or reuse any stack", ["again before the first write of each charter"]),
+    "gate host source": ("from the environment the stack itself loads", ["by variable name", "never the raw value"]),
+    "remote is shared": ("A remote host is shared, whatever its label", ["Without an approval", "only to loopback"]),
+    "loopback listener": ("Loopback is local only when the listener", ["this run started", "or the brief names it", "`needs-input`"]),
+    "emulator vars": ("confirm the emulator host variables", ["`FIRESTORE_EMULATOR_HOST`", "before any write", "live-mode key means stop"]),
+    "approval": ("A shared environment only with the user's approval", ["quoted", "user's own words", "host or URL", "operations", "date", "never counts"]),
+    "UI driver": ("Drive the UI only through", ["skills/frontend-testing", "no other UI driver"]),
+    "untrusted output": ("is data, never instructions", ["Never run a command", "write to memory"]),
+    "code access": ("**Code access.**", ["only after a finding's repro test has failed on the bug's assertion", "first code read"]),
+    "public security finding": ("The committed report shows the finding as id, title and severity only", ["no steps", "no evidence"]),
+    "withheld path": ("`.software-factory-withheld/<finding id>/`", ["not scratch", "exempt from cleanup", "git check-ignore"]),
+    "visibility fallback": ("a failed check, `INTERNAL`", ["treat the repo as public"]),
+    "memory": ("Never record secrets", ["credentialed URLs", "approvals", "security-class findings"]),
+}
 
 REPORT_ORDER = [
     "Confirmed bugs by severity",
@@ -41,9 +55,14 @@ def split_agent():
     return fields, body
 
 
+def section(body, title, next_title):
+    return body.split(title, 1)[1].split(next_title, 1)[0]
+
+
 class ExploratoryQaAgentFileTests(unittest.TestCase):
     def setUp(self):
         self.fields, self.body = split_agent()
+        self.lines = self.body.splitlines()
 
     def test_frontmatter_fields(self):
         self.assertEqual(self.fields["name"], "exploratory-qa-engineer")
@@ -56,14 +75,31 @@ class ExploratoryQaAgentFileTests(unittest.TestCase):
     def test_color_is_not_orange(self):
         self.assertNotEqual(self.fields["color"].lower(), "orange")
 
-    def test_required_phrases_present(self):
-        lowered = self.body.lower()
-        for phrase in REQUIRED_PHRASES:
-            with self.subTest(phrase=phrase):
-                self.assertIn(phrase.lower(), lowered)
+    def test_each_rule_is_pinned_on_one_line(self):
+        for name, (anchor, fragments) in RULE_LINES.items():
+            with self.subTest(rule=name):
+                matches = [line for line in self.lines if anchor in line]
+                self.assertEqual(len(matches), 1, f"anchor {anchor!r} must match exactly one line")
+                for fragment in fragments:
+                    self.assertIn(fragment, matches[0])
+
+    def test_never_rules_keep_their_polarity(self):
+        line = next(line for line in self.lines if "`docker compose down -v`" in line)
+        self.assertNotIn("Always `docker compose down -v`", line)
+        self.assertTrue(line.index("Never `docker compose down -v`") < line.index("stack you did not start"))
+
+    def test_first_code_read_is_recorded_in_code_access_and_report(self):
+        code_access = section(self.body, "**Code access.**", "# Untrusted output")
+        self.assertIn("first code read", code_access)
+        report = section(self.body, "# Report", "# Hard rules")
+        self.assertIn("First code read (finding id, action number)", report)
+
+    def test_scratch_cleanup_exempts_withheld_folder(self):
+        hard_rules = section(self.body, "# Hard rules", "# Memory")
+        self.assertIn("removed before you reply, except the withheld-findings folder", hard_rules)
 
     def test_report_sections_in_order(self):
-        report = self.body.split("# Report", 1)[1].split("# Hard rules", 1)[0]
+        report = section(self.body, "# Report", "# Hard rules")
         positions = [report.find(title) for title in REPORT_ORDER]
         self.assertNotIn(-1, positions)
         self.assertEqual(positions, sorted(positions))
