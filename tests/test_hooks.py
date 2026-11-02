@@ -26,18 +26,32 @@ class GateTests(unittest.TestCase):
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory(prefix="gate-tmp-")
         cls.tmpdir = os.path.realpath(cls.temp.name)
+        cls.repo = cls.make_repo("repo", "https://github.com/achisolomon/software-factory.git")
+        cls.repo_cased = cls.make_repo("cased", "git@github.com:Achisolomon/Software-Factory.git")
+        cls.no_origin = Path(cls.tmpdir, "plain")
+        cls.no_origin.mkdir()
+
+    @classmethod
+    def make_repo(cls, name, origin):
+        path = Path(cls.tmpdir, name)
+        path.mkdir()
+        subprocess.run(["git", "init", "-q", str(path)], check=True)
+        subprocess.run(["git", "-C", str(path), "remote", "add", "origin", origin], check=True)
+        return path
 
     @classmethod
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def gate(self, command, agent=DEV, cwd=None, agent_id="agent-1"):
+    def gate(self, command, agent=DEV, cwd=None, agent_id="agent-1", env=None):
         payload = {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(cwd or ROOT)}
         if agent is not None:
             payload["agent_type"] = agent
         if agent_id:
             payload["agent_id"] = agent_id
-        result = run("gate.py", payload, env={"TMPDIR": self.tmpdir})
+        # Blank PGHOST/PGHOSTADDR so the developer's own environment cannot change a verdict.
+        hook_env = {"TMPDIR": self.tmpdir, "PGHOST": "", "PGHOSTADDR": "", **(env or {})}
+        result = run("gate.py", payload, env=hook_env)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "", command)
         if not result.stdout.strip():
@@ -181,8 +195,8 @@ class GateTests(unittest.TestCase):
             "git clean -n",
             "gh pr view 12",
             "gh issue create --title x --body y",
-            "gh api repos/o/r/issues -f title=x",
-            "gh api repos/o/r/issues/3/comments -f body=done",
+            "gh api repos/{owner}/{repo}/issues -f title=x",  # the current repo (was o/r before T-014 checked repos)
+            "gh api repos/{owner}/{repo}/issues/3/comments -f body=done",
             "gh api repos/o/r/pulls",
             "gh api graphql -f query='query { viewer { login } }'",
             "terraform plan",
@@ -199,6 +213,121 @@ class GateTests(unittest.TestCase):
             "cargo build",
             "python3 -m pytest -q",
         ], None)
+
+    def test_asks_for_remote_or_ambiguous_db_commands(self):
+        self.assert_decision([
+            "psql -h db.staging.example.com -c \"DELETE FROM orders\"",
+            "psql postgres://app@db.example.com/shop -c \"TRUNCATE t\"",
+            "psql \"$DATABASE_URL\" -c \"SELECT 1\"",
+            "PGHOST=10.0.0.5 psql -c \"UPDATE t SET a=1\"",
+            "psql -h db.example.com -f seed.sql",
+            "psql -h db.example.com < seed.sql",
+            "cat seed.sql | psql -h db.example.com",
+            "psql -h db.example.com",
+            "mysql -hdb.example.com -e \"DROP TABLE t\"",
+            "mongosh \"mongodb+srv://c.example.net/db\" --eval \"db.x.find()\"",
+            "mongosh mongodb://db.example.com/x --eval \"db.a.aggregate([{\\$out:'b'}])\"",
+            "redis-cli -h cache.example.com FLUSHALL",
+            "redis-cli -u redis://cache.example.com FLUSHALL",
+            "sudo -u postgres psql -h db.example.com -c \"DELETE FROM t\"",
+            "env PGHOST=db.example.com psql -c \"DELETE FROM t\"",
+            "timeout 5 psql -h db.example.com -c \"DELETE FROM t\"",
+            "psql -d \"host=db.example.com dbname=x\" -c \"DELETE FROM t\"",
+            "psql \"host=db.example.com dbname=shop\" -c \"DELETE FROM t\"",
+            "psql --host=db.example.com -c \"DELETE FROM t\"",
+            "DATABASE_URL=postgres://u@db.example.com/s psql -c \"DELETE FROM t\"",
+            "mysql mysql://u@db.example.com/s -e \"DROP TABLE t\"",
+            "psql -h db -c \"DELETE FROM t\"",  # single label: ambiguous
+            "PGSERVICE=prod psql -c \"DELETE FROM t\"",
+            "source .env && psql -c \"DELETE FROM t\"",
+            "export PGHOST=db.example.com; psql -c \"DELETE FROM t\"",
+            "PGHOST=db.example.com; psql -c \"DELETE FROM t\"",
+            "psql -h db.example.com -c \"SELECT 1; DELETE FROM t\"",
+            "psql -h db.example.com -c \"SELECT 1; VACUUM\"",
+            "psql -h db.example.com -c \"EXPLAIN ANALYZE DELETE FROM t\"",
+            "psql -h db.example.com -c \"WITH d AS (DELETE FROM t RETURNING 1) SELECT 1\"",
+            "psql -h db.example.com -c \"SELECT 1 \\gexec\"",
+            "psql -h db.example.com -c \"\\copy t to out.csv\"",
+            "psql -h db.example.com -c \"SELECT * INTO t2 FROM t\"",
+            "psql -h db.example.com -c \"SELECT 1\" -c \"DELETE FROM t\"",
+            "docker -H ssh://h exec db psql -c \"DELETE FROM t\"",
+            "kubectl exec pod -- psql -c \"DELETE FROM t\"",
+            "ssh h psql -c \"DELETE FROM t\"",
+            "ssh h \"psql -c 'DELETE FROM t'\"",
+        ], "ask")
+
+    def test_asks_when_the_hook_environment_names_a_remote_host(self):
+        self.assert_decision(["psql -c \"DELETE FROM t\""], "ask", env={"PGHOST": "db.example.com"})
+        self.assert_decision(["psql -c \"DELETE FROM t\""], "ask", env={"PGHOSTADDR": "10.0.0.5"})
+
+    def test_asks_before_dropping_a_local_database(self):
+        self.assert_decision([
+            "psql -h localhost -c \"DROP DATABASE shop\"",
+            "psql -h 127.0.0.1 -c \"drop schema public cascade\"",
+            "dropdb shop",
+            "mongosh mongodb://localhost/db --eval \"db.dropDatabase()\"",
+            "docker compose exec db psql -c \"DROP DATABASE shop\"",
+        ], "ask")
+
+    def test_does_not_ask_for_local_or_read_only_db_commands(self):
+        self.assert_decision([
+            "psql -h db.example.com -c \"SELECT count(*) FROM t\"",
+            "psql -h db.example.com -c \"select 1\"",
+            "psql -h db.example.com -tAc \"SHOW server_version\"",
+            "psql -h db.example.com -c \"\\dt\"",
+            "psql -h db.example.com -c \"EXPLAIN SELECT 1\"",
+            "psql -h localhost -c \"DELETE FROM t\"",
+            "psql -h [::1] -c \"DELETE FROM t\"",
+            "psql -h /var/run/postgresql -c \"DELETE FROM t\"",
+            "psql -c \"INSERT INTO t VALUES (1)\"",
+            "mysql -e \"SHOW TABLES\"",
+            "mysql -h db.example.com -e \"SHOW TABLES\"",
+            "redis-cli -h cache.example.com GET k",
+            "redis-cli FLUSHALL",
+            "docker compose exec db psql -c \"DELETE FROM t\"",
+            "docker volume ls",
+            "docker compose down",
+            "docker system prune -f",
+        ], None)
+
+    def test_asks_before_removing_docker_volumes_or_firebase_data(self):
+        self.assert_decision([
+            "docker compose down -v",
+            "docker-compose down --volumes",
+            "docker compose -f x.yml down -v",
+            "docker volume rm x",
+            "docker volume prune -f",
+            "docker system prune -a --volumes",
+            "firebase firestore:delete --all-collections",
+            "firebase -P demo database:remove /",
+        ], "ask")
+
+    def test_asks_before_gh_writes_to_another_repo(self):
+        self.assert_decision([
+            "gh issue create -R other/repo -t x -b y",
+            "gh issue create --repo other/repo -t x -b y",
+            "gh issue create -R $TARGET -t x -b y",
+            "GH_REPO=other/repo gh issue create -t x -b y",
+            "gh pr merge 5 -R other/repo",
+            "gh api repos/other/repo/issues -f title=x",
+            "gh api -X POST /repos/other/repo/issues/1/comments -f body=x",
+            "gh api -X DELETE repos/other/repo",
+            "gh api repos/{owner}/other/issues -f title=x",
+            "GH_REPO=other/repo gh api repos/{owner}/{repo}/issues -f title=x",
+        ], "ask", cwd=self.repo)
+
+    def test_asks_before_gh_writes_without_a_readable_origin(self):
+        self.assert_decision(["gh issue comment 1 -R other/repo -b x"], "ask", cwd=self.no_origin)
+
+    def test_does_not_ask_for_gh_reads_or_the_current_repo(self):
+        self.assert_decision([
+            "gh issue create -R achisolomon/software-factory -t x -b y",
+            "gh issue list -R other/repo",
+            "gh api repos/{owner}/{repo}/issues -f title=x",
+            "gh api repos/other/repo/issues",
+        ], None, cwd=self.repo)
+        self.assert_decision(
+            ["gh issue create -R achisolomon/software-factory -t x -b y"], None, cwd=self.repo_cased)
 
     def test_denies_shell_file_writes_for_subagents(self):
         self.assert_decision([
