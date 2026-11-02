@@ -2,6 +2,14 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.0 (2026-11-02)
+
+- **New agent: the Exploratory QA Engineer.** A black-box bug hunter that uses the running app like a user, at the end of an epic and whenever you ask. It works only in local or disposable environments, never shared or production ones. Before it reads any code it writes a failing repro test for each bug, and it marks that test with a quarantine marker so the suite stays green until the bug is fixed. Method adapted, in our own words, from tester-army/e2e (see [provenance](docs/provenance.md)); the tool is neither bundled nor pinned.
+- **Team Lead and Test Engineer wiring.** The Team Lead calls the explorer at epic end and on request. The Test Automation Engineer owns the repro tests from un-quarantine on and allows the explorer to quarantine its own.
+- **The gate hook asks before more risky commands.** It now asks first for remote database clients, docker volume removal, firebase deletes and `gh` writes to other repositories.
+- **Four new evals** cover the explorer's rules, for 29 in total. The README now also carries the real agent, eval and test counts, and `tests/test_release_files.py` keeps them honest.
+- **Upgrade note.** Add `.software-factory-withheld/` to your project's `.gitignore`. Without it, the explorer stops with `needs-input` when it finds a security issue in a public repository, because it will not write the details where they could be committed.
+
 ## 0.7.5 (2026-11-02)
 
 - **No folders in your project unless an agent needs scratch space.** 0.7.3 and 0.7.4 created `.software-factory-tmp/` (with a `.gitignore`) in every project at every session start. Now the session start only sets `$FACTORY_TMP`; the folder appears only when an agent creates it for scratch work, and is deleted when the session ends. Git ignores it through one line in `.git/info/exclude` (never shown or committed), not a file in your project. The first session after updating also removes the empty `.software-factory-tmp/` that 0.7.3 and 0.7.4 left behind.
