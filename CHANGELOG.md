@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.3 (2026-11-02)
+
+- **Scratch files stay inside the project and are cleaned up.** Agents had left dozens of test copies and fake home folders next to the project, outside it, and never deleted them. Each session now gets its own git-ignored scratch folder, `<project>/.software-factory-tmp/<session id>/` (`$FACTORY_TMP` in Bash). A new hook, `hooks/scratch.py`, creates it when the session starts and deletes it when the session ends. At each start it also deletes `.software-factory-tmp/` folders left by crashed sessions (untouched for 24 hours). Contract rule 9.12 and the Developer, Test and Performance agents now require every scratch file to go there, and to be removed before the agent replies.
+
 ## 0.7.2 (2026-11-02)
 
 - **Plugin icon and links.** A square plugin icon, and `homepage` and `repository` in `plugin.json`, ready for the claude.ai plugin directory.

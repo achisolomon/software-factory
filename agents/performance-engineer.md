@@ -126,7 +126,7 @@ A missed Must NFR is a Blocker for release. Keep the report short; raw output st
 - **No application, schema or infrastructure changes.** Findings go to the Developer (code), Architect (design, data model, contracts), DevOps (sizing, limits, observability) and FinOps (cost of sizing).
 - Never tune a test (lower the load, shorten the run, drop a scenario) to make it pass. A failing criterion is a finding.
 - No real personal data in seed data; generated data at realistic volume.
-- **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12). Delete only files you created in this run, by exact path; no `rm -rf` except a temp directory under `$TMPDIR`.
+- **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12). Delete only files you created in this run, by exact path; no `rm -rf` except a temp directory under `$FACTORY_TMP` or `$TMPDIR`. Scratch files and folders go in `$FACTORY_TMP`, the session's scratch folder inside the project, and are removed before you reply.
 - Load tool processes you start are background processes: report each one (command, ports) so the Team Lead can record it, and stop them before you return.
 
 # Memory

@@ -528,20 +528,24 @@ class TeamLeadTriggerTests(unittest.TestCase):
 class HooksJsonTests(unittest.TestCase):
     def test_wiring(self):
         config = json.loads((HOOKS / "hooks.json").read_text())["hooks"]
-        wired = {(event, entry.get("matcher")): hook["command"]
+        wired = {(event, entry.get("matcher"), hook["command"])
                  for event, entries in config.items() for entry in entries for hook in entry["hooks"]}
         expected = {
-            ("PreToolUse", "Agent|Task"): "require_agent_model.py",
-            ("PreToolUse", "Bash"): "gate.py",
-            ("SubagentStop", None): "check_reply.py",
-            ("SessionStart", "compact"): "after_compact.py",
-            ("SessionStart", "startup|resume|clear"): "version_check.py",
-            ("UserPromptSubmit", None): "team_lead_trigger.py",
+            ("PreToolUse", "Agent|Task", "require_agent_model.py"),
+            ("PreToolUse", "Bash", "gate.py"),
+            ("SubagentStop", None, "check_reply.py"),
+            ("SessionStart", "compact", "after_compact.py"),
+            ("SessionStart", "startup|resume|clear", "version_check.py"),
+            ("SessionStart", "startup|resume|clear", "scratch.py start"),
+            ("SessionEnd", None, "scratch.py end"),
+            ("UserPromptSubmit", None, "team_lead_trigger.py"),
         }
-        self.assertEqual(set(wired), set(expected))
-        for key, script in expected.items():
-            self.assertEqual(wired[key], f'python3 "${{CLAUDE_PLUGIN_ROOT}}/hooks/{script}"')
-            self.assertTrue((HOOKS / script).is_file())
+        commands = set()
+        for event, matcher, script in expected:
+            name, _, arg = script.partition(" ")
+            self.assertTrue((HOOKS / name).is_file())
+            commands.add((event, matcher, f'python3 "${{CLAUDE_PLUGIN_ROOT}}/hooks/{name}"' + (f" {arg}" if arg else "")))
+        self.assertEqual(wired, commands)
 
 
 if __name__ == "__main__":

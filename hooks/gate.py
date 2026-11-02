@@ -330,7 +330,9 @@ def short_flags(args):
 
 def tmp_roots():
     roots = set()
-    for root in (os.environ.get("TMPDIR"), "/tmp", "/private/tmp"):
+    project = os.environ.get("CLAUDE_PROJECT_DIR")
+    scratch = os.path.join(project, ".software-factory-tmp") if project else None  # per-session folders from scratch.py
+    for root in (os.environ.get("TMPDIR"), "/tmp", "/private/tmp", scratch):
         if root:
             real = os.path.realpath(root)
             if real != os.sep:
