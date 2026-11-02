@@ -53,7 +53,12 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 
    The team goes to work, and stops for your approval at every important decision. (If you skip step 3, the Team Lead offers to run init for you the first time.)
 
-**Tips**
+**Troubleshooting**
+
+- "No matching commands": open a new chat, or reload VS Code (Cmd+Shift+P, **Developer: Reload Window**), then type `/factory`.
+- Check what is installed with `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
+
+## Tips
 
 - **Spend less and go faster** with these skills, all on [AI Tool Review's cost-reduction list](https://aitoolreview.ai/?tag=cost-reduction):
   - [Ponytail](https://aitoolreview.ai/tools/ponytail/): makes agents write the smallest change that solves the task.
@@ -61,13 +66,12 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
   - [Token Optimizer](https://aitoolreview.ai/tools/token-optimizer/): finds where your context and tokens go, and trims it.
   - For writing the spec, [Superpowers](https://aitoolreview.ai/tools/superpowers/) is a good start.
 - **Work in a worktree.** Ask Claude to enter a worktree before it starts (Claude Code's `EnterWorktree`), so each session gets its own branch and working copy, and parallel sessions on the same repo never collide. See [the Claude Code worktrees guide](https://aitoolreview.ai/guides/claude-code-worktrees/).
-- For GitHub issue tracking, give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
-- Commit the `docs/` folder now and then, so the team's state is versioned with the code.
-
-**Troubleshooting**
-
-- "No matching commands": open a new chat, or reload VS Code (Cmd+Shift+P, **Developer: Reload Window**), then type `/factory`.
-- Check what is installed with `claude plugin list` in a terminal. software-factory should show as enabled, user scope, at the latest version.
+- **Compact early.** Once the context passes about half full, compact: long runs get slower, costlier and less accurate as the context fills. `/software-factory:session-setup` sets auto-compact (default 30% of the window) so it happens on its own. The Team Lead keeps its state on disk after every wave, so after a compaction it carries on without a hand-written summary; run `/software-factory:resume` if it seems lost.
+- **Models**: the Team Lead sets the model for each delegation by the kind of work (the table in [Meet the team](#meet-the-team)). Fable runs only when you ask for it. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Speed**: set `Pace: speed` (or say "I want speed") to trade extra checking for speed: fewer optional reviewers and skeptic runs, independent tasks in parallel; gates, approvals and Security stay.
+- **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
+- **GitHub issue tracking**: give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
+- **Commit the `docs/` folder** now and then, so the team's state is versioned with the code.
 
 ## Contribute
 
@@ -98,7 +102,7 @@ Every improvement you make for your own projects can make the factory better for
 | **UX/UI Designer** | Sonnet | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
 | **Performance Engineer** | Opus | Load tester and sizing expert: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests. Runs before a merge to main or a deploy, and when you ask, not per task |
 
-Read-only lookups run on Haiku. To change the policy, see [Customize](#customize).
+Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
 
 </details>
 
@@ -161,10 +165,7 @@ Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and star
 
 ## Customize
 
-- **Models**: the Team Lead sets the model for each delegation by the kind of work (the table in [Meet the team](#meet-the-team)). Fable runs only when you ask for it. Set `Model policy: default | conserve | quality` in `project-facts.md`, or just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
-- **Speed**: set `Pace: speed` (or say "I want speed") to trade extra checking for speed: fewer optional reviewers and skeptic runs, independent tasks in parallel; gates, approvals and Security stay.
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
-- **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 - **Frontend testing**: the Test Automation Engineer uses the bundled `frontend-testing` skill for web UI work: page analysis, canonical tests, accessible selectors, network mocking, real-backend critical journeys, trace-based diagnosis and targeted stability runs.
 
 **About "marketplace".** This repo is its own plugin marketplace (`software-factory-marketplace`, defined in `.claude-plugin/marketplace.json`). It is not listed in the official Claude Code marketplace; the install line registers this repo directly.
