@@ -1,7 +1,6 @@
 #!/bin/sh
 # Machine-wide lock for a local CI script whose tests bind fixed ports (emulators, a dev server).
 # Parallel sessions or worktrees on one machine queue behind each other for the port phase instead of colliding.
-# Source: pushapp web scripts/ci-local.sh, Pushapp-Team/web pull request 357 (2026-10-29).
 #
 # Use in the project's local CI script:
 #   LOCK=/tmp/<project>-ci-local-lock      # fixed path, see below

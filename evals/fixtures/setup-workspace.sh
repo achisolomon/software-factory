@@ -1,6 +1,6 @@
 #!/bin/sh
 # Scaffold for multi-repo cases: the session starts in a workspace folder, and the factory project is a repo two
-# levels down (like pushapp/Projects/pushapp project/), next to a second repo without the factory.
+# levels down (like workspace/Projects/shop project/), next to a second repo without the factory.
 # Usage from a case's scaffold.sh: . "$(dirname "$0")/../fixtures/setup-workspace.sh"
 set -e
 FIXTURES="$(cd "$(dirname "$0")/../fixtures" && pwd)"

@@ -1,7 +1,7 @@
 """Offline checks of the behavior eval suite in evals/ (run for real with `claude plugin eval`).
 
 These cost nothing: every case is well formed, every scaffold builds its situation, and the regex graders accept a
-correct team table and reject the real pushapp reply that started this suite (backlog 37).
+correct team table and reject the real reply that started this suite (backlog 37).
 """
 
 import os
@@ -105,7 +105,7 @@ class EvalSuiteTests(unittest.TestCase):
 
     def test_team_table_graders_tell_good_from_bad(self):
         good = (SAMPLES / "team-table-good.md").read_text()
-        bad = (SAMPLES / "team-table-bad-pushapp.md").read_text()
+        bad = (SAMPLES / "team-table-bad.md").read_text()
         for name in ("team-table-status", "team-table-after-compaction"):
             for g in (EVALS / name / "graders").glob("*.md"):
                 grader, _ = front_matter(g)
@@ -117,7 +117,7 @@ class EvalSuiteTests(unittest.TestCase):
             self.assertIn("table-header.md", failed, name)
             self.assertIn("no-lane-summary.md", failed, name)
         compact = front_matter(EVALS / "wave-done-state-on-disk/graders/never-asks-for-compact.md")[0]
-        self.assertFalse(passes(compact, bad), "the pushapp reply asked for /compact")
+        self.assertFalse(passes(compact, bad), "the bad reply asked for /compact")
 
     def test_grader_ids_exist_in_the_fixture(self):
         fixture = "".join(p.read_text() for p in (EVALS / "fixtures/project").rglob("*") if p.is_file())
