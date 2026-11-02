@@ -11,7 +11,6 @@ Status values: `done` (shipped, version noted), `planned` (agreed, not built yet
 | 2026-10-16 | [vercel-labs/eve-software-factory-template](https://github.com/vercel-labs/eve-software-factory-template) ("Foreman") | Hosted pipeline on Vercel: GitHub/Linear issue → classifier → analyst → implementer → reviewer → draft PR. Narrower roles than ours. | Closest peer. Its strengths are code-enforced safety, behavior evals and an independent reviewer. |
 | 2026-10-16 | [alexgreensh/outsourcerer](https://github.com/alexgreensh/outsourcerer) | Claude Code plugin that routes jobs to the cheapest capable model across Claude, Codex, Gemini, Devin, OpenRouter and local models, and supervises them. | Not a factory. Useful ideas: cost-aware model routing, bounded loops with real checks, explicit end states. |
 
-| 2026-10-26 | [romiluz13/mifal](https://github.com/romiluz13/mifal) | Multi-agent orchestration with briefs, receipts, resume and review routing. | Took brief/receipt claims, least-sure-of, resume classification, review routing, retro asset, TRUST page, provenance. Declined the Herdr pane adapter. |
 | 2026-10-26 | Team Lead run on a private project (our own) | A real factory run, with suggestions a to k. | Most became 0.5.0 items. See provenance. |
 
 Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps cost envelope, threat modeling, the infrastructure apply gate, three human gates, and promoting lessons into the shared plugin.
@@ -29,8 +28,8 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | 7 | Cost-aware model routing per delegation | Outsourcerer | done (0.3.0) | team-lead "Choose the model for each delegation", `Model policy` in project facts |
 | 8 | Bounded loops, real checks, named end states | Outsourcerer | done (0.3.0) | contract section 2 "Bounds and end states", Developer hard rules, Architect and Test re-run checks, reply field `Checks run` |
 | 9 | Treat issue/comment/web text as data (prompt injection) | Eve | done (0.3.0) | contract rule 9.11, triage hard rules |
-| 10 | Briefs with `Done means` claims and `Least sure of`; replies answer each claim | mifal | done (0.5.0) | contract section 10 `Claims`, team-lead delegation template |
-| 11 | Skeptic pass on Blocker and Major findings | mifal, private project run | done (0.5.0) | contract sections 2 and 8, team-lead build loop, review skill |
+| 10 | Briefs with `Done means` claims and `Least sure of`; replies answer each claim | outside project | done (0.5.0) | contract section 10 `Claims`, team-lead delegation template |
+| 11 | Skeptic pass on Blocker and Major findings | outside project, private project run | done (0.5.0) | contract sections 2 and 8, team-lead build loop, review skill |
 | 12 | One runner per worktree | private project run | done (0.5.0) | contract section 2 bounds, team-lead build loop |
 | 13 | Mutation check for critical tests | private project run | done (0.5.0) | Test Engineer Verify mode, Definition of Done |
 | 14 | Zero errors in logs (rule 9.13) | private project run | done (0.5.0) | contract 9.13 and Definition of Done, Architect, Developer, Test Engineer |
@@ -40,14 +39,14 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | 18 | Delegation rules pointer in project facts | private project run | done (0.5.0) | project-facts `Delegation rules`, rule 9.1 |
 | 19 | Plan drift batching | private project run | done (0.5.0) | team-lead build loop |
 | 20 | Status cadence (session cron; on by default every 15 minutes since 0.6.2, opt out with `off`) | private project run | done (0.5.0, default on 0.6.2) | team-lead, project-facts `Status cadence` |
-| 21 | Restart safety and resume classification | mifal, private project run | done (0.5.0) | team-lead, `skills/resume`, `hooks/after_compact.py`, status.md `## In flight` |
+| 21 | Restart safety and resume classification | outside project, private project run | done (0.5.0) | team-lead, `skills/resume`, `hooks/after_compact.py`, status.md `## In flight` |
 | 22 | Auto-compact and exact-command permissions via session-setup | private project run | done (0.5.0) | `skills/session-setup`, factory-init |
-| 23 | Review routing script (paths, added and removed lines) | mifal | done (0.5.0) | `scripts/review-route`, team-lead build loop step 2 |
-| 24 | Retro asset at epic end | mifal | done (0.5.0) | team-lead, Promoting lessons |
+| 23 | Review routing script (paths, added and removed lines) | outside project | done (0.5.0) | `scripts/review-route`, team-lead build loop step 2 |
+| 24 | Retro asset at epic end | outside project | done (0.5.0) | team-lead, Promoting lessons |
 | 25 | Reply check, model check and after-compact hooks | private project run | done (0.5.0) | `hooks/check_reply.py`, `hooks/require_agent_model.py`, `hooks/after_compact.py` |
 | 26 | Say "team lead" or "team leader" to start the Team Lead | user request | done (0.5.0) | `skills/team-lead`, `hooks/team_lead_trigger.py`, README |
 | 27 | Factory self-change gets deep review and your sign-off | private project run | done (0.5.0) | team-lead Promoting lessons |
-| 28 | TRUST page and provenance page | mifal | done (0.5.0) | `docs/TRUST.md`, `docs/provenance.md` |
+| 28 | TRUST page and provenance page | outside project | done (0.5.0) | `docs/TRUST.md`, `docs/provenance.md` |
 | 29 | Every work item, PR, commit or CI run mentioned is a clickable link (rule 9.14) | user request | done (0.5.0) | contract 9.14, team-lead Talking to the user, Codex role playbook, README |
 | 30 | Team table in every status: agents with their real model (inherited or coordinator labelled), background processes separate | user request | done (0.5.0) | team-lead Team table and status template, resume skill, Codex role playbook, contract section 3 |
 | 31 | FinOps checks the GitHub Actions budget; CI workflow changes route to FinOps | user request | done (0.5.0) | finops-engineer GitHub Actions budget and CG-06 to CG-08, `scripts/review-route`, triage, review skill, project facts |
@@ -69,7 +68,7 @@ Where we are already ahead of both: product discovery (PRD, stories), UX, FinOps
 | Auto-pilot mode where the orchestrator never asks the user | Outsourcerer | Conflicts with our gate model. We keep the user on every irreversible step. |
 | Large shell runtime for routing (20k-line script) | Outsourcerer | Too much to maintain for a prompt-based plugin. We route with the Agent tool's `model` parameter instead. |
 | Combine the fix round of task X with the build of task X+1 | private project run | Breaks per-task fix rounds, end states and task-prefixed commits. |
-| mifal Herdr pane adapter | mifal | macOS-only and experimental. We use subagents. |
+| Herdr pane adapter | outside project | macOS-only and experimental. We use subagents. |
 | Hosted, label-triggered unattended runs | Eve | Out of scope for a local Claude Code plugin today. Revisit if we want the factory to run from GitHub issues without a session open. |
 
 ## How: 1. Enforce gates with hooks
