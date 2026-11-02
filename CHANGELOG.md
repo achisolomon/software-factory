@@ -2,6 +2,14 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.2 (2026-11-02)
+
+- **Plugin icon and links.** A square icon at `.claude-plugin/icon.png`, and `homepage` and `repository` in `plugin.json`, ready for the claude.ai plugin directory.
+
+## 0.7.1 (2026-11-02)
+
+- **New setup option: Expensive + max models (not recommended).** `Model policy: max` runs the Team Lead and the Architect's design and reviews on Fable, and every Sonnet row on Opus. Very expensive: it can burn through your Claude limits very fast. The Team Lead confirms the choice once, shows it at the top of each status, and drops to Opus if you hit a usage limit. Say "use default models" to leave it.
+
 ## 0.7.0 (2026-11-01)
 
 - **Claude Code only.** Codex support was never tested end to end, so it is removed: the Codex plugin and marketplace manifests, the portable `plugin.json`, the Codex installers and role runner, the Codex model routing, the `factory-protocol` role playbook, their tests, and every "in Codex" line in the agents, skills, contract and docs. Agent instruction files under `.codex/` in a project diff still route to Security.

@@ -1,0 +1,6 @@
+Use case: app icon for a developer tool called Software Factory (an AI software team). Exact 1024x1024 px square PNG.
+Style: flat vector app icon, like a modern iOS or macOS app icon. Bold, minimal, geometric. No scene, no perspective, no isometric view, no texture, no small details. At most 3 colors plus white.
+Background: solid deep navy #0B1220 filling the whole square, with a subtle vertical gradient to #1E3A8A. No transparency.
+Glyph: one centered white flat silhouette of a factory: a sawtooth roof with three peaks on the left and one tall smokestack on the right, all as a single solid shape with even, rounded corners. Cut out of the factory wall in negative space, a large "</>" code symbol. Above the smokestack, one small amber #FBBF24 circle as a single puff of smoke (the only accent color).
+Composition: perfectly centered and symmetric in weight. The glyph fills about 60% of the square, with generous even padding, so it survives cropping to a rounded square or a circle. Thick shapes and strokes that stay clear at 32 px.
+No other elements, no robots, no conveyor, no shadows or only one very soft drop shadow, no words, no letters except the "</>" cut-out, no logos, no watermark.
