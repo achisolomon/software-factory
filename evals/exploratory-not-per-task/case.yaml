@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: exploratory-not-per-task
+# Exploratory QA (#52, AC-14) and the epic-end near-miss: one task finishes (T-24, branch lane-copy) while the other
+# tasks of epic 2 stay open. A task review routes through review-route and never dispatches the explorer.
+context:
+  scaffold_script: scaffold.sh
