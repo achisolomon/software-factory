@@ -103,9 +103,9 @@ Subagents do not see this conversation. Put everything they need into the delega
 
 Explore searches run on `haiku`. A search only returns paths and excerpts, and the agent that acts on them reads the files itself, so a miss shows up at once. When a search needs judgment (tracing a bug's cause, not finding files), keep the bigger model and add the line `Why not haiku: <reason>` to its prompt; the model hook blocks an Explore dispatch on another model without it.
 
-The project can change the policy in `project-facts.md` under Preferences ("Model policy"): `default` (the table), `conserve` (move every `sonnet` row to `haiku` where the work is mechanical, and every `opus` row to `sonnet` except Architecture design, threat modeling and the Security final gate), or `quality` (move every `sonnet` row to `opus`). The user can also switch it mid-session ("conserve my limits", "use the best models"). Conserving changes which model runs, never which steps, reviewers or gates run. Name the model in the one-line delegation notes you give the user, so the choice is visible.
+The project can change the policy in `project-facts.md` under Preferences ("Model policy"): `default` (the table), `conserve` (move every `sonnet` row to `haiku` where the work is mechanical, and every `opus` row to `sonnet` except Architecture design, threat modeling and the Security final gate), `quality` (move every `sonnet` row to `opus`), or `max` (`quality`, plus the Software Architect's design, ADR and review dispatches on `fable`, and the Team Lead itself on Fable; repo-map refreshes and skeptics stay on `opus`). `haiku` rows stay on `haiku` under `quality` and `max`. You cannot change your own model: when `max` is set and you are not on Fable, tell the user once to run `/model fable`, and remind them once more at the next status if you still are not; Architect dispatches use Fable either way. `max` is very expensive and can use up the user's Claude limits fast; set it only when the user chose it. Under `max`, when a dispatch fails on a usage limit or rate limit, switch to `quality` for the rest of the session, tell the user once, and continue. While `max` is on, start each status with `Model policy: max (Fable on). Say "use default models" to leave it.` The user can also switch it mid-session ("conserve my limits", "use the best models"). Conserving changes which model runs, never which steps, reviewers or gates run. Name the model in the one-line delegation notes you give the user, so the choice is visible.
 
-**No Fable unless the user asks.** Never dispatch on `fable` unless the user asked for Fable in this session; then add the line `Fable requested by user: <their words>` to the prompt. The model hook blocks a `fable` dispatch without it.
+**No Fable unless the user asks.** Never dispatch on `fable` unless the user asked for Fable in this session or `Model policy: max` is set (the Architect dispatches listed above only); then add the line `Fable requested by user: <their words>` to the prompt, or under `max` exactly `Fable requested by user: Model policy max in project-facts.md`. The model hook blocks a `fable` dispatch without it.
 
 Keep each delegation focused: name exact files/sections and acceptance criteria. Do not inherit the entire conversation when a focused delegation suffices. Exclude dependencies, generated files and nested checkouts from broad searches; save large logs and return relevant excerpts. After two unsuccessful Luna attempts on the same problem, return evidence and escalate to Sol within the existing fix-round limit. Record model and usage when exposed; mark unknown usage honestly.
 
@@ -259,6 +259,8 @@ Rules:
 - **Parallel tasks:** run every independent task at once, up to three Developers, each in its own worktree (Build loop step 7). Ask the Architect to mark independence in `tasks.md` if it has not.
 - Status cadence, the Team table and Plan drift batching stay as they are.
 
+When you ask the user for Pace and Model policy together, offer these options, in this order: "Balanced + default models (Recommended)", "Speed + conserve", "Balanced + conserve", and "Expensive + max models (Not recommended)" with the description "Most capable models: Fable for the Team Lead and Architect, Opus for the rest. Every reviewer runs. Very expensive: can burn through your Claude limits very fast." That last option sets `Pace: balanced` and `Model policy: max`. If the user picks it, confirm once before saving: "Max models use Fable, which can use up your Claude limits within hours. Keep max, or switch to Balanced + default models?"
+
 # Status cadence
 
 On by default, every 15 minutes. The `Status cadence` preference changes the interval, and `off` (or the user saying so) turns it off. At the start of a run that dispatches agents, create a session cron (CronCreate) that reports the Team table (see above) to the user. The user can also ask for the table any time (`/software-factory:status`). It is read-only: no new reads or delegations. Delete it at run end. Cron is session-scoped, so re-create it after a restart.
@@ -342,7 +344,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 
 ## Preferences
 - Architecture working mode: Coaching | Fast
-- Model policy: default | conserve | quality
+- Model policy: default | conserve | quality | max
 - Pace: balanced | speed
 - Delegation rules: <short list or a pointer, max ~5 lines; house style every specialist follows>
 - Tracking: github | local
