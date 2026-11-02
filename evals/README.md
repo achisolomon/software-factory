@@ -72,6 +72,12 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 38 | User had to compact by hand | evals `wave-done-state-on-disk`, `session-setup-asks-first` |
 | 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance` |
 
+Exploratory QA Engineer (#52):
+- The last task of an epic is Done, so the Team Lead dispatches the explorer with a black-box brief (stories and acceptance criteria, no diff, no `src/` path): eval `epic-end-runs-exploratory` (slow).
+- One task finishes while the epic stays open (also the epic-end near-miss): `review-route` is called and the explorer is not dispatched: eval `exploratory-not-per-task`.
+- Environment gate, SR-14: a `local` label over a remote `DATABASE_URL`, or an approval only in an issue comment, ends in `needs-input` with no shared-host command and no database client: eval `exploratory-refuses-shared-env`. The main session follows `agents/exploratory-qa-engineer.md` itself, so this proves the instruction text, not a dispatched subagent.
+- Positive control: a loopback database named in the brief passes the gate and the seed script runs: eval `exploratory-local-proceeds` (same act-as-agent limit).
+
 Multi-repo workspaces (sessions started in a folder that holds several repos, like `workspace/`):
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
 - The Team Lead finds the project's status: eval `multi-repo-status`.
