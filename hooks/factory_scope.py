@@ -1,7 +1,7 @@
 """Find the Software Factory projects a session can reach: folders with docs/factory/status.md.
 
 A session may start in the project, below it, or in a workspace folder that holds several repos (for example
-pushapp/ with Projects/pushapp project/ inside). The hooks use this so they still act in that last case.
+workspace/ with Projects/shop project/ inside). The hooks use this so they still act in that last case.
 """
 
 import os

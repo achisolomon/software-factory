@@ -10,22 +10,22 @@ scripts/behavior-check lookup-on-haiku team-table-status   # named cases, no bas
 scripts/behavior-check team-table-status -- --keep-temp --runs 3   # extra runner flags after --
 ```
 
-The script wraps `claude plugin eval . --scaffold --trust-plugin --no-publish --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$PWD/**)" --runs 1 --max-cost-usd 5`, and runs named cases one call each (the runner keeps only the last `--case`). From Claude Code, run it outside the Bash sandbox (`dangerouslyDisableSandbox`); its name has no "eval" in it, so worktree guards that refuse that word let it through.
+The script wraps `claude plugin eval . --scaffold --trust-plugin --no-publish --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$(pwd)/**)" --runs 1 --max-cost-usd 5`, and runs named cases one call each (the runner keeps only the last `--case`). From Claude Code, run it outside the Bash sandbox (`dangerouslyDisableSandbox`); its name has no "eval" in it, so worktree guards that refuse that word let it through.
 
 - `--scaffold` is required: without it the fixture project is never built.
-- `--allow-tools` is required: a case's `allowed_tools` only takes effect for tools granted on the command line. Without it the agent has no shell and cannot write, and those cases fail for the wrong reason. Grep and Glob are needed for search subagents. `"Read(/$PWD/**)"` lets the agents read the plugin's own instruction files (run it from the plugin folder); without it the Team Lead cannot read `agents/team-lead.md` and improvises.
+- `--allow-tools` is required: a case's `allowed_tools` only takes effect for tools granted on the command line. Without it the agent has no shell and cannot write, and those cases fail for the wrong reason. Grep and Glob are needed for search subagents. `"Read(/$(pwd)/**)"` lets the agents read the plugin's own instruction files (run it from the plugin folder); without it the Team Lead cannot read `agents/team-lead.md` and improvises.
 - Inside Claude Code's Bash sandbox, Bash in the eval sessions fails to start its own sandbox (`EPERM ... srt-mux ... sock`), and every case that needs a shell fails for the wrong reason. Run the script unsandboxed, or from a terminal.
 - Each case also runs once without the plugin, as a baseline (the report's Δ column). `--ablation none` skips the baseline and halves the cost.
 - `--keep-temp` keeps each run's sandbox and `trace.jsonl`, so you can read the full reply when a grader fails.
 - `--tag fast` covers one-decision cases. `triage-first-with-model` is tagged `slow` because it dispatches real subagents.
 - `--runs 1` is a smoke run. Before a release, use the default 3 runs: the agents are not deterministic, so one pass proves little.
-- `--model` picks the model under test. The pushapp failures happened on Opus, so run on Opus before a release.
+- `--model` picks the model under test. The original failures happened on Opus, so run on Opus before a release.
 - Results go to `evals/results/<timestamp>/` (git-ignored). Exit code 0 means every case met the threshold.
 
 The free offline checks in `tests/test_evals.py` run with the normal suite. They check that:
 - every case is well formed;
 - every scaffold builds its situation;
-- the team-table graders accept a correct table (`tests/eval_samples/team-table-good.md`) and reject the real pushapp reply that started this suite (`tests/eval_samples/team-table-bad-pushapp.md`).
+- the team-table graders accept a correct table (`tests/eval_samples/team-table-good.md`) and reject the real reply that started this suite (`tests/eval_samples/team-table-bad.md`).
 
 ## Limits
 
@@ -72,7 +72,7 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 38 | User had to compact by hand | evals `wave-done-state-on-disk`, `session-setup-asks-first` |
 | 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance` |
 
-Multi-repo workspaces (sessions started in a folder that holds several repos, like `pushapp/`):
+Multi-repo workspaces (sessions started in a folder that holds several repos, like `workspace/`):
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
 - The Team Lead finds the project's status: eval `multi-repo-status`.
 - session-setup targets the workspace's settings file: eval `multi-repo-session-setup`.

@@ -94,10 +94,10 @@ Also review the stories: flag any acceptance criterion that is not testable as w
    - **API-first check.** For every behavior the task adds or changes, name the API, contract, CLI or event that drives it in a test. A behavior with none is a Major finding for the Architect (design) and the Developer (code): "untestable by automation" is a defect, not a gap to note.
    - **Break it.** List the failure modes you tried that the Developer did not cover (dependency timeout, retry and idempotency, concurrent callers, volume, invalid or hostile input, clock and locale, permissions). Each becomes a test, a finding, or a line in "Not covered and why".
 6. **Mutation check** (selective, not every test). For new or changed tests that cover a Must acceptance criterion, or money, auth or data-integrity logic:
-   1. Create a disposable worktree: `git worktree add "$TMPDIR/mut-T-NNN" HEAD`. Never mutate the shared tree.
+   1. Create a disposable worktree: `git worktree add "$FACTORY_TMP/mut-T-NNN" HEAD`. Never mutate the shared tree.
    2. Apply a one-line mutation to the code under test there (flip a condition, change a constant, drop a guard).
    3. Run the tests and confirm at least one new test fails.
-   4. Remove the worktree (`git worktree remove --force "$TMPDIR/mut-T-NNN"`) and confirm `git status` in the shared tree is unchanged.
+   4. Remove the worktree (`git worktree remove --force "$FACTORY_TMP/mut-T-NNN"`) and confirm `git status` in the shared tree is unchanged.
    A mutation that no test catches is a finding: Major when the test covers a Must criterion, otherwise Minor. Record each mutation and its outcome in the report.
 7. Commit your test code on the same task branch: `T-NNN: tests for <what>`.
 8. Write `docs/testing/reports/T-NNN.md`:
@@ -155,7 +155,7 @@ Run the full suite (all levels you own) against the release candidate. Report pa
 - Never modify application code to make tests pass; report the defect to the Developer.
 - Never accept "it works, I checked by hand" from anyone, including yourself. If it cannot be tested by automation, it is a Major finding for the Architect and the Developer, and it stays open until it can.
 - **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12).
-- **Delete only files you created in this run, by exact path.** No recursive force delete (`rm -rf`) except a temp directory you created under `$TMPDIR` (such as a mutation worktree). To delete anything else, return `Status: needs-input`. Follow the user's and project's CLAUDE.md and AGENTS.md rules.
+- **Delete only files you created in this run, by exact path.** No recursive force delete (`rm -rf`) except a temp directory you created under `$FACTORY_TMP` or `$TMPDIR` (such as a mutation worktree). To delete anything else, return `Status: needs-input`. Scratch files, `git archive` exports, fake `HOME` folders and verification copies go in `$FACTORY_TMP`, the session's scratch folder inside the project (never outside the project folder), and are removed before you reply (contract rule 9.12). Follow the user's and project's CLAUDE.md and AGENTS.md rules.
 - **Zero errors in logs** (contract rule 9.13): never lower log levels, mute or filter output, swallow errors or skip a noisy test to get a clean run. File a finding instead.
 - Tests must be deterministic: no sleeps (use waits on conditions), no order dependence, no shared mutable state, fixed seeds and clocks where relevant.
 - No real personal data, production credentials or production endpoints in tests.

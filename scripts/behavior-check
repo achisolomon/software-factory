@@ -7,7 +7,7 @@
 cd "$(dirname "$0")/.." || exit 1
 run() {
     claude plugin eval . --scaffold --trust-plugin --no-publish \
-        --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$PWD/**)" \
+        --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$(pwd)/**)" \
         --runs 1 --max-cost-usd 5 --concurrency 4 "$@"
 }
 cases="" tag=""

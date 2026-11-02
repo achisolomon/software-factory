@@ -330,7 +330,9 @@ def short_flags(args):
 
 def tmp_roots():
     roots = set()
-    for root in (os.environ.get("TMPDIR"), "/tmp", "/private/tmp"):
+    project = os.environ.get("CLAUDE_PROJECT_DIR")
+    scratch = os.path.join(project, ".software-factory-tmp") if project else None  # per-session folders from scratch.py
+    for root in (os.environ.get("TMPDIR"), "/tmp", "/private/tmp", scratch):
         if root:
             real = os.path.realpath(root)
             if real != os.sep:
@@ -645,20 +647,20 @@ def in_factory_project(cwd):
 
 def decision(findings):
     """The hook output for these findings, or None."""
+    # Literal "deny" / "ask" only, never a variable: the plugin directory review must see this hook cannot approve.
     denies = [f for f in findings if f[0] == "deny"]
     if denies:
         what = "; ".join(dict.fromkeys(f"`{w[:120]}`" for _, w, _ in denies))
         reason = (f"Software Factory gate: {what} writes a file from the shell. "
                   "Use the Edit or Write tool for file changes (contract rule 9.12).")
-        kind = "deny"
-    elif findings:
+        return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                       "permissionDecisionReason": reason}}
+    if findings:
         what = "; ".join(dict.fromkeys(f"`{w[:120]}` is {why}" for _, w, why in findings))
         reason = f"Software Factory gate: {what}. Approve only if the user approved this exact action."
-        kind = "ask"
-    else:
-        return None
-    return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": kind,
-                                   "permissionDecisionReason": reason}}
+        return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask",
+                                       "permissionDecisionReason": reason}}
+    return None
 
 
 def main():
