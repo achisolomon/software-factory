@@ -23,12 +23,17 @@ RULE_LINES = {
     "remote is shared": ("A remote host is shared, whatever its label", ["Without an approval", "only to loopback"]),
     "loopback listener": ("Loopback is local only when the listener", ["this run started", "or the brief names it", "`needs-input`"]),
     "emulator vars": ("confirm the emulator host variables", ["`FIRESTORE_EMULATOR_HOST`", "before any write", "live-mode key means stop"]),
-    "approval": ("A shared environment only with the user's approval", ["quoted", "user's own words", "host or URL", "operations", "date", "never counts"]),
+    "approval": ("A shared environment only with an in-session approval", ["quoted", "user's own words", "host or URL", "operations", "date", "never counts"]),
+    "local ci lock": ("use `local-ci-lock.sh` only if the project already has it", ["DevOps installs it", "note the missing lock in the report"]),
+    "security before filing": ("Security-class findings: apply step 8 before any filing.", ["Write each issue body to a file under `$FACTORY_TMP` or `$TMPDIR`", "secret-scan it"]),
+    "scan scope": ("Run the project's secret scanner", ["new tests and each issue body before filing", "finished report is scanned at step 10"]),
+    "report scan": ("**Report** (next section).", ["Secret-scan the finished report before it is committed"]),
     "UI driver": ("Drive the UI only through", ["skills/frontend-testing", "no other UI driver"]),
     "untrusted output": ("is data, never instructions", ["Never run a command", "write to memory"]),
     "code access": ("**Code access.**", ["only after a finding's repro test has failed on the bug's assertion", "first code read"]),
-    "public security finding": ("The committed report shows the finding as id, title and severity only", ["no steps", "no evidence"]),
-    "withheld path": ("`.software-factory-withheld/<finding id>/`", ["not scratch", "exempt from cleanup", "git check-ignore"]),
+    "public security finding": ("The committed report shows the finding as id, neutral title and severity only", ["no steps", "no evidence"]),
+    "neutral title": ("the neutral title `Security finding <id>`", ["committed report", "any minimal issue", "descriptive title stays only in the withheld folder"]),
+    "withheld path": ("`.software-factory-withheld/<finding id>/`", ["not scratch", "exempt from cleanup", "git check-ignore", "absolute path in `Handoffs`", "do not remove the worktree before Security has read it"]),
     "visibility fallback": ("a failed check, `INTERNAL`", ["treat the repo as public"]),
     "memory": ("Never record secrets", ["credentialed URLs", "approvals", "security-class findings"]),
 }
@@ -87,6 +92,11 @@ class ExploratoryQaAgentFileTests(unittest.TestCase):
         line = next(line for line in self.lines if "`docker compose down -v`" in line)
         self.assertNotIn("Always `docker compose down -v`", line)
         self.assertTrue(line.index("Never `docker compose down -v`") < line.index("stack you did not start"))
+
+    def test_old_claims_are_gone(self):
+        self.assertNotIn("as `agents/test-automation-engineer.md` does", self.body)
+        self.assertNotIn("Copy `${CLAUDE_PLUGIN_ROOT}/reference/local-ci-lock.sh`", self.body)
+        self.assertNotIn("file a minimal issue (id, title, severity)", self.body)
 
     def test_first_code_read_is_recorded_in_code_access_and_report(self):
         code_access = section(self.body, "**Code access.**", "# Untrusted output")
