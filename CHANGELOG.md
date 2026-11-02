@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.4 (2026-11-02)
+
+- **Factory agents can no longer leave files outside the project.** A new hook, `hooks/project_bounds.py`, refuses a factory subagent's Write, Edit or NotebookEdit outside the project folder and points it at `$FACTORY_TMP`. The reply check (`hooks/check_reply.py`) now also sends a subagent back when new files or folders appeared beside the project while it ran (for example from a script), and lists them so it deletes them before it finishes. `tests/test_scratch_leaks.py` replays both leaks seen on 2026-11-02.
+
 ## 0.7.3 (2026-11-02)
 
 - **Scratch files stay inside the project and are cleaned up.** Agents had left dozens of test copies and fake home folders next to the project, outside it, and never deleted them. Each session now gets its own git-ignored scratch folder, `<project>/.software-factory-tmp/<session id>/` (`$FACTORY_TMP` in Bash). A new hook, `hooks/scratch.py`, creates it when the session starts and deletes it when the session ends. At each start it also deletes `.software-factory-tmp/` folders left by crashed sessions (untouched for 24 hours). Contract rule 9.12 and the Developer, Test and Performance agents now require every scratch file to go there, and to be removed before the agent replies.

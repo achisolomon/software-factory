@@ -1,17 +1,19 @@
 """SubagentStop hook: send a factory specialist back when its reply breaks the contract reply format.
 
-Checks the required lines of contract section 10 and that every docs/ report the
-reply lists in Files: is on disk (rule 9.8). Blocks at most once per stop: when
+Checks the required lines of contract section 10, that every docs/ report the
+reply lists in Files: is on disk (rule 9.8), and that nothing new appeared beside
+the project folder while it ran (scratch left outside the project, rule 9.12). Blocks at most once per stop: when
 stop_hook_active is set the agent is already fixing its reply, so it passes.
 """
 
+from datetime import datetime
 import json
 import os
 from pathlib import Path
 import re
 import sys
 
-from factory_scope import factory_roots
+from factory_scope import factory_roots, project_root
 
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
 STATUSES = ("done", "needs-input", "blocked", "in-progress")
@@ -84,6 +86,29 @@ def problems(message, cwd):
     return found
 
 
+def started(transcript):
+    """When the subagent started: the timestamp on the first line of its transcript, else None."""
+    with open(transcript) as f:
+        stamp = json.loads(f.readline()).get("timestamp")
+    return datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp() if stamp else None
+
+
+def leaked(payload):
+    """Files and folders the subagent may have left beside the project: created in its parent folder since it started."""
+    root = project_root(payload)
+    since = started(payload["agent_transcript_path"])
+    if since is None:
+        return []
+    found = []
+    for entry in os.scandir(root.parent):
+        if entry.path != str(root):
+            st = entry.stat(follow_symlinks=False)
+            # shortcut: Linux has no birth time, so a sibling repo touched meanwhile also shows; the block passes on retry
+            if getattr(st, "st_birthtime", st.st_mtime) >= since:
+                found.append(entry.path)
+    return sorted(found)
+
+
 def main():
     try:
         payload = json.load(sys.stdin)
@@ -98,6 +123,15 @@ def main():
         found = problems(message, str(payload.get("cwd") or os.getcwd()))
     except Exception:
         return 0  # never break the session over a checker fault
+    try:
+        stray = leaked(payload)
+    except Exception:
+        stray = []
+    if stray:
+        found.append("these appeared beside the project folder while you ran: "
+                     + ", ".join(f"`{p}`" for p in stray[:20])
+                     + ". If you made them, delete them by exact path and keep scratch in $FACTORY_TMP inside the "
+                       "project (rule 9.12); if you did not, say so under Handoffs")
     if found:
         bullets = "\n".join(f"- {p}" for p in found)
         print(json.dumps({

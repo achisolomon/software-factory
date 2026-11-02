@@ -14,6 +14,11 @@ MAX_DIRS = 600  # shortcut: bounds the scan (it runs on every Bash call) when a 
 SKIP = {"node_modules", "vendor", "build", "dist", "target", "Pods", "venv", "__pycache__", "fixtures", "testdata"}
 
 
+def project_root(payload):
+    """The folder the session works in (Claude Code's project dir); factory agents keep every file inside it."""
+    return Path(os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd") or os.getcwd()).resolve()
+
+
 def factory_roots(cwd):
     """Factory projects for a session started in cwd: the nearest one at or above cwd, else those below it."""
     cwd = Path(cwd)
