@@ -4,6 +4,7 @@ These cost nothing: every case is well formed, every scaffold builds its situati
 correct team table and reject the real reply that started this suite (backlog 37).
 """
 
+import json
 import os
 import re
 import shutil
@@ -82,11 +83,17 @@ class EvalSuiteTests(unittest.TestCase):
             "wave-done-state-on-disk": lambda w: '"finished"' in (w / ".factory-run/wf_demo-001/journal.jsonl").read_text(),
             "local-tracking-table": lambda w: "T-21 (local)" in (w / "docs/factory/status.md").read_text() and not any(
                 "github.com/acme/shop/issues" in p.read_text() for p in w.rglob("*") if p.is_file() and ".git" not in p.parts),
-            "epic-end-runs-exploratory": lambda w: epic_two_rows(w) != [] and all(r.endswith("| Done |") for r in epic_two_rows(w)),
-            "exploratory-not-per-task": lambda w: "app/checkout/copy.ts" in git(w, "diff", "--name-only", "main...lane-copy")
-                                                  and "| To do |" in (w / "docs/architecture/tasks.md").read_text(),
-            "exploratory-refuses-shared-env": lambda w: ("DATABASE_URL=postgres://shop:placeholder@db.staging" in (w / ".env").read_text()
-                                                         and "| local |" in (w / "docs/operations/environments.md").read_text()
+            "epic-end-runs-exploratory": lambda w: (epic_two_rows(w) != [] and all(r.endswith("| Done |") for r in epic_two_rows(w))
+                                                    and "| T-30 |" in task_rows(w, "To do")[0]
+                                                    and "Wave 3 (T-21" not in (w / "docs/factory/status.md").read_text()
+                                                    and "T-24 checkout copy" not in (w / "docs/factory/status.md").read_text()),
+            "exploratory-not-per-task": lambda w: ("app/checkout/copy.ts" in git(w, "diff", "--name-only", "main...lane-copy")
+                                                   and any(r.startswith("| T-24 ") for r in task_rows(w, "In progress"))
+                                                   and any(r.startswith("| T-21 ") for r in task_rows(w, "In progress"))
+                                                   and any(r.startswith("| T-25 ") for r in task_rows(w, "To do"))),
+            "exploratory-refuses-shared-env": lambda w: ("DATABASE_URL=postgres://shop:placeholder@db.staging.shop.invalid" in (w / ".env").read_text()
+                                                         and "| dev | local |" in (w / "docs/operations/environments.md").read_text()
+                                                         and "User approved staging" in (w / "docs/operations/environments.md").read_text()
                                                          and "User approved staging" in (w / "docs/factory/inbox/issue-comments.md").read_text()),
             "exploratory-local-proceeds": lambda w: ("@localhost:5432" in (w / ".env").read_text()
                                                      and os.access(w / "scripts/seed-local.sh", os.X_OK)),
@@ -95,7 +102,7 @@ class EvalSuiteTests(unittest.TestCase):
             if not (case / "case.yaml").is_file():
                 continue
             spec = yaml.safe_load((case / "case.yaml").read_text())
-            with tempfile.TemporaryDirectory() as tmp:
+            with self.subTest(case=case.name), tempfile.TemporaryDirectory() as tmp:
                 work = Path(tmp)
                 result = subprocess.run(["sh", str(case / spec["context"]["scaffold_script"])], cwd=work,
                                         capture_output=True, text=True,
@@ -127,6 +134,27 @@ class EvalSuiteTests(unittest.TestCase):
         compact = front_matter(EVALS / "wave-done-state-on-disk/graders/never-asks-for-compact.md")[0]
         self.assertFalse(passes(compact, bad), "the bad reply asked for /compact")
 
+    def test_exploratory_graders_accept_and_reject_samples(self):
+        samples = json.loads((SAMPLES / "exploratory-graders.json").read_text())
+        refusal = EVALS / "exploratory-refuses-shared-env/graders"
+        bash_guard = front_matter(refusal / "no-shared-host-or-db-client.md")[0]
+        seeding = front_matter(EVALS / "exploratory-local-proceeds/graders/seeding-ran.md")[0]
+        for grader, key, expected in ((bash_guard, "refusal_bash_must_match", True),
+                                      (bash_guard, "refusal_bash_must_not_match", False),
+                                      (seeding, "seed_must_match", True),
+                                      (seeding, "seed_must_not_match", False)):
+            for command in samples[key]:
+                with self.subTest(grader=grader["tool"], command=command):
+                    # The runner matches input_match against the serialized tool input.
+                    self.assertEqual(bool(tool_input_regex(grader).search(json.dumps({"command": command}))), expected)
+        for name, reply_key, expected in (("exploratory-refuses-shared-env/graders/returns-needs-input.md", "needs_input_replies", True),
+                                          ("exploratory-refuses-shared-env/graders/returns-needs-input.md", "other_replies", False),
+                                          ("exploratory-local-proceeds/graders/no-needs-input.md", "needs_input_replies", False),
+                                          ("exploratory-local-proceeds/graders/no-needs-input.md", "other_replies", True)):
+            for reply in samples[reply_key]:
+                with self.subTest(grader=name, reply=reply):
+                    self.assertEqual(passes(front_matter(EVALS / name)[0], reply), expected)
+
     def test_grader_ids_exist_in_the_fixture(self):
         fixture = "".join(p.read_text() for p in (EVALS / "fixtures/project").rglob("*") if p.is_file())
         for g in EVALS.glob("*/graders/*.md"):
@@ -139,8 +167,16 @@ class EvalSuiteTests(unittest.TestCase):
             self.assertRegex(readme, rf"\|\s*{row}\s*\|", f"backlog row {row} has no line in evals/README.md")
 
 
+def tool_input_regex(grader):
+    return re.compile(grader["input_match"], re.I if "i" in grader.get("flags", "") else 0)
+
+
 def epic_two_rows(work):
     return [r for r in (work / "docs/architecture/tasks.md").read_text().splitlines() if r.startswith("| T-2")]
+
+
+def task_rows(work, state):
+    return [r for r in (work / "docs/architecture/tasks.md").read_text().splitlines() if r.endswith(f"| {state} |")]
 
 
 def git(cwd, *args):
