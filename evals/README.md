@@ -19,13 +19,13 @@ The script wraps `claude plugin eval . --scaffold --trust-plugin --no-publish --
 - `--keep-temp` keeps each run's sandbox and `trace.jsonl`, so you can read the full reply when a grader fails.
 - `--tag fast` covers one-decision cases. `triage-first-with-model` is tagged `slow` because it dispatches real subagents.
 - `--runs 1` is a smoke run. Before a release, use the default 3 runs: the agents are not deterministic, so one pass proves little.
-- `--model` picks the model under test. The pushapp failures happened on Opus, so run on Opus before a release.
+- `--model` picks the model under test. The original failures happened on Opus, so run on Opus before a release.
 - Results go to `evals/results/<timestamp>/` (git-ignored). Exit code 0 means every case met the threshold.
 
 The free offline checks in `tests/test_evals.py` run with the normal suite. They check that:
 - every case is well formed;
 - every scaffold builds its situation;
-- the team-table graders accept a correct table (`tests/eval_samples/team-table-good.md`) and reject the real pushapp reply that started this suite (`tests/eval_samples/team-table-bad-pushapp.md`).
+- the team-table graders accept a correct table (`tests/eval_samples/team-table-good.md`) and reject the real reply that started this suite (`tests/eval_samples/team-table-bad.md`).
 
 ## Limits
 
@@ -72,7 +72,7 @@ Backlog rows are in [docs/improvement-backlog.md](../docs/improvement-backlog.md
 | 38 | User had to compact by hand | evals `wave-done-state-on-disk`, `session-setup-asks-first` |
 | 39 | Performance Engineer: release readiness and on request only, never production | evals `no-load-test-per-task`, `release-readiness-runs-performance` |
 
-Multi-repo workspaces (sessions started in a folder that holds several repos, like `pushapp/`):
+Multi-repo workspaces (sessions started in a folder that holds several repos, like `workspace/`):
 - Hooks find the project below the start folder: unit `test_hooks.MultiRepoWorkspaceTests`. That covers the gate, the after-compact reminder, the reply check, and the startup note when no auto-compact threshold is set.
 - The Team Lead finds the project's status: eval `multi-repo-status`.
 - session-setup targets the workspace's settings file: eval `multi-repo-session-setup`.

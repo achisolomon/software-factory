@@ -438,7 +438,7 @@ class VersionCheckTests(unittest.TestCase):
 
 
 class MultiRepoWorkspaceTests(unittest.TestCase):
-    """A session started in a workspace folder that holds several repos (pushapp/ with Projects/pushapp project/)."""
+    """A session started in a workspace folder that holds several repos (workspace/ with Projects/shop project/)."""
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
