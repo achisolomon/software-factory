@@ -2,6 +2,11 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.0 (2026-11-02)
+
+- **The plugin moved to `plugin/`.** What you install is now only the agents, skills, hooks, the handoff contract and the review-route script. Docs, evals, tests and images stay in the repository but are no longer shipped. Same install command, same plugin name; run the usual update once. The root `.claude-plugin/plugin.json` stays as a version pointer so older installs still see this update.
+- `scripts/behavior-check` runs the evals from a temporary copy of the plugin plus `evals/`, because the eval runner only reads cases inside the plugin folder.
+
 ## 0.7.3 (2026-11-02)
 
 - **Scratch files stay inside the project and are cleaned up.** Agents had left dozens of test copies and fake home folders next to the project, outside it, and never deleted them. Each session now gets its own git-ignored scratch folder, `<project>/.software-factory-tmp/<session id>/` (`$FACTORY_TMP` in Bash). A new hook, `hooks/scratch.py`, creates it when the session starts and deletes it when the session ends. At each start it also deletes `.software-factory-tmp/` folders left by crashed sessions (untouched for 24 hours). Contract rule 9.12 and the Developer, Test and Performance agents now require every scratch file to go there, and to be removed before the agent replies.

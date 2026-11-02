@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 
-HOOK = Path(__file__).resolve().parents[1] / "hooks" / "scratch.py"
+HOOK = Path(__file__).resolve().parents[1] / "plugin" / "hooks" / "scratch.py"
 
 
 class ScratchHookTests(unittest.TestCase):

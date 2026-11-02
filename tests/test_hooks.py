@@ -10,7 +10,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HOOKS = ROOT / "hooks"
+HOOKS = ROOT / "plugin" / "hooks"
 DEV = "software-factory:software-developer"
 
 

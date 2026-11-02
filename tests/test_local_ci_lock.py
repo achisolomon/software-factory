@@ -9,7 +9,7 @@ import time
 import unittest
 from pathlib import Path
 
-LOCK_SCRIPT = Path(__file__).resolve().parents[1] / "reference" / "local-ci-lock.sh"
+LOCK_SCRIPT = Path(__file__).resolve().parents[1] / "plugin" / "reference" / "local-ci-lock.sh"
 
 
 def free_port():

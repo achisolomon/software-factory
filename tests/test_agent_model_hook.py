@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 
-HOOK = Path(__file__).resolve().parents[1] / "hooks" / "require_agent_model.py"
+HOOK = Path(__file__).resolve().parents[1] / "plugin" / "hooks" / "require_agent_model.py"
 
 
 def run_hook(tool_input, cwd=None):

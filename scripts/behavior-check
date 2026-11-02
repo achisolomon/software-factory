@@ -4,7 +4,12 @@
 #   scripts/behavior-check CASE [CASE ...]       named cases, one runner call each (the runner keeps only the last --case)
 # Extra runner flags go after --, e.g.  scripts/behavior-check team-table-status -- --keep-temp --runs 3
 # It must run outside Claude Code's Bash sandbox: inside it, Bash in the eval sessions cannot start its own sandbox.
-cd "$(dirname "$0")/.." || exit 1
+# The runner only reads evals from inside the plugin folder, but evals/ stays out of the shipped plugin (plugin/),
+# so each run uses a temporary copy of plugin/ plus evals/. Results are copied back to evals/results/.
+root="$(cd "$(dirname "$0")/.." && pwd)" || exit 1
+work="$(mktemp -d "${TMPDIR:-/tmp}/sf-behavior.XXXXXX")" || exit 1
+cp -R "$root/plugin/." "$work/" && cp -R "$root/evals" "$work/evals" || exit 1
+cd "$work" || exit 1
 run() {
     claude plugin eval . --scaffold --trust-plugin --no-publish \
         --allow-tools Bash Edit Write Grep Glob CronCreate "Read(/$(pwd)/**)" \
@@ -18,6 +23,7 @@ while [ $# -gt 0 ]; do
         *) cases="$cases $1"; shift ;;
     esac
 done
+[ -n "$tag$cases" ] || { echo "usage: scripts/behavior-check --tag fast | CASE [CASE ...] [-- runner flags]" >&2; exit 2; }
 status=0
 if [ -n "$tag" ]; then
     run --tag "$tag" "$@" || status=1
@@ -25,5 +31,8 @@ fi
 for c in $cases; do
     run --ablation none --case "$c" "$@" || status=1
 done
-[ -n "$tag$cases" ] || { echo "usage: scripts/behavior-check --tag fast | CASE [CASE ...] [-- runner flags]" >&2; exit 2; }
+if [ -d "$work/evals/results" ]; then
+    mkdir -p "$root/evals/results" && cp -R "$work/evals/results/." "$root/evals/results/"
+fi
+echo "results: $root/evals/results (run folder: $work)"
 exit $status

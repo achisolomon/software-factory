@@ -15,7 +15,7 @@ import urllib.request
 
 from factory_scope import factory_roots
 
-LATEST_URL = "https://raw.githubusercontent.com/achisolomon/software-factory/main/.claude-plugin/plugin.json"
+LATEST_URL = "https://raw.githubusercontent.com/achisolomon/software-factory/main/plugin/.claude-plugin/plugin.json"
 CACHE_SECONDS = 6 * 3600
 VERSION = re.compile(r"^\d+(\.\d+){1,3}$")
 UPDATE = ("claude plugin marketplace update software-factory-marketplace && "
