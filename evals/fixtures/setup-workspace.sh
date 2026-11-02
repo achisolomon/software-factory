@@ -4,7 +4,7 @@
 # Usage from a case's scaffold.sh: . "$(dirname "$0")/../fixtures/setup-workspace.sh"
 set -e
 FIXTURES="$(cd "$(dirname "$0")/../fixtures" && pwd)"
-WORKSPACE="$PWD"
+WORKSPACE="$(pwd)"
 mkdir -p "Projects/shop project" "Projects/infra" handovers
 cd "Projects/shop project"
 . "$FIXTURES/setup.sh"
