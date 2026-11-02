@@ -25,6 +25,28 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 - **You stay in control**: no push, merge, deploy, paid resource or data deletion without your explicit approval.
 - **Sensible model costs**: each agent runs on the smallest model that does its job well (see [Meet the team](#meet-the-team)). Haiku handles triage and lookups, Sonnet builds and runs routine reviews, and Opus is kept for product, architecture, security and final gates. Say "conserve my limits" to go cheaper; that changes models, never steps or gates.
 
+## Meet the team
+
+11 agents, what each one does and the model it runs on:
+
+| Agent | Model | What it does |
+|---|---|---|
+| **Team Lead** | Your session's model (Opus by default) | Runs the process: plans, delegates, tracks the status board, enforces the gates, curates the factory brain, talks to you |
+| **Triage Classifier** | Haiku | Classifies every new request first (type, size, path, which reviewers are needed) so small work takes the fast path. Read-only |
+| **Product Manager** | Opus | Vision, PRD with measurable goals and NFRs, backlog of stories with Given/When/Then acceptance criteria, release acceptance |
+| **Software Architect** | Opus for design, Sonnet for routine reviews | Mermaid repo maps, system design, ADRs, contracts, task breakdown, coding standards, and code review (clean code, OOD, DRY, patterns, scalability) |
+| **Software Developer** | Sonnet (Opus for a third fix round) | Implements one task at a time with unit tests, on a local branch; fixes review findings |
+| **Test Automation Engineer** | Sonnet | The team's devil's advocate: test strategy, integration, contract and E2E tests, per-task verification that hunts for where the code breaks, prefers test-first and enforces API-first, release regression |
+| **DevOps Engineer** | Sonnet | Environments, containers, CI/CD, infrastructure as code, observability, runbooks, all validated by dry runs |
+| **FinOps Engineer** | Sonnet | Cost model with sourced prices, cost guardrails, cost reviews of changes, actual-vs-forecast |
+| **Security Engineer** | Opus | Threat model (STRIDE), security requirements (ASVS), security reviews and scans, final release gate |
+| **UX/UI Designer** | Sonnet | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
+| **Performance Engineer** | Opus | Load tester and sizing expert: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests. Runs before a merge to main or a deploy, and when you ask, not per task |
+
+Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
+
+Current version: 0.7.0. What changed in each release, newest first: [release notes](CHANGELOG.md).
+
 ## Quick start
 
 1. **Install once per machine.** Paste this line into a terminal (in VS Code: Terminal > New Terminal, not the Claude chat box):
@@ -75,6 +97,9 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
 
 ## Contribute
 
+<details>
+<summary>Issues, starter tasks, pull requests and ideas</summary>
+
 Every improvement you make for your own projects can make the factory better for everyone:
 
 - **Found a gap?** [Open an issue](https://github.com/achisolomon/software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
@@ -83,32 +108,12 @@ Every improvement you make for your own projects can make the factory better for
 - **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
 - **Like it?** Give it a star and tell a friend.
 
-## Meet the team
-
-<details>
-<summary>11 agents, what each one does and the model it runs on</summary>
-
-| Agent | Model | What it does |
-|---|---|---|
-| **Team Lead** | Your session's model (Opus by default) | Runs the process: plans, delegates, tracks the status board, enforces the gates, curates the factory brain, talks to you |
-| **Triage Classifier** | Haiku | Classifies every new request first (type, size, path, which reviewers are needed) so small work takes the fast path. Read-only |
-| **Product Manager** | Opus | Vision, PRD with measurable goals and NFRs, backlog of stories with Given/When/Then acceptance criteria, release acceptance |
-| **Software Architect** | Opus for design, Sonnet for routine reviews | Mermaid repo maps, system design, ADRs, contracts, task breakdown, coding standards, and code review (clean code, OOD, DRY, patterns, scalability) |
-| **Software Developer** | Sonnet (Opus for a third fix round) | Implements one task at a time with unit tests, on a local branch; fixes review findings |
-| **Test Automation Engineer** | Sonnet | The team's devil's advocate: test strategy, integration, contract and E2E tests, per-task verification that hunts for where the code breaks, prefers test-first and enforces API-first, release regression |
-| **DevOps Engineer** | Sonnet | Environments, containers, CI/CD, infrastructure as code, observability, runbooks, all validated by dry runs |
-| **FinOps Engineer** | Sonnet | Cost model with sourced prices, cost guardrails, cost reviews of changes, actual-vs-forecast |
-| **Security Engineer** | Opus | Threat model (STRIDE), security requirements (ASVS), security reviews and scans, final release gate |
-| **UX/UI Designer** | Sonnet | User flows, textual screen specs and design tokens, usability and accessibility (WCAG 2.2 AA) reviews of UI changes, final UX gate |
-| **Performance Engineer** | Opus | Load tester and sizing expert: finds what breaks under load (missing indexes, N+1, deadlocks, pool limits), sizes the system against the NFRs, plans and runs load tests. Runs before a merge to main or a deploy, and when you ask, not per task |
-
-Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
-
 </details>
 
-Current version: 0.7.0. What changed in each release, newest first: [release notes](CHANGELOG.md).
-
 ## How it works
+
+<details>
+<summary>The lifecycle, gates and rules the team follows</summary>
 
 ```mermaid
 flowchart LR
@@ -128,7 +133,12 @@ flowchart LR
 - **Nothing irreversible without you.** No push, merge to main, deploy, infrastructure apply, paid resource or data deletion happens without your explicit approval of that specific action. A hook asks for confirmation on the common ones; see [docs/TRUST.md](docs/TRUST.md) for the limits.
 - Where ideas came from: [docs/provenance.md](docs/provenance.md). Backlog: [docs/improvement-backlog.md](docs/improvement-backlog.md).
 
+</details>
+
 ## Commands
+
+<details>
+<summary>Status, review, resume and the other slash commands</summary>
 
 In the project you want the team to work on:
 
@@ -151,7 +161,12 @@ Or call any specialist directly, for example:
 @agent-software-factory:security-engineer threat-model docs/architecture/architecture.md
 ```
 
+</details>
+
 ## Updating
+
+<details>
+<summary>Check your version and update</summary>
 
 **Which version am I running?** At the start of every session (terminal or the VS Code extension) a hook shows `Software Factory v<version>`, says whether it is the latest, and gives the update command when a newer version is published on GitHub `main` (checked at most every 6 hours). The Team Lead also starts its first status with the version. In a terminal, `claude plugin list` shows it too.
 
@@ -163,12 +178,19 @@ claude plugin marketplace update software-factory-marketplace && claude plugin u
 
 Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and start a new chat. A chat that is already open keeps the old instructions.
 
+</details>
+
 ## Customize
+
+<details>
+<summary>Override an agent, frontend testing, the marketplace</summary>
 
 - **Override one agent for one project**: copy its file to that project's `.claude/agents/` and edit it. A project-level agent with the same `name` takes priority over the plugin's.
 - **Frontend testing**: the Test Automation Engineer uses the bundled `frontend-testing` skill for web UI work: page analysis, canonical tests, accessible selectors, network mocking, real-backend critical journeys, trace-based diagnosis and targeted stability runs.
 
 **About "marketplace".** This repo is its own plugin marketplace (`software-factory-marketplace`, defined in `.claude-plugin/marketplace.json`). It is not listed in the official Claude Code marketplace; the install line registers this repo directly.
+
+</details>
 
 ## License
 
