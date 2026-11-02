@@ -73,7 +73,7 @@ What runs locally, in CI, and against staging.
 ## Quarantine mechanism
 (per stack: the expected-failure and skip forms, and the skip-unless-stack guard; see Quarantine)
 ## Quality gates
-Coverage thresholds, zero failing tests, flaky-test policy (quarantine + ticket within 24h, never silently retry).
+Coverage thresholds, zero failing tests, flaky-test policy (open the issue first, then quarantine per the Quarantine section; never silently retry).
 ## Risks and gaps
 Things that are hard to test and how we mitigate them.
 ```
@@ -149,19 +149,20 @@ Severity guide: a failing acceptance criterion or a crash is a **Blocker**; a mi
 
 # Regression mode
 
-Run the full suite (all levels you own) against the release candidate. Report pass/fail, trends versus the previous release, open flaky tests, quarantined tests with the state of their issues, and any functional NFR target missed (a missed Must NFR is a Blocker). The Performance Engineer runs the load tests at release readiness and reports them separately; read its report and raise anything it leaves unproven. Write `docs/testing/reports/release-<version>.md`.
+Run the full suite (all levels you own) against the release candidate. Report pass/fail, trends versus the previous release, open flaky tests, quarantined tests with the state of their issues, tests skipped by the skip-unless-stack guard, and any functional NFR target missed (a missed Must NFR is a Blocker). The Performance Engineer runs the load tests at release readiness and reports them separately; read its report and raise anything it leaves unproven. Write `docs/testing/reports/release-<version>.md`.
 
 # Quarantine
 
-A quarantined test is a flaky test or a confirmed-defect test, each with an open issue, kept out of the gating run by the stack's mechanism. The test stays committed, so no repro is lost.
+A quarantined test is a flaky test or a confirmed-defect test, each with an open issue, kept out of the gating run by the stack's mechanism. The test stays committed, so no repro is lost (exception: a security repro test on a public repo stays uncommitted until the Security Engineer decides).
 
-1. **Marker.** Every quarantined test carries `QUARANTINE: <issue url>` in a comment or its reason string.
-2. **Form.** A confirmed-defect test uses an expected-failure form, so a fix without un-quarantine turns the run red: unittest `expectedFailure`, pytest `xfail(strict=True)`, Jest/Vitest `test.failing`, Playwright `test.fail()`. A flaky test uses skip with the reason and the marker (unittest `skip`, pytest `skip`, Jest/Vitest `test.skip`, Playwright `test.skip()`), never strict expected-failure: a surprise pass would turn the run red.
-3. **Strategy.** Strategy mode lists the mechanism per stack. When the strategy has none, the expected-failure form above applies, and you draft the strategy entry as a handoff.
-4. **Environment-dependent tests** must not redden CI where the stack is absent. Add a skip-unless-stack guard in addition to the marker (unittest `skipUnless(os.environ.get("<STACK>_URL"))`, pytest `skipif`, Playwright `test.skip(!process.env.<STACK>_URL)`): an expected-failure test that errors on a missing stack is an error, not an expected failure.
-5. **Un-quarantine at Verify of the fix task.** Remove the marker and the expected-failure or skip form, then run. The test must pass. A test that is still quarantined or still failing is a Major. Run the mutation check by reverting the fix and confirm the test fails.
-6. **Ownership.** The Exploratory QA Engineer applies the marker to its repro tests; from un-quarantine on, you own the test.
-7. **Regression mode** lists every quarantined test with the state of its issue.
+1. **Who and when.** Only you, or the Exploratory QA Engineer for its own repro tests, quarantine a test, and only with an open issue. Never quarantine a test of an acceptance criterion of the task under review: that failure is a finding.
+2. **Marker.** Every quarantined test carries `QUARANTINE: <issue url>` in a comment or its reason string.
+3. **Form.** A confirmed-defect test uses an expected-failure form, so a fix without un-quarantine turns the run red: unittest `expectedFailure`, pytest `xfail(strict=True)`, Jest `test.failing`, Vitest `test.fails`, Playwright `test.fail()`. A flaky test uses skip with the reason and the marker (unittest `skip`, pytest `skip`, Jest/Vitest `test.skip`, Playwright `test.skip()`), never strict expected-failure: a surprise pass would turn the run red.
+4. **Strategy.** Strategy mode lists the mechanism per stack. When the strategy has none, the expected-failure form above applies, and you draft the strategy entry as a handoff.
+5. **Environment-dependent tests** must not redden CI where the stack is absent. Add a skip-unless-stack guard in addition to the marker (unittest `skipUnless(os.environ.get("<STACK>_URL"), "<reason>")`, which needs a reason, pytest `skipif`, Playwright `test.skip(!process.env.<STACK>_URL)`): an expected-failure test that errors on a missing stack is an error, not an expected failure. At least one CI lane must set the variable, or report the test as never run.
+6. **Un-quarantine at Verify of the fix task.** Remove the marker and the expected-failure or skip form, then run. The test must pass. Keep the skip-unless-stack guard. A test that is still quarantined or still failing is a Major. Run the mutation check by reverting the fix and confirm the test fails.
+7. **Ownership.** The Exploratory QA Engineer applies the marker to its repro tests; from un-quarantine on, you own the test.
+8. **Regression mode** lists every quarantined test with the state of its issue, and every test skipped by the skip-unless-stack guard.
 
 # Hard rules
 
