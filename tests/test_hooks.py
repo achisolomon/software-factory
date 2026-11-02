@@ -373,6 +373,25 @@ class GateTests(unittest.TestCase):
             "mongosh db.example.com/shop --eval \"db.x.find()\"",  # #107: host/db is a host
         ], "ask")
 
+    def test_asks_for_round_two_ssh_and_sql_comment_forms(self):
+        self.assert_decision([
+            "ssh h -- psql -c \"DELETE FROM t\"",  # #129
+            "ssh -- h psql -c \"DELETE FROM t\"",
+            "ssh -tp 2222 h psql -c \"DELETE FROM t\"",
+            "ssh -o RemoteCommand=\"psql -c 'DELETE FROM t'\" h",
+            "ssh -oProxyCommand=\"nc x 22\" h",
+            "ssh -o LocalCommand=x h",
+            "mysql -h db.example.com -e \"/*! DROP TABLE t */\"",  # #130
+            "psql -h db.example.com -c \"SELECT '/*'; DELETE FROM t; SELECT '*/'\"",
+        ], "ask")
+
+    def test_does_not_ask_for_round_two_safe_forms(self):
+        self.assert_decision([
+            "psql -h db.example.com -c \"SELECT /* hi */ 1\"",
+            "mysql -pshowhello -e \"SHOW TABLES\"",  # a password containing "h" is not a host
+            "ssh -o StrictHostKeyChecking=no h ls",
+        ], None)
+
     def test_asks_for_round_one_firebase_and_docker_forms(self):
         self.assert_decision([
             "firebase functions:delete f", "firebase database:set / data.json",

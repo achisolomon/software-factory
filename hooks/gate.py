@@ -99,6 +99,9 @@ DB_STATEMENT_FLAGS = {"psql": ("-c", "--command"), "mysql": ("-e", "--execute"),
                       "mysqladmin": (), "pg_restore": (), "mongorestore": ()}
 SSH_VALUE_FLAGS = {"-p", "-i", "-l", "-o", "-F", "-J", "-L", "-R", "-D", "-b", "-c", "-e", "-E", "-I", "-m", "-O",
                    "-Q", "-S", "-w", "-W", "-B"}
+SSH_FLAG_CLUSTER = re.compile(r"-[46AaCfGgKkMNnqsTtVvXxYy]+[pilFJLRDbcEeIOQSwWBmo]")  # no-value letters, then one with
+SSH_RUNS_COMMAND = re.compile(r"(?:remote|proxy|local)command\s*=", re.I)
+NO_VALUE_FLAGS = "AtqXaEsS1"  # psql and mysql letters that take no value, so "-tAhHOST" still names a host
 DB_VALUE_FLAGS = {"-U", "--username", "-p", "--port", "-u", "--user", "--password", "-P", "-a", "-n", "-f", "--file"}
 REDIS_VALUE_FLAGS = DB_VALUE_FLAGS | {"-h", "--host", "-s", "-r", "-i", "-x", "--pass"}
 REDIS_READS = {"GET", "MGET", "EXISTS", "TTL", "PTTL", "TYPE", "KEYS", "SCAN", "HGET", "HGETALL", "HMGET", "HKEYS",
@@ -107,7 +110,8 @@ REDIS_READS = {"GET", "MGET", "EXISTS", "TTL", "PTTL", "TYPE", "KEYS", "SCAN", "
 DB_ENV = {"PGHOST", "PGHOSTADDR", "PGSERVICE", "DATABASE_URL", "MYSQL_HOST"}
 DB_URI = re.compile(r"(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|rediss)://", re.I)
 CONNINFO_HOST = re.compile(r"(?:^|\s)(?:host|hostaddr)\s*=\s*(\S+)")
-AMBIGUOUS_HOST_FLAGS = re.compile(r"-(?![AtqXaEsS1]*h)[^-]\w*h")  # a short cluster with "h" that option_values skips
+AMBIGUOUS_HOST_FLAGS = re.compile(  # a short cluster with "h" that option_values skips; -pVALUE is a port or password
+    rf"-(?![{NO_VALUE_FLAGS}]*h)(?!p)[^-]\w*h")
 COMMENT = re.compile(r"/\*.*?\*/", re.S)
 LOCAL_HOST = re.compile(r"localhost|[\w.-]*\.localhost|127(?:\.\d{1,3}){3}|::1", re.I)
 DROP_DATABASE = re.compile(r"\bdrop\s+(?:database|schema)\b|dropDatabase", re.I)
@@ -436,7 +440,7 @@ def option_values(args, names):
                 elif a.startswith(name + "="):
                     found.append(a[len(name) + 1:])
             elif not a.startswith("--"):
-                match = re.fullmatch(r"-[AtqXaEsS1]*" + re.escape(name[1]) + r"(.*)", a, re.S)
+                match = re.fullmatch(rf"-[{NO_VALUE_FLAGS}]*" + re.escape(name[1]) + r"(.*)", a, re.S)
                 if match:
                     found.append(match.group(1) or following)
     return found
@@ -622,7 +626,7 @@ def db_rule(name, args, env, remote=False, text=""):
         statements = option_values(args, DB_STATEMENT_FLAGS[name])
         if name == "psql" and option_values(args, ("-f", "--file")):
             statements = []  # a script file runs next to -c: judge it as unreadable
-    statements = [COMMENT.sub(" ", s) for s in statements]
+    # The read-only scan sees comments as written: MySQL runs /*! ... */ and a quoted '/*' hides nothing from it.
     if remote or db_remote(name, args, statements, env):
         if name in ("mongosh", "mongo") or not statements:
             return EXTERNAL  # eval strings and scripts can write in ways a keyword scan misses
@@ -630,7 +634,7 @@ def db_rule(name, args, env, remote=False, text=""):
             return None if statements[0].split()[0].upper() in REDIS_READS else EXTERNAL
         return None if all(sql_read_only(s) for s in statements) else EXTERNAL
     piped_drop = name in ("psql", "mysql", "mariadb") and not statements and DROP_DATABASE.search(COMMENT.sub(" ", text))
-    return LOCAL if piped_drop or any(DROP_DATABASE.search(s) for s in statements) else None
+    return LOCAL if piped_drop or any(DROP_DATABASE.search(COMMENT.sub(" ", s)) for s in statements) else None
 
 
 def db_client(args):
@@ -680,12 +684,17 @@ def container_findings(args, env, what, ctx, depth):
     return check_words(rest[shell:], [], False, [], (cwd, subagent, {**state, "remote": remote}), depth + 1)
 
 
-def ssh_command(args):
-    """The command text ssh sends to the remote shell, which re-parses it ("ssh host cd x && psql ...")."""
+def ssh_parts(args):
+    """(options, command text): the text ssh sends to the remote shell, which re-parses it ("ssh host cd x && psql")."""
     i = 0
     while i < len(args) and args[i].startswith("-"):
-        i += 2 if args[i] in SSH_VALUE_FLAGS else 1
-    return " ".join(args[i + 1:])
+        if args[i] == "--":
+            i += 1
+            break
+        takes_value = args[i] in SSH_VALUE_FLAGS or SSH_FLAG_CLUSTER.fullmatch(args[i])  # -tp 2222: p takes 2222
+        i += 2 if takes_value else 1
+    rest = args[i + 1:]
+    return args[:i], " ".join(rest[1:] if rest[:1] == ["--"] else rest)
 
 
 def runner_findings(name, args, env, what, ctx, depth):
@@ -693,7 +702,11 @@ def runner_findings(name, args, env, what, ctx, depth):
     cwd, subagent, state = ctx
     remote_ctx = (cwd, subagent, {**state, "remote": True})
     if name == "ssh":
-        return scan(ssh_command(args), remote_ctx, depth + 1)
+        options, command = ssh_parts(args)
+        found = scan(command, remote_ctx, depth + 1)
+        if SSH_RUNS_COMMAND.search(" ".join(options)):  # these options run a command the gate cannot read
+            found.append(("ask", what, UNPARSED))
+        return found
     if name == "kubectl":
         if positionals(args, KUBE_ARGS)[:1] in (["exec"], ["run"]) and "--" in args:
             return check_words(args[args.index("--") + 1:], [], False, [], remote_ctx, depth + 1)
