@@ -768,6 +768,7 @@ class HooksJsonTests(unittest.TestCase):
         expected = {
             ("PreToolUse", "Agent|Task", "require_agent_model.py"),
             ("PreToolUse", "Bash", "gate.py"),
+            ("PreToolUse", "Write|Edit|NotebookEdit", "project_bounds.py"),
             ("SubagentStop", None, "check_reply.py"),
             ("SessionStart", "compact", "after_compact.py"),
             ("SessionStart", "startup|resume|clear", "version_check.py"),

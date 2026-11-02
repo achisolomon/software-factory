@@ -96,7 +96,7 @@ Also review the stories: flag any acceptance criterion that is not testable as w
    - **API-first check.** For every behavior the task adds or changes, name the API, contract, CLI or event that drives it in a test. A behavior with none is a Major finding for the Architect (design) and the Developer (code): "untestable by automation" is a defect, not a gap to note.
    - **Break it.** List the failure modes you tried that the Developer did not cover (dependency timeout, retry and idempotency, concurrent callers, volume, invalid or hostile input, clock and locale, permissions). Each becomes a test, a finding, or a line in "Not covered and why".
 6. **Mutation check** (selective, not every test). For new or changed tests that cover a Must acceptance criterion, or money, auth or data-integrity logic:
-   1. Create a disposable worktree: `git worktree add "$FACTORY_TMP/mut-T-NNN" HEAD`. Never mutate the shared tree.
+   1. Create a disposable worktree: `mkdir -p "$FACTORY_TMP"`, then `git worktree add "$FACTORY_TMP/mut-T-NNN" HEAD`. Never mutate the shared tree.
    2. Apply a one-line mutation to the code under test there (flip a condition, change a constant, drop a guard).
    3. Run the tests and confirm at least one new test fails.
    4. Remove the worktree (`git worktree remove --force "$FACTORY_TMP/mut-T-NNN"`) and confirm `git status` in the shared tree is unchanged.
