@@ -60,6 +60,7 @@ The agents are checked too: 25 behavior evals and 75 offline tests guard their r
   - [Caveman](https://aitoolreview.ai/tools/caveman/): terse replies that cut output tokens.
   - [Token Optimizer](https://aitoolreview.ai/tools/token-optimizer/): finds where your context and tokens go, and trims it.
   - For writing the spec, [Superpowers](https://aitoolreview.ai/tools/superpowers/) is a good start.
+- **Work in a worktree.** Ask Claude to enter a worktree before it starts (Claude Code's `EnterWorktree`), so each session gets its own branch and working copy, and parallel sessions on the same repo never collide. See [the Claude Code worktrees guide](https://aitoolreview.ai/guides/claude-code-worktrees/).
 - For GitHub issue tracking, give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`.
 - Commit the `docs/` folder now and then, so the team's state is versioned with the code.
 
