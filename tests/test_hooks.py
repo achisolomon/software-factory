@@ -15,7 +15,8 @@ DEV = "software-factory:software-developer"
 
 
 def run(hook, payload, env=None, raw=None):
-    merged = dict(os.environ)
+    # The caller's own threshold must not leak into hook output; tests that need it pass it in env.
+    merged = {k: v for k, v in os.environ.items() if k != "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"}
     merged.update(env or {})
     data = raw if raw is not None else json.dumps(payload)
     return subprocess.run([sys.executable, str(HOOKS / hook)], input=data, capture_output=True, text=True, env=merged)
@@ -409,7 +410,8 @@ class VersionCheckTests(unittest.TestCase):
                 (data / "latest-version.json").write_text(json.dumps(cache))
             env = {"CLAUDE_PLUGIN_ROOT": str(plugin.parent), "CLAUDE_PLUGIN_DATA": str(data),
                    "SOFTWARE_FACTORY_LATEST_URL": remote.as_uri()}
-            result = run("version_check.py", {"source": "startup"}, env=env)
+            # cwd is a temp dir, not the repo, so docs/factory/ here cannot add the compact note.
+            result = run("version_check.py", {"source": "startup", "cwd": tmp}, env=env)
             self.assertEqual(result.returncode, 0)
             return json.loads(result.stdout) if result.stdout else None
 
