@@ -2,6 +2,11 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.6 (2026-11-03)
+
+- **A Project Manager keeps GitHub current, and the Product Manager files its own story issues.** Before, the Product Manager had no shell, so it could only draft story issues and the Team Lead had to file them by hand. Now the Product Manager opens and updates one issue per story (`S-NNN`) as it writes the backlog. A new Project Manager agent (Haiku) sets up the board, opens any missing story, task or finding issue, and moves each issue's status and posts its comments as the Team Lead reports events. It also audits the board against the files before each gate, at each epic end and on resume. The gate hook lets both agents run only `gh` from the shell.
+- **Choose how they reach GitHub: `gh` or the GitHub MCP server.** Init now asks (`GitHub access` in `project-facts.md`), with pros and cons. `gh` is recommended: it uses your existing login, and every agent can file its own findings. With `mcp`, the Product Manager and Project Manager use the GitHub MCP tools and no shell. You add the server once with a personal access token, the board is created once in the GitHub web UI, and the Project Manager files the other agents' findings at its next audit.
+
 ## 0.7.5 (2026-11-02)
 
 - **No folders in your project unless an agent needs scratch space.** 0.7.3 and 0.7.4 created `.software-factory-tmp/` (with a `.gitignore`) in every project at every session start. Now the session start only sets `$FACTORY_TMP`; the folder appears only when an agent creates it for scratch work, and is deleted when the session ends. Git ignores it through one line in `.git/info/exclude` (never shown or committed), not a file in your project. The first session after updating also removes the empty `.software-factory-tmp/` that 0.7.3 and 0.7.4 left behind.

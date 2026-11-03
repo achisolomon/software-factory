@@ -227,6 +227,22 @@ class GateTests(unittest.TestCase):
             "echo hi > out.txt",
         ], None)
 
+    def test_product_and_project_managers_run_only_gh(self):
+        for agent in ("software-factory:product-manager", "software-factory:project-manager"):
+            self.assert_decision([
+                "gh issue create -R o/r --title 'S-001: x' --label story --body-file - <<'EOF'\nGiven `a` $(b)\nEOF",
+                "gh project item-edit --project-id P --id I --field-id F --single-select-option-id O",
+                "gh issue list --state all --search 'S-001 in:title' --json number,url",
+            ], None, agent=agent)
+            self.assert_decision([
+                "ls docs",
+                "cat docs/product/backlog.md",
+                "gh issue list | jq .",
+                "bash -c 'gh issue list'",
+                "gh issue view $(cat n.txt)",
+            ], "deny", agent=agent)
+        self.assertIsNone(self.gate("ls docs"))  # other subagents keep their shell
+
     def test_main_session_is_not_denied_edit_style(self):
         lead = "software-factory:team-lead"
         self.assertIsNone(self.gate("sed -i s/a/b/ f.txt", agent=lead, agent_id=None))
