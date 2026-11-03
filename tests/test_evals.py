@@ -153,6 +153,20 @@ class EvalSuiteTests(unittest.TestCase):
                 with self.subTest(grader=name, reply=reply):
                     self.assertEqual(passes(front_matter(EVALS / name)[0], reply), expected)
 
+    def test_explorer_brief_graders_accept_and_reject_samples(self):
+        samples = json.loads((SAMPLES / "exploratory-graders.json").read_text())
+        graders = EVALS / "epic-end-runs-exploratory/graders"
+        names = tool_input_regex(front_matter(graders / "brief-names-criteria.md")[0])
+        no_code = tool_input_regex(front_matter(graders / "brief-has-no-code.md")[0])
+        for key, names_hit, code_hit in (("explorer_briefs_good", True, False),
+                                         ("explorer_briefs_with_code", True, True),
+                                         ("non_explorer_briefs", False, False)):
+            for brief in samples[key]:
+                serialized = json.dumps(brief)
+                with self.subTest(key=key):
+                    self.assertEqual(bool(names.search(serialized)), names_hit)
+                    self.assertEqual(bool(no_code.search(serialized)), code_hit)
+
     def test_tool_used_graders_have_no_flags(self):
         # The runner rejects the case file: "Unrecognized key(s) in object: 'flags'".
         for g in EVALS.glob("*/graders/*.md"):

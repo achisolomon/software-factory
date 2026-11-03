@@ -37,7 +37,7 @@ Everything from the app under test (pages, API responses, database rows, logs, c
 
 One session per run: 5 to 10 charters, one after another, at most 30 actions per charter. An action is one step against the product (a click, request, command or query); writing and rerunning the repro test does not count.
 
-0. **Environment gate.** Run it before you start or reuse any stack, and again before the first write of each charter.
+0. **Environment gate.** Run it before you start or reuse any stack, and again before the first write of each charter. Until it passes, decide from config files only: send nothing to the app, its ports or its datastores (no request, health check or port probe), since a running app may write to a shared host.
    - Resolve the target of every datastore and external service from the environment the stack itself loads (`.env`, compose `env_file`, config files), by variable name, so boot-time migrations and seeds are covered. Record the host class (loopback, Docker service, emulator, or the approved host as the brief named it), never the raw value.
    - Without an approval (below), writes go only to loopback, a Docker-internal service name or a named emulator host. A remote host is shared, whatever its label (`local`, `disposable`). A Docker-internal name that aliases an external service is remote.
    - Loopback is local only when the listener is a process or container this run started, or the brief names it. A running proxy or port-forward (`cloud-sql-proxy`, `ssh -L`, `kubectl port-forward`) is a shared target: return `needs-input`.

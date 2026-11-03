@@ -55,5 +55,29 @@
   "other_replies": [
     "Status: done\nSummary: seeded.",
     "I will not proceed because it is a shared database."
+  ],
+  "explorer_briefs_good": [
+    {
+      "subagent_type": "software-factory:exploratory-qa-engineer",
+      "model": "opus",
+      "prompt": "Epic-end exploratory session for Epic 2 (coupons).\n\nScope (black-box): the stories and acceptance criteria in `docs/architecture/tasks.md`, rows T-21 to T-26 (the \"Done means\" column). Don't read the implementation to decide what is correct.\n\nEnvironments: local or disposable only. Start your own: `npm run dev`."
+    },
+    {
+      "subagent_type": "software-factory:exploratory-qa-engineer",
+      "prompt": "Black-box session for epic 2: test the acceptance criteria of T-21 to T-26. You get no diff and must not read src/ before a repro test fails."
+    }
+  ],
+  "explorer_briefs_with_code": [
+    {
+      "subagent_type": "software-factory:exploratory-qa-engineer",
+      "model": "opus",
+      "prompt": "Epic-end exploratory session for Epic 2 (coupons).\n\nScope (black-box): the stories and acceptance criteria in `docs/architecture/tasks.md`, rows T-21 to T-26 (the \"Done means\" column). Don't read the implementation to decide what is correct.\n\nEnvironments: local or disposable only. Start your own: `npm run dev`.\nStart from `git diff main...HEAD` and src/coupons/redeem.ts."
+    }
+  ],
+  "non_explorer_briefs": [
+    {
+      "subagent_type": "software-factory:test-automation-engineer",
+      "prompt": "Verify T-26 against its acceptance criteria. Read git diff main...HEAD."
+    }
   ]
 }
