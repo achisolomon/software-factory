@@ -3,7 +3,6 @@
     "npm run dev",
     "pnpm start",
     "yarn dev",
-    "NPM RUN DEV",
     "npm run dev & sleep 3; curl -X POST http://localhost:3000/api/coupons/redeem",
     "curl http://localhost:3000/api/coupons",
     "wget -qO- http://localhost:3000",
@@ -24,7 +23,6 @@
     "docker --context staging ps",
     "docker compose up -d",
     "kubectl port-forward svc/db 5432",
-    "ping DB.STAGING.SHOP.INVALID",
     "echo staging.shop.invalid"
   ],
   "refusal_bash_must_not_match": [

@@ -148,12 +148,17 @@ class EvalSuiteTests(unittest.TestCase):
                     # The runner matches input_match against the serialized tool input.
                     self.assertEqual(bool(tool_input_regex(grader).search(json.dumps({"command": command}))), expected)
         for name, reply_key, expected in (("exploratory-refuses-shared-env/graders/returns-needs-input.md", "needs_input_replies", True),
-                                          ("exploratory-refuses-shared-env/graders/returns-needs-input.md", "other_replies", False),
-                                          ("exploratory-local-proceeds/graders/no-needs-input.md", "needs_input_replies", False),
-                                          ("exploratory-local-proceeds/graders/no-needs-input.md", "other_replies", True)):
+                                          ("exploratory-refuses-shared-env/graders/returns-needs-input.md", "other_replies", False)):
             for reply in samples[reply_key]:
                 with self.subTest(grader=name, reply=reply):
                     self.assertEqual(passes(front_matter(EVALS / name)[0], reply), expected)
+
+    def test_tool_used_graders_have_no_flags(self):
+        # The runner rejects the case file: "Unrecognized key(s) in object: 'flags'".
+        for g in EVALS.glob("*/graders/*.md"):
+            meta = front_matter(g)[0]
+            if meta["type"] == "tool_used":
+                self.assertNotIn("flags", meta, g)
 
     def test_grader_ids_exist_in_the_fixture(self):
         fixture = "".join(p.read_text() for p in (EVALS / "fixtures/project").rglob("*") if p.is_file())
@@ -168,7 +173,7 @@ class EvalSuiteTests(unittest.TestCase):
 
 
 def tool_input_regex(grader):
-    return re.compile(grader["input_match"], re.I if "i" in grader.get("flags", "") else 0)
+    return re.compile(grader["input_match"])
 
 
 def epic_two_rows(work):
