@@ -2,10 +2,31 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
-## 0.8.0 (2026-11-02)
+## 0.9.0 (2026-11-03)
 
 - **The plugin moved to `plugin/`.** What you install is now only the agents, skills, hooks, the handoff contract and the review-route script. Docs, evals, tests and images stay in the repository but are no longer shipped. Same install command, same plugin name; run the usual update once. The root `.claude-plugin/plugin.json` stays as a version pointer so older installs still see this update.
 - `scripts/behavior-check` runs the evals from a temporary copy of the plugin plus `evals/`, because the eval runner only reads cases inside the plugin folder.
+
+## 0.8.0 (2026-11-03)
+
+- **New agent: the Exploratory QA Engineer.** A black-box bug hunter that uses the running app like a user, at the end of an epic and whenever you ask. It works only in local or disposable environments, never shared or production ones. Before it reads any code it writes a failing repro test for each bug, and it marks that test with a quarantine marker so the suite stays green until the bug is fixed. Method adapted, in our own words, from tester-army/e2e (see [provenance](docs/provenance.md)); the tool is neither bundled nor pinned.
+- **Team Lead and Test Engineer wiring.** The Team Lead calls the explorer at epic end and on request. The Test Automation Engineer owns the repro tests from un-quarantine on and allows the explorer to quarantine its own.
+- **The gate hook asks before more risky commands.** It now asks first for remote database clients, docker volume removal, firebase deletes and `gh` writes to other repositories.
+- **Four new evals** cover the explorer's rules, for 29 in total. The README now also carries the real agent, eval and test counts, and `tests/test_release_files.py` keeps them honest.
+- **Upgrade note.** Add `.software-factory-withheld/` to your project's `.gitignore`. Without it, the explorer stops with `needs-input` when it finds a security issue in a public repository, because it will not write the details where they could be committed.
+
+## 0.7.6 (2026-11-03)
+
+- **A Project Manager keeps GitHub current, and the Product Manager files its own story issues.** Before, the Product Manager had no shell, so it could only draft story issues and the Team Lead had to file them by hand. Now the Product Manager opens and updates one issue per story (`S-NNN`) as it writes the backlog. A new Project Manager agent (Haiku) sets up the board, opens any missing story, task or finding issue, and moves each issue's status and posts its comments as the Team Lead reports events. It also audits the board against the files before each gate, at each epic end and on resume. The gate hook lets both agents run only `gh` from the shell.
+- **Choose how they reach GitHub: `gh` or the GitHub MCP server.** Init now asks (`GitHub access` in `project-facts.md`), with pros and cons. `gh` is recommended: it uses your existing login, and every agent can file its own findings. With `mcp`, the Product Manager and Project Manager use the GitHub MCP tools and no shell. You add the server once with a personal access token, the board is created once in the GitHub web UI, and the Project Manager files the other agents' findings at its next audit.
+
+## 0.7.5 (2026-11-02)
+
+- **No folders in your project unless an agent needs scratch space.** 0.7.3 and 0.7.4 created `.software-factory-tmp/` (with a `.gitignore`) in every project at every session start. Now the session start only sets `$FACTORY_TMP`; the folder appears only when an agent creates it for scratch work, and is deleted when the session ends. Git ignores it through one line in `.git/info/exclude` (never shown or committed), not a file in your project. The first session after updating also removes the empty `.software-factory-tmp/` that 0.7.3 and 0.7.4 left behind.
+
+## 0.7.4 (2026-11-02)
+
+- **Factory agents can no longer leave files outside the project.** A new hook, `hooks/project_bounds.py`, refuses a factory subagent's Write, Edit or NotebookEdit outside the project folder and points it at `$FACTORY_TMP`. The reply check (`hooks/check_reply.py`) now also sends a subagent back when new files or folders appeared beside the project while it ran (for example from a script), and lists them so it deletes them before it finishes. `tests/test_scratch_leaks.py` replays both leaks seen on 2026-11-02.
 
 ## 0.7.3 (2026-11-02)
 

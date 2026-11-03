@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: epic-end-runs-exploratory
+# Exploratory QA (#52, AC-13): when the last task of an epic is Done, the Team Lead dispatches one Exploratory QA
+# Engineer for the epic. The brief names the stories and acceptance criteria (black box), never a diff or a source
+# path. The scaffold marks every task of epic 2 Done. Slow: it dispatches a real subagent.
+context:
+  scaffold_script: scaffold.sh

@@ -29,40 +29,61 @@ class ScratchHookTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(HOOK), mode], input=payload, env=env,
                               capture_output=True, text=True)
 
-    def test_start_makes_ignored_folder_in_project_and_exports_it(self):
-        result = self.run_hook("start")
+    def git(self, *args):
+        return subprocess.run(["git", "-C", str(self.project), *args], capture_output=True, text=True, check=True)
+
+    def test_a_session_that_needs_no_scratch_leaves_the_project_untouched(self):
+        self.git("init", "-q")
+        (self.project / "app.py").write_text("print(1)\n")
+        before = sorted(p.name for p in self.project.iterdir())
+        for _ in range(2):  # every new session
+            result = self.run_hook("start")
+            self.run_hook("end")
+        self.assertEqual(sorted(p.name for p in self.project.iterdir()), before)
+        self.assertEqual(self.git("status", "--porcelain").stdout, "?? app.py\n")
         folder = self.base / "abc-123"
-        self.assertTrue(folder.is_dir())
-        self.assertEqual((self.base / ".gitignore").read_text(), "*\n")
         self.assertIn(f"export FACTORY_TMP={folder}", self.env_file.read_text())
         self.assertIn(str(folder), json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"])
 
-    def test_end_deletes_session_folder_and_empty_base(self):
+    def test_scratch_an_agent_makes_is_hidden_from_git_and_gone_at_end(self):
+        self.git("init", "-q")
         self.run_hook("start")
-        (self.base / "abc-123" / "export").mkdir()
+        self.run_hook("start")  # the exclude line is written once
+        (self.base / "abc-123" / "export").mkdir(parents=True)
+        (self.base / "abc-123" / "export" / "x.py").write_text("x\n")
+        self.assertEqual(self.git("status", "--porcelain").stdout, "")
+        exclude = (self.project / ".git" / "info" / "exclude").read_text()
+        self.assertEqual(exclude.count(".software-factory-tmp/"), 1)
         self.run_hook("end")
         self.assertFalse(self.base.exists())
 
     def test_end_keeps_other_live_sessions(self):
-        self.run_hook("start", "one")
-        self.run_hook("start", "two")
+        for session in ("one", "two"):
+            (self.base / session).mkdir(parents=True)
         self.run_hook("end", "one")
         self.assertFalse((self.base / "one").exists())
         self.assertTrue((self.base / "two").is_dir())
 
-    def test_start_sweeps_stale_folders_only(self):
-        stale, fresh = self.base / "crashed", self.base / "running"
+    def test_start_sweeps_crash_leftovers_and_the_empty_parent(self):
+        stale = self.base / "crashed"
         stale.mkdir(parents=True)
-        fresh.mkdir()
+        (self.base / ".gitignore").write_text("*\n")  # left by 0.7.3 / 0.7.4
         os.utime(stale, (0, 0))
         self.run_hook("start")
-        self.assertFalse(stale.exists())
-        self.assertTrue(fresh.is_dir())
+        self.assertFalse(self.base.exists())
+
+    def test_start_keeps_a_running_session(self):
+        (self.base / "running").mkdir(parents=True)
+        self.run_hook("start")
+        self.assertTrue((self.base / "running").is_dir())
+
+    def test_not_a_git_repo_is_fine(self):
+        self.run_hook("start")
+        self.assertEqual(list(self.project.iterdir()), [])
 
     def test_unsafe_session_id_cannot_escape_base(self):
         self.run_hook("start", "../../evil")
-        self.assertFalse((Path(self.tmp.name) / "evil").exists())
-        self.assertTrue((self.base / "evil").is_dir())
+        self.assertIn(f"FACTORY_TMP={self.base / 'evil'}", self.env_file.read_text())
 
 
 if __name__ == "__main__":

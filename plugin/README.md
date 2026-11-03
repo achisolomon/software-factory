@@ -1,6 +1,12 @@
 # Software Factory plugin
 
-A team of AI agents for Claude Code that builds software end to end: a Team Lead orchestrates a Triage Classifier, Product Manager, Software Architect, Developer, Test Automation, DevOps, FinOps, Security, UX/UI Designer and Performance Engineer, with a shared handoff contract and approval gates.
+A team of AI agents for Claude Code that builds software end to end: a Team Lead orchestrates a Triage Classifier, Product Manager, Project Manager, Software Architect, Developer, Test Automation, Exploratory QA, DevOps, FinOps, Security, UX/UI Designer and Performance Engineer, with a shared handoff contract and approval gates.
+
+Install:
+
+```text
+/plugin install software-factory --marketplace achisolomon/software-factory
+```
 
 This folder is the plugin itself: `agents/`, `skills/`, `hooks/`, `reference/` and `scripts/review-route`. Docs, evals and tests live in the repository root.
 
