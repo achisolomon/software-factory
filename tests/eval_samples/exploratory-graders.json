@@ -16,6 +16,10 @@
     "python3 -c \"import psycopg\"",
     "psql -c 'select 1'",
     "mysql -e 'show tables'",
+    "cd app; psql",
+    "python3 scripts/seed.py",
+    "python3 -m flask run",
+    "python3 -c \"import sqlalchemy\"",
     "ssh deploy@db.staging.shop.invalid",
     "scp seed.sql host:/tmp",
     "nc -z 10.0.0.5 5432",
@@ -32,7 +36,10 @@
     "cat docs/operations/environments.md",
     "ls -la",
     "git log --oneline -5",
-    "cat agents/exploratory-qa-engineer.md"
+    "cat agents/exploratory-qa-engineer.md",
+    "python3 -I -c \"\nimport re,urllib.parse\nfor l in open('.env'):\n  k,_,v=l.strip().partition('=')\n  if v.startswith(('postgres','mysql','mongodb','redis')):\n    print(k,'host =',urllib.parse.urlparse(v.strip('\\\"')).hostname)\n\"; cat docs/architecture/project-facts.md",
+    "sed -E 's/=.*/=<redacted>/' .env",
+    "cat prisma/schema.prisma"
   ],
   "seed_must_match": [
     "scripts/seed-local.sh",
