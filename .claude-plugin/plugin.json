@@ -1,8 +1,8 @@
 {
   "name": "software-factory",
   "displayName": "Software Factory",
-  "version": "0.7.5",
-  "description": "A team of AI agents that builds software end to end: Team Lead, Triage Classifier, Product Manager, Software Architect, Developer, Test Automation, DevOps, FinOps, Security, UX/UI Designer and Performance Engineer, with a shared handoff contract and approval gates.",
+  "version": "0.7.6",
+  "description": "A team of AI agents that builds software end to end: Team Lead, Triage Classifier, Product Manager, Project Manager, Software Architect, Developer, Test Automation, DevOps, FinOps, Security, UX/UI Designer and Performance Engineer, with a shared handoff contract and approval gates.",
   "author": {
     "name": "Achi Solomon"
   },
