@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -526,6 +527,13 @@ class GateTests(unittest.TestCase):
         for command in ("git restore --staged .", "npm publish --dry-run", "cargo publish --dry-run"):
             self.assertIsNone(self.gate(command), command)
         self.assertEqual(self.gate("git restore -W -S .")["permissionDecision"], "ask")
+
+    def test_hook_env_reads_every_hook_env_name(self):
+        sys.path.insert(0, str(HOOKS))
+        self.addCleanup(sys.path.remove, str(HOOKS))
+        import gate
+        with unittest.mock.patch.dict(os.environ, {k: "x" for k in gate.HOOK_ENV}):
+            self.assertEqual(set(gate.hook_env()), set(gate.HOOK_ENV))
 
     def test_ignores_malformed_input(self):
         for raw in ("not json", "[]", json.dumps({"tool_input": {}}), json.dumps({"tool_input": {"command": 3}})):

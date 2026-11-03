@@ -16,7 +16,7 @@ A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatch
 
 https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
-The agents are checked too: 29 behavior evals and 141 offline tests guard their rules and approval gates.
+The agents are checked too: 29 behavior evals and 142 offline tests guard their rules and approval gates.
 
 ## What you get
 
