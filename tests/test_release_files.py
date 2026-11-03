@@ -12,6 +12,7 @@ AGENT_DISPLAY_NAMES = {
     "team-lead": "Team Lead",
     "triage-classifier": "Triage Classifier",
     "product-manager": "Product Manager",
+    "project-manager": "Project Manager",
     "software-architect": "Software Architect",
     "software-developer": "Software Developer",
     "test-automation-engineer": "Test Automation Engineer",

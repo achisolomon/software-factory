@@ -2,7 +2,8 @@
 
 Asks before irreversible, external or locally destructive commands (contract
 rules 9.7 and 9.12) and denies shell file writes by factory subagents (rule
-9.12). It never answers "allow", so the user's own permission rules still
+9.12). The Product Manager and Project Manager may run only `gh` from the
+shell. It never answers "allow", so the user's own permission rules still
 decide everything it does not flag. When unsure, it asks.
 """
 
@@ -18,6 +19,9 @@ from urllib.parse import parse_qs, urlsplit
 from factory_scope import factory_roots
 
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
+GH_ONLY = {"product-manager", "project-manager"}  # their Bash exists for GitHub issues and the board, nothing else
+GH_ONLY_WHY = ("Software Factory gate: this agent may run only `gh` from the shell "
+               "(GitHub issues and the Project board). Use Read, Grep, Glob, Edit or Write for everything else.")
 MAX_DEPTH = 6
 EXTERNAL = "irreversible or external (contract rule 9.7)"
 LOCAL = "a local destructive action (contract rule 9.12)"
@@ -898,6 +902,8 @@ def check_words(words, writes, heredoc, bodies, ctx, depth, piped=False):
     if name in ("export", "source", ".") or (name == "set" and "a" in short_flags(args)):
         state["env_loaded"] = True
     what = " ".join(words)
+    if subagent in GH_ONLY and name != "gh":
+        findings.append(("deny", what, GH_ONLY_WHY))
     first = (positionals(args)[:1] or [""])[0]
     unresolved = re.search(r"[$`]", words[0])
     if ((unresolved or (name not in ("rm", "sed", "perl") and re.search(r"[$`]", first))) and FALLBACK.search(what)) or (
@@ -970,8 +976,10 @@ def decision(findings):
     denies = [f for f in findings if f[0] == "deny"]
     if denies:
         what = "; ".join(dict.fromkeys(f"`{w[:120]}`" for _, w, _ in denies))
-        reason = (f"Software Factory gate: {what} writes a file from the shell. "
-                  "Use the Edit or Write tool for file changes (contract rule 9.12).")
+        why = next((w for _, _, w in denies if w), "")
+        reason = f"{why} Denied: {what}." if why else (
+            f"Software Factory gate: {what} writes a file from the shell. "
+            "Use the Edit or Write tool for file changes (contract rule 9.12).")
         return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                        "permissionDecisionReason": reason}}
     if findings:
@@ -999,7 +1007,7 @@ def main():
     if not factory and not in_factory_project(cwd):
         return 0
     # The Team Lead may be the main session; every other factory agent is a specialist subagent.
-    subagent = factory and (bool(payload.get("agent_id")) or name != "team-lead")
+    subagent = name if factory and (bool(payload.get("agent_id")) or name != "team-lead") else ""
     try:
         findings = scan(command, (cwd, subagent, {"env_loaded": False, "remote": False, "text": command}))
     except Exception:  # in scope, so an internal error fails toward asking
