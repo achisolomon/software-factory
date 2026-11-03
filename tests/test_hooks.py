@@ -412,7 +412,6 @@ class GateTests(unittest.TestCase):
         for env, command in [
             ({"PGSERVICE": "prod"}, "psql -c \"DELETE FROM t\""),
             ({"MYSQL_HOST": "db.example.com"}, "mysql -e \"DROP TABLE t\""),
-            ({"DATABASE_URL": "postgres://u@db.example.com/s"}, "psql -c \"DELETE FROM t\""),
             ({"GH_REPO": "other/repo"}, "gh issue create -t x -b y"),
             ({"DOCKER_HOST": "ssh://h"}, "docker exec db psql -c \"DELETE FROM t\""),
             ({"DOCKER_CONTEXT": "prod"}, "docker exec db psql -c \"DELETE FROM t\""),
@@ -533,7 +532,7 @@ class GateTests(unittest.TestCase):
         self.addCleanup(sys.path.remove, str(HOOKS))
         import gate
         with unittest.mock.patch.dict(os.environ, {k: "x" for k in gate.HOOK_ENV}):
-            self.assertEqual(set(gate.hook_env()), set(gate.HOOK_ENV))
+            self.assertEqual(set(gate.hook_env()), set(gate.HOOK_ENV) - {"DATABASE_URL"})
 
     def test_ignores_malformed_input(self):
         for raw in ("not json", "[]", json.dumps({"tool_input": {}}), json.dumps({"tool_input": {"command": 3}})):

@@ -459,10 +459,12 @@ def repo_slug(value):
 
 
 def hook_env():
-    """The set HOOK_ENV values. Each is read by its literal name so the plugin directory scan can see which."""
+    """The set HOOK_ENV values. Each is read by its literal name so the plugin directory scan can see which.
+    DATABASE_URL is not read here: no client in DB_STATEMENT_FLAGS reads it from the environment, and it
+    holds a password. It still counts when the command itself sets it (NAME=value) or passes "$DATABASE_URL"."""
     values = {
         "PGHOST": os.environ.get("PGHOST"), "PGHOSTADDR": os.environ.get("PGHOSTADDR"),
-        "PGSERVICE": os.environ.get("PGSERVICE"), "DATABASE_URL": os.environ.get("DATABASE_URL"),
+        "PGSERVICE": os.environ.get("PGSERVICE"),
         "MYSQL_HOST": os.environ.get("MYSQL_HOST"), "GH_REPO": os.environ.get("GH_REPO"),
         "DOCKER_HOST": os.environ.get("DOCKER_HOST"), "DOCKER_CONTEXT": os.environ.get("DOCKER_CONTEXT"),
     }

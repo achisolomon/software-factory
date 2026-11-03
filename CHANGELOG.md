@@ -6,6 +6,7 @@ What changed in each release of the Software Factory plugin, newest first. Back 
 
 - **The plugin moved to `plugin/`.** What you install is now only the agents, skills, hooks, the handoff contract and the review-route script. Docs, evals, tests and images stay in the repository but are no longer shipped. Same install command, same plugin name; run the usual update once. The root `.claude-plugin/plugin.json` stays as a version pointer so older installs still see this update.
 - `scripts/behavior-check` runs the evals from a temporary copy of the plugin plus `evals/`, because the eval runner only reads cases inside the plugin folder.
+- The gate hook no longer reads `DATABASE_URL` from your session's environment. None of the database clients it checks reads that variable, and it holds a password. A command that sets it inline or passes `"$DATABASE_URL"` still gets asked.
 
 ## 0.8.0 (2026-11-03)
 
