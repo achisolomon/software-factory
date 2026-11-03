@@ -12,7 +12,9 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
+from urllib.parse import parse_qs, urlsplit
 
 from factory_scope import factory_roots
 
@@ -44,7 +46,8 @@ FALLBACK = re.compile(
     r"|\b(terraform|tofu|pulumi|kubectl|helm|vercel|netlify|flyctl|fly|wrangler|firebase|gcloud|aws|supabase|twine)\s"
     r"|\bcf\s+deploy\b"
     r"|\b(npm|pnpm|yarn|cargo)\b[^\n;&|]*\bpublish\b"
-    r"|\bdocker\b[^\n;&|]*\bpush\b"
+    r"|\bdocker\b[^\n;&|]*\b(push|volume|prune|down)\b"
+    r"|\b(psql|mysql|mariadb|mongosh|mongo|redis-cli|dropdb|mysqladmin|pg_restore|mongorestore)(?![\w.-])"
     r"|\b(sed|perl)\s[^\n;&|]*\s-\w*i"
     r"|\b(bash|sh|zsh|eval)\s"
     r"|\bpython[\d.]*\s[\s\S]*(write_text|write_bytes|open\()"
@@ -85,6 +88,41 @@ GH_ASK = {
 }
 GH_API_ARGS = {"-X", "--method", "-H", "--header", "-f", "-F", "--field", "--raw-field", "--input", "-q", "--jq",
                "-t", "--template", "-p", "--preview", "--hostname", "--cache", "-R", "--repo"}
+GH_READ_VERBS = {"list", "view", "status", "diff", "checks", "download", "watch", "get", "browse", "checkout"}
+GH_READ_GROUPS = {"search", "browse", "status"}
+ORIGIN = re.compile(r"(?:^|[@/])github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$", re.I)
+API_REPO = re.compile(r"/?repos/([^/]+)/([^/?#]+)")
+API_URL = re.compile(r"https?://([^/]+)(/.*)?$", re.I)
+HOOK_ENV = ("PGHOST", "PGHOSTADDR", "PGSERVICE", "DATABASE_URL", "MYSQL_HOST", "GH_REPO", "DOCKER_HOST",
+            "DOCKER_CONTEXT")
+DOCKER_ARGS = {"--context", "-c", "-H", "--host", "--config", "-l", "--log-level", "-f", "--file", "-p",
+               "--project-name", "--profile", "--env-file", "--project-directory", "-u", "--user", "-e", "--env",
+               "-w", "--workdir"}
+DB_STATEMENT_FLAGS = {"psql": ("-c", "--command"), "mysql": ("-e", "--execute"), "mariadb": ("-e", "--execute"),
+                      "mongosh": ("--eval",), "mongo": ("--eval",), "redis-cli": (), "dropdb": (),
+                      "mysqladmin": (), "pg_restore": (), "mongorestore": ()}
+SSH_VALUE_FLAGS = {"-p", "-i", "-l", "-o", "-F", "-J", "-L", "-R", "-D", "-b", "-c", "-e", "-E", "-I", "-m", "-O",
+                   "-Q", "-S", "-w", "-W", "-B"}
+SSH_FLAG_CLUSTER = re.compile(r"-[46AaCfGgKkMNnqsTtVvXxYy]+[pilFJLRDbcEeIOQSwWBmo]")  # no-value letters, then one with
+SSH_RUNS_COMMAND = re.compile(r"(?:remote|proxy|local)command\s*=", re.I)
+NO_VALUE_FLAGS = "AtqXaEsS1"  # psql and mysql letters that take no value, so "-tAhHOST" still names a host
+DB_VALUE_FLAGS = {"-U", "--username", "-p", "--port", "-u", "--user", "--password", "-P", "-a", "-n", "-f", "--file"}
+REDIS_VALUE_FLAGS = DB_VALUE_FLAGS | {"-h", "--host", "-s", "-r", "-i", "-x", "--pass"}
+REDIS_READS = {"GET", "MGET", "EXISTS", "TTL", "PTTL", "TYPE", "KEYS", "SCAN", "HGET", "HGETALL", "HMGET", "HKEYS",
+               "HVALS", "HLEN", "LLEN", "LRANGE", "LINDEX", "SCARD", "SMEMBERS", "SISMEMBER", "ZCARD", "ZRANGE",
+               "ZSCORE", "STRLEN", "DBSIZE", "INFO", "PING"}
+DB_ENV = {"PGHOST", "PGHOSTADDR", "PGSERVICE", "DATABASE_URL", "MYSQL_HOST"}
+DB_URI = re.compile(r"(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|rediss)://", re.I)
+CONNINFO_HOST = re.compile(r"(?:^|\s)(?:host|hostaddr)\s*=\s*(\S+)")
+AMBIGUOUS_HOST_FLAGS = re.compile(  # a short cluster with "h" that option_values skips; -pVALUE is a port or password
+    rf"-(?![{NO_VALUE_FLAGS}]*h)(?!p)[^-]\w*h")
+COMMENT = re.compile(r"/\*.*?\*/", re.S)
+LOCAL_HOST = re.compile(r"localhost|[\w.-]*\.localhost|127(?:\.\d{1,3}){3}|::1", re.I)
+DROP_DATABASE = re.compile(r"\bdrop\s+(?:database|schema)\b|dropDatabase", re.I)
+SQL_READ_HEAD = re.compile(r"\s*(?:select|show|explain)\b|\s*\\", re.I)
+SQL_WRITE_WORD = re.compile(
+    r"\b(insert|update|delete|drop|truncate|alter|create|grant|revoke|merge|copy|call|do|into|outfile|analyze)\b", re.I)
+SQL_READ_META = re.compile(r"\\(?:d[A-Za-z+]*|l\+?)(?![A-Za-z0-9_])")  # \d..., \l, \dt: describe and list only
 KUBE_ARGS = {"-n", "--namespace", "--context", "--kubeconfig", "--cluster", "--user", "-s", "--server", "--token"}
 KUBE_WRITES = {"apply", "create", "delete", "patch", "replace", "scale", "edit", "rollout", "drain"}
 HELM_ARGS = {"-n", "--namespace", "--kube-context", "--kubeconfig"}
@@ -394,7 +432,101 @@ def git_rule(args):
     return None
 
 
-def gh_rule(args):
+def option_values(args, names):
+    """Values of the options in names: "-h v", "-hv", "-tAhv" (after flags without values), "--host v", "--host=v"."""
+    found = []
+    for i, a in enumerate(args):
+        following = args[i + 1] if i + 1 < len(args) else ""
+        for name in names:
+            if name.startswith("--"):
+                if a == name:
+                    found.append(following)
+                elif a.startswith(name + "="):
+                    found.append(a[len(name) + 1:])
+            elif not a.startswith("--"):
+                match = re.fullmatch(rf"-[{NO_VALUE_FLAGS}]*" + re.escape(name[1]) + r"(.*)", a, re.S)
+                if match:
+                    found.append(match.group(1) or following)
+    return found
+
+
+def repo_slug(value):
+    """owner/name in lower case from "owner/name" or "github.com/owner/name", else None."""
+    parts = value.lower().split("/")
+    if len(parts) == 3 and parts[0] == "github.com":
+        parts = parts[1:]
+    return "/".join(parts) if len(parts) == 2 and all(re.fullmatch(r"[\w.-]+", p) for p in parts) else None
+
+
+def effective_env(assigns):
+    """The hook's own variables that matter here, overridden by the NAME=value words in front of the command."""
+    env = {k: os.environ[k] for k in HOOK_ENV if os.environ.get(k)}
+    for a in assigns:
+        key, _, value = a.partition("=")
+        env[key.rstrip("+")] = value
+    return env
+
+
+ORIGINS = {}  # path -> owner/name of its origin remote, or None; one hook run asks git at most once per path
+
+
+def git_origin(path):
+    if path not in ORIGINS:
+        try:
+            url = subprocess.run(["git", "-C", path, "remote", "get-url", "origin"], capture_output=True,
+                                 text=True, timeout=2).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            url = ""
+        match = ORIGIN.search(url)
+        ORIGINS[path] = repo_slug("/".join(match.groups())) if match else None
+    return ORIGINS[path]
+
+
+def origin_slugs(cwd):
+    """The repo(s) this session works on: the origin of cwd, else those of the factory projects at or below it."""
+    if git_origin(cwd):
+        return {git_origin(cwd)}
+    return {slug for root in factory_roots(cwd) if (slug := git_origin(str(root)))}
+
+
+def other_repo(value, cwd):
+    """True unless value names the repo the session works on. An unreadable origin or odd name counts as other."""
+    target = repo_slug(value)
+    return not (target and target in origin_slugs(cwd))
+
+
+def gh_repo_rule(args, pos, env, cwd):
+    """EXTERNAL for a write that targets a repo other than the one the session works on (reads never ask)."""
+    targets = option_values(args, ("-R", "--repo")) or ([env["GH_REPO"]] if env.get("GH_REPO") else [])
+    if (targets and pos[1:2] and pos[1] not in GH_READ_VERBS and pos[0] not in GH_READ_GROUPS
+            and any(other_repo(t, cwd) for t in targets)):
+        return EXTERNAL
+    return None
+
+
+def gh_api_repo_rule(endpoint, method, env, cwd, hostname):
+    """EXTERNAL for a non-GET call on another repo's endpoint. gh api has no -R flag: only the endpoint and GH_REPO."""
+    if method == "GET":
+        return None
+    if hostname and hostname.lower() != "github.com":
+        return EXTERNAL
+    url = API_URL.match(endpoint)
+    if url:
+        if url.group(1).lower() not in ("api.github.com", "github.com"):
+            return EXTERNAL
+        endpoint = url.group(2) or ""
+    endpoint = "/" + endpoint.lstrip("/")
+    if ".." in endpoint.split("/") or "%" in endpoint or endpoint.startswith("/repositories/"):
+        return EXTERNAL  # a path that is rewritten, encoded or addressed by id cannot be compared with the origin
+    match = API_REPO.match(endpoint)
+    if not match:
+        return None
+    # placeholders resolve to GH_REPO, else to the current repo
+    target = env.get("GH_REPO") if match.groups() == ("{owner}", "{repo}") else "/".join(match.groups())
+    return EXTERNAL if target and other_repo(target, cwd) else None
+
+
+def gh_rule(args, env, cwd):
     pos = positionals(args, {"-R", "--repo"})
     if pos[:1] == ["api"]:
         rest = args[args.index("api") + 1:]
@@ -410,15 +542,180 @@ def gh_rule(args):
                     ("--field=", "--raw-field=", "--input=", "-f", "-F")):
                 fields = True
         method = (method or ("POST" if fields else "GET")).upper()
+        endpoint = (positionals(rest, GH_API_ARGS) or [""])[0]
+        if gh_api_repo_rule(endpoint, method, env, cwd, (option_values(rest, ("--hostname",)) or [""])[0]):
+            return EXTERNAL
         if method in ("DELETE", "PUT", "PATCH"):
             return EXTERNAL
         if method == "POST":
-            endpoint = (positionals(rest, GH_API_ARGS) or [""])[0]
             if endpoint == "graphql":
                 return EXTERNAL if GRAPHQL_DESTRUCTIVE.search(" ".join(rest)) else None
             return None if "/issues" in "/" + endpoint.lstrip("/") else EXTERNAL
         return None
-    return EXTERNAL if len(pos) >= 2 and pos[1] in GH_ASK.get(pos[0], ()) else None
+    if len(pos) >= 2 and pos[1] in GH_ASK.get(pos[0], ()):
+        return EXTERNAL
+    return gh_repo_rule(args, pos, env, cwd)
+
+
+def bare_host(host):
+    """Host without brackets or port: "[::1]:5432" -> "::1", "db:5432" -> "db"."""
+    if host.startswith("["):
+        return host[1:host.find("]")]
+    return host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+
+
+def uri_hosts(uri):
+    if uri.lower().startswith("mongodb+srv://"):
+        return ["?"]  # the real hosts sit in DNS
+    try:
+        parts = urlsplit(uri)
+    except ValueError:
+        return ["?"]
+    named = parse_qs(parts.query).get("host")
+    netloc = named[0] if named else parts.netloc.rpartition("@")[2]
+    return [bare_host(h) for h in netloc.split(",")]
+
+
+def conn_hosts(arg):
+    """Hosts named by a URI or a conninfo string; "?" when it cannot be read literally."""
+    if DB_URI.match(arg):
+        return uri_hosts(arg)
+    if re.search(r"(?:^|\s)service=", arg):
+        return ["?"]
+    return [h.strip("'\"") for h in CONNINFO_HOST.findall(arg)]
+
+
+def is_local_host(host):
+    return host == "" or host.startswith("/") or bool(LOCAL_HOST.fullmatch(host))
+
+
+def split_hosts(value):
+    return [bare_host(h) for h in value.split(",") if h]
+
+
+def db_remote(name, args, statements, env):
+    """True when the DB client may reach a host that is not this machine. Ambiguous counts as remote."""
+    if env.get("PGSERVICE") or option_values(args, ("--defaults-file", "--defaults-extra-file", "--login-path")):
+        return True
+    free = [a for a in args if a not in statements]  # statement text is not connection info
+    hosts = [h for v in option_values(free, ("-h", "--host")) for h in split_hosts(v)]
+    hosts += ["?" for a in free if AMBIGUOUS_HOST_FLAGS.match(a)]  # a cluster like -Uhenry may hide a host
+    hosts += [h for a in free + option_values(free, ("-d", "--dbname")) for h in conn_hosts(a)]
+    hosts += split_hosts(env.get("PGHOSTADDR", ""))  # libpq prefers it over any host name
+    if not hosts and name != "redis-cli":
+        words = positionals(free, DB_VALUE_FLAGS)
+        hosts = ["?" for w in words if re.search(r"[$`]", w)]
+        if name in ("mongosh", "mongo"):  # host/db, host:port/db or a dotted host; a bare word is a local database
+            hosts += [bare_host(w.split("/")[0]) for w in words if re.search(r"[/:.]", w) and not w.endswith(".js")]
+    if not hosts:
+        hosts = split_hosts(env.get("PGHOST", "")) + split_hosts(env.get("MYSQL_HOST", ""))
+        hosts += uri_hosts(env["DATABASE_URL"]) if env.get("DATABASE_URL") else []
+    return not all(is_local_host(h) for h in hosts)
+
+
+def sql_read_only(statement):
+    parts = [p for p in statement.split(";") if p.strip()]
+    return (bool(parts) and all(SQL_READ_HEAD.match(p) for p in parts) and not SQL_WRITE_WORD.search(statement)
+            and "\\" not in SQL_READ_META.sub("", statement))
+
+
+def db_rule(name, args, env, remote=False, text=""):
+    """Why this database client call needs approval, or None. text is the whole command, for piped input."""
+    if name == "dropdb" or (name == "mysqladmin" and "drop" in args):
+        statements = ["DROP DATABASE"]
+    elif name == "redis-cli":
+        command = positionals(args, REDIS_VALUE_FLAGS)
+        statements = [" ".join(command)] if command else []
+    else:
+        statements = option_values(args, DB_STATEMENT_FLAGS[name])
+        if name == "psql" and option_values(args, ("-f", "--file")):
+            statements = []  # a script file runs next to -c: judge it as unreadable
+    # The read-only scan sees comments as written: MySQL runs /*! ... */ and a quoted '/*' hides nothing from it.
+    if remote or db_remote(name, args, statements, env):
+        if name in ("mongosh", "mongo") or not statements:
+            return EXTERNAL  # eval strings and scripts can write in ways a keyword scan misses
+        if name == "redis-cli":
+            return None if statements[0].split()[0].upper() in REDIS_READS else EXTERNAL
+        return None if all(sql_read_only(s) for s in statements) else EXTERNAL
+    piped_drop = name in ("psql", "mysql", "mariadb") and not statements and DROP_DATABASE.search(COMMENT.sub(" ", text))
+    return LOCAL if piped_drop or any(DROP_DATABASE.search(COMMENT.sub(" ", s)) for s in statements) else None
+
+
+def db_client(args):
+    """(name, args) of the first database client in args, also inside one quoted "psql -c ..." argument."""
+    for i, a in enumerate(args):
+        head = a.split(None, 1)[:1]
+        if head and command_name(head[0]) in DB_STATEMENT_FLAGS:
+            try:
+                words = [w for w, is_op in lex(a)[0] if not is_op] if " " in a else [a]
+            except ValueError:
+                words = a.split()
+            return command_name(words[0]), words[1:] + args[i + 1:]
+    return None
+
+
+def docker_rule(name, args):
+    dpos = (["compose"] if name == "docker-compose" else []) + positionals(args, DOCKER_ARGS)
+    if (dpos[:1] == ["push"] or dpos[:2] in (["image", "push"], ["compose", "push"])
+            or (dpos[:1] == ["buildx"] and any(a == "--push" or a.startswith("--output=type=registry") for a in args))):
+        return EXTERNAL
+    volumes = any(a.startswith("--volumes") for a in args) or "v" in short_flags(args)
+    if (dpos[:1] == ["volume"] and dpos[1:2] in (["rm"], ["remove"], ["prune"])
+            or (dpos[:2] == ["system", "prune"] and any(a.startswith("--volumes") for a in args))
+            or (dpos[:2] in (["compose", "down"], ["compose", "rm"], ["container", "rm"]) or dpos[:1] == ["rm"])
+            and volumes):
+        return LOCAL
+    return None
+
+
+def container_findings(args, env, what, ctx, depth):
+    """A command started in a container (docker|compose exec|run). Remote when the docker daemon is not local."""
+    index = next((k for k, a in enumerate(args) if a in ("exec", "run")), None)
+    if index is None:
+        return []
+    cwd, subagent, state = ctx
+    rest = args[index + 1:]
+    remote = bool(state.get("remote") or option_values(args[:index], ("-H", "--host", "--context", "-c"))
+                  or env.get("DOCKER_HOST") or env.get("DOCKER_CONTEXT"))
+    client = db_client(rest)
+    if client:  # the container's own environment is not ours: only its -e NAME=value pairs count
+        inner = {k: v for k, _, v in (a.partition("=") for a in option_values(rest, ("-e", "--env"))) if k in HOOK_ENV}
+        why = db_rule(*client, inner, remote=remote, text=state["text"])
+        return [("ask", what, why)] if why else []
+    shell = next((k for k, a in enumerate(rest) if command_name(a) in SHELLS), None)
+    if shell is None:
+        return []
+    return check_words(rest[shell:], [], False, [], (cwd, subagent, {**state, "remote": remote}), depth + 1)
+
+
+def ssh_parts(args):
+    """(options, command text): the text ssh sends to the remote shell, which re-parses it ("ssh host cd x && psql")."""
+    i = 0
+    while i < len(args) and args[i].startswith("-"):
+        if args[i] == "--":
+            i += 1
+            break
+        takes_value = args[i] in SSH_VALUE_FLAGS or SSH_FLAG_CLUSTER.fullmatch(args[i])  # -tp 2222: p takes 2222
+        i += 2 if takes_value else 1
+    rest = args[i + 1:]
+    return args[:i], " ".join(rest[1:] if rest[:1] == ["--"] else rest)
+
+
+def runner_findings(name, args, env, what, ctx, depth):
+    """Findings for commands started on another machine or in a container: ssh, kubectl exec|run, docker exec|run."""
+    cwd, subagent, state = ctx
+    remote_ctx = (cwd, subagent, {**state, "remote": True})
+    if name == "ssh":
+        options, command = ssh_parts(args)
+        found = scan(command, remote_ctx, depth + 1)
+        if SSH_RUNS_COMMAND.search(" ".join(options)):  # these options run a command the gate cannot read
+            found.append(("ask", what, UNPARSED))
+        return found
+    if name == "kubectl":
+        if positionals(args, KUBE_ARGS)[:1] in (["exec"], ["run"]) and "--" in args:
+            return check_words(args[args.index("--") + 1:], [], False, [], remote_ctx, depth + 1)
+        return []
+    return container_findings(args, env, what, ctx, depth)
 
 
 def rm_rule(args, cwd):
@@ -440,16 +737,35 @@ def rm_rule(args, cwd):
     return None
 
 
-def rule(name, args, cwd):
-    """Why this command needs the user's approval, or None."""
+def rule(name, args, cwd, assigns=(), state=None):
+    """Why this command needs the user's approval, or None.
+
+    assigns are the NAME=value words in front of the command. state["env_loaded"] is True when an earlier part of
+    the same command exported, sourced or assigned database variables; state["remote"] when the command runs on
+    another machine (ssh, kubectl exec); state["text"] is the whole command, for piped input.
+
+    shortcut: the gate sees one Bash command, so it cannot see exports from the user's shell profile (each Bash
+    call starts a fresh shell), ~/.pg_service.conf, ~/.my.cnf, .pgpass, `gh repo set-default` or fork resolution
+    when -R is absent, or a SELECT that calls a side-effecting function (SELECT drop_everything(),
+    SELECT pg_terminate_backend(...)), which passes as read-only on a remote host. Upgrade by asking for the
+    resolved target first; SR-01 already makes the agent resolve targets before writing.
+    """
     pos = positionals(args)
     pairs = set(zip(pos, pos[1:]))
     if name == "git":
         return git_rule(args)
+    state = state or {}
     if name == "gh":
-        return gh_rule(args)
+        return gh_rule(args, effective_env(assigns), cwd)
     if name == "rm":
         return rm_rule(args, cwd)
+    if name in DB_STATEMENT_FLAGS:
+        env = effective_env(assigns)
+        if state.get("env_loaded"):
+            env["PGSERVICE"] = "?"  # an earlier export or source may have set any variable: ambiguous
+        return db_rule(name, args, env, remote=state.get("remote", False), text=state.get("text", ""))
+    if name in ("docker", "docker-compose"):
+        return docker_rule(name, args)
     if name in ("terraform", "tofu"):
         hit = pos[:1] in (["apply"], ["destroy"], ["import"]) or pos[:2] == ["state", "rm"]
     elif name == "pulumi":
@@ -470,7 +786,8 @@ def rule(name, args, cwd):
     elif name == "cf":
         hit = pos[:1] == ["deploy"]
     elif name == "firebase":
-        hit = positionals(args, {"--project", "-P"})[:1] == ["deploy"]
+        hit = positionals(args, {"--project", "-P"})[:1] in (
+            ["deploy"], ["firestore:delete"], ["database:remove"], ["functions:delete"], ["database:set"])
     elif name == "gcloud":
         hit = bool({"deploy", "delete"} & set(pos))
     elif name == "aws":
@@ -480,12 +797,6 @@ def rule(name, args, cwd):
         hit = bool(pairs & {("db", "push"), ("db", "reset"), ("functions", "deploy")})
     elif name in ("npm", "pnpm", "yarn"):
         hit = "publish" in pos[:3] and "--dry-run" not in args
-    elif name == "docker":
-        dpos = positionals(args, {"--context", "-c", "-H", "--host", "--config", "-l", "--log-level"})
-        hit = (dpos[:1] == ["push"] or dpos[:2] in (["image", "push"], ["compose", "push"])
-               or (dpos[:1] == ["buildx"] and any(a == "--push" or a.startswith("--output=type=registry") for a in args)))
-    elif name == "docker-compose":
-        hit = pos[:1] == ["push"]
     elif name == "twine":
         hit = pos[:1] == ["upload"]
     elif name == "cargo":
@@ -537,18 +848,20 @@ def shell_write(name, args, writes, heredoc, bodies, cwd):
 
 
 def unwrap(words, ctx, depth, findings):
-    """Strip sudo, env, VAR=value, xargs, npx and similar so the real command comes first."""
+    """Strip sudo, env, VAR=value, xargs, npx and similar. Returns (the real command first, the NAME=value words)."""
+    assigns = []
     while words:
         head = os.path.basename(words[0])
         if head == "function":  # function NAME { body }: the body follows the name
             words = words[2:]
             continue
         if ASSIGNMENT.match(words[0]):
+            assigns.append(words[0])
             words = words[1:]
             continue
         two_word = len(words) > 1 and (head, words[1]) in TWO_WORD_WRAPPERS
         if head not in WRAPPERS and not two_word:
-            return words
+            return words, assigns
         with_arg = TWO_WORD_ARGS if two_word else WRAPPERS[head]
         i = 2 if two_word else 1
         while i < len(words) and words[i].startswith("-") and words[i] != "-":
@@ -556,8 +869,8 @@ def unwrap(words, ctx, depth, findings):
                 i += 1
                 break
             opt, eq, value = words[i].partition("=")
-            if opt in with_arg and not eq:
-                value = words[i + 1] if i + 1 < len(words) else ""
+            if not eq and (opt in with_arg or (len(opt) > 2 and opt[1] != "-" and "-" + opt[-1] in with_arg)):
+                value = words[i + 1] if i + 1 < len(words) else ""  # also a cluster ending in such an option: -iu
                 i += 2
             else:
                 i += 1
@@ -566,7 +879,7 @@ def unwrap(words, ctx, depth, findings):
         words = words[i:]
         if head == "timeout" and words:
             words = words[1:]  # the duration
-    return words
+    return words, assigns
 
 
 def command_name(word):
@@ -579,11 +892,15 @@ def command_name(word):
 
 def check_words(words, writes, heredoc, bodies, ctx, depth, piped=False):
     findings = []
-    words = unwrap(words, ctx, depth, findings)
+    words, assigns = unwrap(words, ctx, depth, findings)
+    cwd, subagent, state = ctx
     if not words:
+        state["env_loaded"] |= any(a.partition("=")[0].rstrip("+") in DB_ENV for a in assigns)
         return findings
-    cwd, subagent = ctx
     name, args = command_name(words[0]), words[1:]
+    env_loaded = state["env_loaded"]  # read before this command's own effect: it only matters for later commands
+    if name in ("export", "source", ".") or (name == "set" and "a" in short_flags(args)):
+        state["env_loaded"] = True
     what = " ".join(words)
     if subagent in GH_ONLY and name != "gh":
         findings.append(("deny", what, GH_ONLY_WHY))
@@ -616,7 +933,9 @@ def check_words(words, writes, heredoc, bodies, ctx, depth, piped=False):
                 findings.extend(check_words(inner, [], False, bodies, ctx, depth + 1))
     elif PYTHON.fullmatch(name) and "-m" in args:
         findings.extend(check_words(args[args.index("-m") + 1:], [], False, bodies, ctx, depth + 1))
-    why = rule(name, args, cwd)
+    if name in ("ssh", "kubectl", "docker", "docker-compose"):
+        findings.extend(runner_findings(name, args, effective_env(assigns), what, ctx, depth))
+    why = rule(name, args, cwd, assigns, {**state, "env_loaded": env_loaded})
     if why:
         findings.append(("ask", what, why))
     if subagent and shell_write(name, args, writes, heredoc, bodies, cwd):
@@ -690,7 +1009,7 @@ def main():
     # The Team Lead may be the main session; every other factory agent is a specialist subagent.
     subagent = name if factory and (bool(payload.get("agent_id")) or name != "team-lead") else ""
     try:
-        findings = scan(command, (cwd, subagent))
+        findings = scan(command, (cwd, subagent, {"env_loaded": False, "remote": False, "text": command}))
     except Exception:  # in scope, so an internal error fails toward asking
         findings = [("ask", command.strip()[:120], UNPARSED)]
     out = decision(findings)
