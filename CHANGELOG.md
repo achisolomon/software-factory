@@ -2,6 +2,11 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.1 (2026-11-04)
+
+- **Fewer wasted turns in subagents.** Contract rule 9.15 lists the tool failures that repeated most in real traces (`cat >` file writes, scratch outside the project, missing Grep and Monitor tools, bad `--jq` quoting, missing labels, Edit without a prior Read) with the working form for each.
+- **Subagents end with the reply block as plain text.** A run that ended on a handback tool call with no final message was recorded as a failed subagent.
+
 ## 0.8.0 (2026-11-03)
 
 - **New agent: the Exploratory QA Engineer.** A black-box bug hunter that uses the running app like a user, at the end of an epic and whenever you ask. It works only in local or disposable environments, never shared or production ones. Before it reads any code it writes a failing repro test for each bug, and it marks that test with a quarantine marker so the suite stays green until the bug is fixed. Method adapted, in our own words, from tester-army/e2e (see [provenance](docs/provenance.md)); the tool is neither bundled nor pinned.
