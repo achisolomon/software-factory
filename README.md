@@ -178,6 +178,8 @@ Or call any specialist directly, for example:
 claude plugin marketplace update software-factory-marketplace && claude plugin update software-factory@software-factory-marketplace --scope user
 ```
 
+If it prints "The current directory no longer exists", the terminal is in a deleted folder (for example a removed worktree). Run `cd ~` and repeat the command.
+
 Then run Developer: Reload Window (Cmd+Shift+P) or restart Claude Code, and start a new chat. A chat that is already open keeps the old instructions.
 
 </details>
