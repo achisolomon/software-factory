@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.7.6 (2026-11-06)
+
+- **Pull requests open as drafts.** New contract rule 9.15: a pull request opens with `gh pr create --draft` and is marked ready only when the Definition of Done holds on its final head (required reviews approved, in-PR fixes committed, the full check green). A fix round moves it back to draft. A ready pull request now always means "can merge now".
+
 ## 0.7.5 (2026-11-02)
 
 - **No folders in your project unless an agent needs scratch space.** 0.7.3 and 0.7.4 created `.software-factory-tmp/` (with a `.gitignore`) in every project at every session start. Now the session start only sets `$FACTORY_TMP`; the folder appears only when an agent creates it for scratch work, and is deleted when the session ends. Git ignores it through one line in `.git/info/exclude` (never shown or committed), not a file in your project. The first session after updating also removes the empty `.software-factory-tmp/` that 0.7.3 and 0.7.4 left behind.
