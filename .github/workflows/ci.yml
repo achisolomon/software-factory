@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash  # GitHub then runs bash --noprofile --norc -eo pipefail; the implicit default is bash -e without pipefail
+
+# Each main commit gets its own group so a burst of merges is never cancelled; PRs cancel older runs on the same ref.
+concurrency:
+  group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: tests/requirements-ci.txt
+      - run: python -m pip install -r tests/requirements-ci.txt
+      # A missing tool would make tests skip silently and the job stay green.
+      - name: Guard against silent skips
+        run: python -c "import yaml, shutil; assert shutil.which('nc') and shutil.which('git')"
+      - name: Run unit suite
+        run: |
+          python -m unittest discover -s tests 2>&1 | tee test.log
+          if grep -Eq '^OK \(.*skipped=' test.log; then
+            echo "::error::Tests were skipped; CI must run the whole suite (see the guard step)"
+            exit 1
+          fi

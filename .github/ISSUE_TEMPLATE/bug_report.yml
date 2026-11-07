@@ -1,0 +1,38 @@
+name: Bug report
+description: A review the agents missed, a gate that was too loose or too strict, or a step that wasted time or tokens.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security vulnerabilities here, issues are public. Use [private vulnerability reporting](https://github.com/achisolomon/software-factory/security/advisories/new) instead.
+        Do not paste secrets, tokens or private paths from hook or gate output. Redact them first.
+  - type: textarea
+    id: asked
+    attributes:
+      label: What you asked
+      description: The request or command you gave the team.
+    validations:
+      required: true
+  - type: textarea
+    id: did
+    attributes:
+      label: What the team did
+      description: What the agents actually did, with any hook or gate messages.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: The version shown at session start, or from the installed plugin's plugin.json.
+      placeholder: "The version number, as shown at session start"
+    validations:
+      required: true
