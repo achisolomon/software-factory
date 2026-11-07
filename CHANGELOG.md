@@ -2,6 +2,19 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.1 (2026-11-07)
+
+Faster runs, fewer tokens, and you choose who is on the team. Measured on two real runs of 41 and 48 hours: the Developer averaged 65 minutes and 249 tool calls per task, Security reviewed almost every task, four foreground CI watches held Developers for 9 hours, and the Team Lead's context sat at a median of 187K tokens per turn.
+
+- **Choose who is on the team.** A new `- Team:` line in `project-facts.md` sets Security, UX, FinOps and DevOps each to `per-task`, `per-epic` or `off`. Init asks once; say "skip UX for this epic" any time. With no line, Security runs per epic and the rest per task.
+- **Security per epic by default, per task only on hard triggers.** `review-route` now splits security triggers in two. Hard (auth code, security rules files, secrets, new or changed dependencies, payments, migrations, agent instruction files, a deleted guard, a deep route) always run Security on the task, whatever the roster says. Soft (the words auth, token or session in new code, HTTP calls, models and storage folders) follow the roster, by default one Security review of the whole epic's diff at epic end. Tests, docs and generated code-graph output (`graphify-out/`) no longer trigger Security or UX. Reviewers the route marks `epic-end` are queued in `status.md` and run once when the epic's last task is done.
+- **No more waiting in the foreground.** A new hook, `hooks/no_wait.py`, refuses `gh pr checks --watch`, `gh run watch`, polling loops with `sleep` and sleeps over 30 seconds in factory subagents. The agent returns `in-progress` with the CI run in `Job:` instead. The Team Lead watches CI with one background command rather than polling.
+- **Smaller tasks, fewer fix rounds.** The Architect sizes tasks at about 80 Developer tool calls and splits bigger ones. A Developer past about 120 calls stops and proposes a split. Before handing back, it checks its diff against the new `reference/review-checklist.md` and the brain's recurring findings. A fix round must change what the reviewer objected to.
+- **A lighter Team Lead.** Init, Discovery, Architecture, design reviews, Release readiness, Deploy, the infrastructure gate, the templates and lesson promotion moved to `reference/team-lead-phases.md`, read only at that step: `agents/team-lead.md` went from 54 KB to 42 KB, though this release also adds rules to it. The Team Lead batches its `status.md` edits per wave, sends long command output to a file, and leaves issue work to the Project Manager.
+- **Cheaper reading.** Every agent reads code with Read, Grep and Glob instead of `cat`, `sed -n` and `grep` in Bash. When a project has a code graph (`graphify-out/graph.json`), agents ask it first and read only the lines it points to.
+- **Per-agent effort.** The Developer, Test Automation Engineer, UX/UI Designer and FinOps Engineer run at `effort: medium`. The Architect, Security and the Team Lead keep their default effort.
+- **Upgrade note.** Projects without a `- Team:` line now get Security per epic instead of on most tasks. Add `- Team: security=per-task` under Preferences in `project-facts.md` to keep the old behavior.
+
 ## 0.8.0 (2026-11-03)
 
 - **New agent: the Exploratory QA Engineer.** A black-box bug hunter that uses the running app like a user, at the end of an epic and whenever you ask. It works only in local or disposable environments, never shared or production ones. Before it reads any code it writes a failing repro test for each bug, and it marks that test with a quarantine marker so the suite stays green until the bug is fixed. Method adapted, in our own words, from tester-army/e2e (see [provenance](docs/provenance.md)); the tool is neither bundled nor pinned.

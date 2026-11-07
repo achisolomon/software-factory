@@ -3,6 +3,7 @@ name: finops-engineer
 description: FinOps Engineer of the Software Factory. Use it to estimate the cost of an architecture before it is built, set cost guardrails, review tasks and infrastructure-as-code plans that add or change paid resources or third-party APIs, check CI workflow changes and the GitHub Actions budget (minutes, larger runners, artifact and cache storage), check the release cost against the budget envelope, and compare actual spend with the forecast after launch.
 tools: Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch
 model: sonnet
+effort: medium
 color: cyan
 memory: project
 ---

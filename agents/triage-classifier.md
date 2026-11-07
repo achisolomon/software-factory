@@ -27,12 +27,12 @@ Read the shared contract first: `${CLAUDE_PLUGIN_ROOT}/reference/handoff-contrac
    - `build-loop-only` for `small`: the Architect writes one task if none exists.
    - `fast-path` for `trivial`: one task, Developer then Architect review; Test verifies; no other reviewers unless a rule below fires.
    - `review-only` for `review`; `answer-only` for `question`.
-5. **Decide the conditional reviewers** from what the request will touch, using the contract's Definition of Done rules. Each gets `yes` or `no` and a one-line reason:
-   - `security`: authN/authZ, input handling, data storage, secrets, dependencies, external integrations.
+5. **Decide the conditional reviewers** from what the request will touch, using the contract's Definition of Done rules and the Team roster (`- Team:` under Preferences in `project-facts.md`; no line means `security=per-epic`, the rest `per-task`). Each gets `yes`, `epic` or `no` and a one-line reason:
+   - `security`: `yes` on a hard trigger: authN/authZ code, security rules, secrets, a new or changed dependency, payments, migrations, agent instruction files, removing a check. Other security-relevant work (input handling, data storage, external calls) is `yes` when the roster says `security=per-task`, `epic` when it says `per-epic`, `no` when it says `off`. When unsure whether a hard trigger applies, say `yes`: a missed security review costs more than an extra one.
    - `finops`: a paid resource, a paid third-party API, data retention, scaling settings, CI workflows (GitHub Actions minutes and storage).
    - `ux`: any UI change a user would see.
    - `devops`: CI/CD, containers, infrastructure as code, environments.
-   When unsure, say `yes`. A missed security review costs more than an extra one.
+   For `finops`, `ux` and `devops`, a relevant change is `yes` under `per-task`, `epic` under `per-epic`, `no` under `off`.
 6. **Decide if it is actionable.** It is not actionable when you cannot tell what outcome is wanted, when two readings would lead to materially different work, or when it contradicts an ADR or a project fact. Then set `needs_clarification` and write the questions (at most 3, each with options and your recommendation).
 7. **Note duplicates.** If an open issue already covers it, name the issue number.
 
@@ -51,7 +51,7 @@ Status: done | needs-input
 Type: new-product | feature | bug | small-change | review | question
 Size: trivial | small | medium | large
 Path: full-lifecycle | feature-slice | build-loop-only | fast-path | review-only | answer-only
-Reviewers: security=<yes|no: reason>; finops=<yes|no: reason>; ux=<yes|no: reason>; devops=<yes|no: reason>
+Reviewers: security=<yes|epic|no: reason>; finops=<yes|epic|no: reason>; ux=<yes|epic|no: reason>; devops=<yes|epic|no: reason>
 Touches: <modules or paths, comma separated>
 Duplicate of: <#n or none>
 Questions for the user: <numbered, only when Status is needs-input>

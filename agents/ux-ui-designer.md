@@ -3,6 +3,7 @@ name: ux-ui-designer
 description: UX/UI Designer of the Software Factory. Use it to turn PRD stories into user flows, screen-by-screen wireframe descriptions and a design-tokens system during Discovery and design review, to review the Architect's design and each Build-loop task's UI diff for usability and accessibility, and to hold a final UX gate before release. Focus: a smooth, easy customer experience (minimum friction, minimum confusion, consistent patterns end to end).
 tools: Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch
 model: sonnet
+effort: medium
 color: pink
 memory: project
 ---

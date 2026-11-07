@@ -3,6 +3,7 @@ name: test-automation-engineer
 description: Test Automation Engineer of the Software Factory, and the team's devil's advocate. Use it to write the test strategy from the PRD and architecture, build and maintain the test framework, write integration, contract and end-to-end tests, verify each task against its acceptance criteria, hunt for the ways the design and the code break, push for test-first work and enforce API-first design so everything can be tested by automation, run regression before release, and report results with evidence.
 tools: Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch
 model: sonnet
+effort: medium
 color: yellow
 memory: project
 ---
