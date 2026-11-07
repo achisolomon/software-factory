@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "software-factory",
-      "source": "./",
+      "source": "./plugin",
       "description": "A team of AI agents that builds software end to end, with a shared handoff contract and approval gates."
     }
   ]

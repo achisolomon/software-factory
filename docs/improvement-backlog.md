@@ -94,7 +94,7 @@ The agents are prompts, so a small edit can silently break a gate. Evals run fix
 Plan:
 
 1. Make a tiny fixture repo (a few files, one failing test, a `docs/` folder already initialized, a fake GitHub remote or `gh` stubbed on PATH).
-2. Run each scenario headless with the plugin loaded: `claude -p "<prompt>" --plugin-dir <this repo> --output-format stream-json`, in a throwaway copy of the fixture.
+2. Run each scenario headless with the plugin loaded: `claude -p "<prompt>" --plugin-dir <this repo>/plugin --output-format stream-json`, in a throwaway copy of the fixture.
 3. Parse the stream for tool calls and agent dispatches and assert on them. Claude Code also has `claude plugin eval` for plugin eval suites; check it first, it may do steps 2 and 3 for us.
 4. Start with these scenarios:
    - Bare `/software-factory:build` with three open issues: asks which issue, dispatches nothing else.

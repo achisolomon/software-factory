@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+PLUGIN = ROOT / "plugin"
 
 
 AGENT_DISPLAY_NAMES = {
@@ -31,16 +32,16 @@ def read(relative):
 
 class ReleaseFilesTests(unittest.TestCase):
     def test_plugin_version_matches_newest_changelog_heading(self):
-        version = json.loads(read(".claude-plugin/plugin.json"))["version"]
+        version = json.loads(read("plugin/.claude-plugin/plugin.json"))["version"]
         newest = re.search(r"^## (\d+\.\d+\.\d+)", read("CHANGELOG.md"), re.M).group(1)
         self.assertEqual(version, newest)
 
     def test_readme_current_version_matches_plugin(self):
-        version = json.loads(read(".claude-plugin/plugin.json"))["version"]
+        version = json.loads(read("plugin/.claude-plugin/plugin.json"))["version"]
         self.assertIn(f"Current version: {version}.", read("README.md"))
 
     def test_readme_agent_count_matches_agent_files(self):
-        count = len(list((ROOT / "agents").glob("*.md")))
+        count = len(list((PLUGIN / "agents").glob("*.md")))
         self.assertIn(f"{count} agents, what each one does", read("README.md"))
 
     def test_readme_eval_count_matches_eval_prompts(self):
@@ -57,7 +58,7 @@ class ReleaseFilesTests(unittest.TestCase):
     def test_readme_team_table_lists_every_agent(self):
         # An agent added without a display name here fails the test on purpose.
         table = read("README.md").split("## Meet the team", 1)[1].split("## Quick start", 1)[0]
-        for path in sorted((ROOT / "agents").glob("*.md")):
+        for path in sorted((PLUGIN / "agents").glob("*.md")):
             display_name = AGENT_DISPLAY_NAMES.get(path.stem)
             self.assertIsNotNone(display_name, f"add {path.stem} to AGENT_DISPLAY_NAMES")
             self.assertIn(f"| **{display_name}** |", table, path.stem)

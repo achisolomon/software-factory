@@ -89,7 +89,7 @@ class LeftoversAtSubagentStopTests(LeakTestCase):
 
 class RulesPointAtTheProjectScratchFolderTests(unittest.TestCase):
     def test_no_agent_or_contract_sends_scratch_outside_the_project(self):
-        root = Path(__file__).resolve().parents[1]
+        root = Path(__file__).resolve().parents[1] / "plugin"
         for path in [*root.glob("agents/*.md"), root / "reference" / "handoff-contract.md"]:
             text = path.read_text()
             for bad in ('"$TMPDIR/', "$TMPDIR/mut", "dir=BASE", "../"):

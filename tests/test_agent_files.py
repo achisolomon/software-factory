@@ -9,7 +9,7 @@ is flipped, deleted or moved to another paragraph fails.
 from pathlib import Path
 import unittest
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1] / "plugin"
 AGENT = ROOT / "agents" / "exploratory-qa-engineer.md"
 
 # (anchor that finds the line, fragments that must all be on that line)

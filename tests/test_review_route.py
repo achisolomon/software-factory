@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "review-route"
+SCRIPT = Path(__file__).resolve().parents[1] / "plugin" / "scripts" / "review-route"
 
 
 def route_json(changes=None, raw=None):
