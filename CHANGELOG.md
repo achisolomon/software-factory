@@ -2,10 +2,25 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
-## 0.8.1 (2026-11-04)
+## 0.8.2 (2026-11-08)
 
 - **Fewer wasted turns in subagents.** Contract rule 9.15 lists the tool failures that repeated most in real traces (`cat >` file writes, scratch outside the project, missing Grep and Monitor tools, bad `--jq` quoting, missing labels, Edit without a prior Read) with the working form for each.
+- **No chained commands.** Rule 9.15 now tells agents to run each command on its own (no `cd X && cmd` or `cd X; cmd`) and to use absolute paths and directory flags (`git -C`, `npm --prefix`, `terraform -chdir`, `gh -R`), because many users' permission hooks block chains.
+- **Cloud reads stay at project scope.** Rule 9.15 also tells agents that org- or billing-level reads (billing budgets, org IAM, org policies) are usually denied; a denied read is reported as a gap, not retried or routed around.
 - **Subagents end with the reply block as plain text.** A run that ended on a handback tool call with no final message was recorded as a failed subagent.
+
+## 0.8.1 (2026-11-07)
+
+Faster runs, fewer tokens, and you choose who is on the team. Measured on two real runs of 41 and 48 hours: the Developer averaged 65 minutes and 249 tool calls per task, Security reviewed almost every task, four foreground CI watches held Developers for 9 hours, and the Team Lead's context sat at a median of 187K tokens per turn.
+
+- **Choose who is on the team.** A new `- Team:` line in `project-facts.md` sets Security, UX, FinOps and DevOps each to `per-task`, `per-epic` or `off`. Init asks once; say "skip UX for this epic" any time. With no line, Security runs per epic and the rest per task.
+- **Security per epic by default, per task only on hard triggers.** `review-route` now splits security triggers in two. Hard (auth code, security rules files, secrets, new or changed dependencies, payments, migrations, agent instruction files, a deleted guard, a deep route) always run Security on the task, whatever the roster says. Soft (the words auth, token or session in new code, HTTP calls, models and storage folders) follow the roster, by default one Security review of the whole epic's diff at epic end. Tests, docs and generated code-graph output (`graphify-out/`) no longer trigger Security or UX. Reviewers the route marks `epic-end` are queued in `status.md` and run once when the epic's last task is done.
+- **No more waiting in the foreground.** A new hook, `hooks/no_wait.py`, refuses `gh pr checks --watch`, `gh run watch`, polling loops with `sleep` and sleeps over 30 seconds in factory subagents. The agent returns `in-progress` with the CI run in `Job:` instead. The Team Lead watches CI with one background command rather than polling.
+- **Smaller tasks, fewer fix rounds.** The Architect sizes tasks at about 80 Developer tool calls and splits bigger ones. A Developer past about 120 calls stops and proposes a split. Before handing back, it checks its diff against the new `reference/review-checklist.md` and the brain's recurring findings. A fix round must change what the reviewer objected to.
+- **A lighter Team Lead.** Init, Discovery, Architecture, design reviews, Release readiness, Deploy, the infrastructure gate, the templates and lesson promotion moved to `reference/team-lead-phases.md`, read only at that step: `agents/team-lead.md` went from 54 KB to 42 KB, though this release also adds rules to it. The Team Lead batches its `status.md` edits per wave, sends long command output to a file, and leaves issue work to the Project Manager.
+- **Cheaper reading.** Every agent reads code with Read, Grep and Glob instead of `cat`, `sed -n` and `grep` in Bash. When a project has a code graph (`graphify-out/graph.json`), agents ask it first and read only the lines it points to.
+- **Per-agent effort.** The Developer, Test Automation Engineer, UX/UI Designer and FinOps Engineer run at `effort: medium`. The Architect, Security and the Team Lead keep their default effort.
+- **Upgrade note.** Projects without a `- Team:` line now get Security per epic instead of on most tasks. Add `- Team: security=per-task` under Preferences in `project-facts.md` to keep the old behavior.
 
 ## 0.8.0 (2026-11-03)
 

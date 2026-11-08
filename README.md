@@ -16,7 +16,7 @@ A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatch
 
 https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
-The agents are checked too: 29 behavior evals and 137 offline tests guard their rules and approval gates.
+The agents are checked too: 31 behavior evals and 145 offline tests guard their rules and approval gates.
 
 ## What you get
 
@@ -47,7 +47,7 @@ The agents are checked too: 29 behavior evals and 137 offline tests guard their 
 
 Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
 
-Current version: 0.8.1. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.8.2. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Quick start
 
@@ -92,6 +92,7 @@ Current version: 0.8.1. What changed in each release, newest first: [release not
 - **Work in a worktree.** Ask Claude to enter a worktree before it starts (Claude Code's `EnterWorktree`), so each session gets its own branch and working copy, and parallel sessions on the same repo never collide. See [AI Tool Review's guide to Claude Code worktrees](https://aitoolreview.ai/guides/claude-code-worktrees/).
 - **Compact early.** Once the context passes about half full, compact: long runs get slower, costlier and less accurate as the context fills. `/software-factory:session-setup` sets auto-compact (default 30% of the window) so it happens on its own. The Team Lead keeps its state on disk after every wave, so after a compaction it carries on without a hand-written summary; run `/software-factory:resume` if it seems lost.
 - **Models**: the Team Lead sets the model for each delegation by the kind of work (the table in [Meet the team](#meet-the-team)). Fable runs only when you ask for it. Set `Model policy: default | conserve | quality | max` in `project-facts.md`. `max` puts the Team Lead and the Architect's design and reviews on Fable and the rest on Opus. It is not recommended: it can burn through your Claude limits very fast. You can also just say "conserve my limits" mid-session; conserving changes models, never steps or gates. Each agent's frontmatter `model:` is only the fallback.
+- **Choose who is on the team**: the `- Team:` line in `project-facts.md` sets Security, UX, FinOps and DevOps each to `per-task`, `per-epic` or `off` (default: Security once per epic, the rest per task). Security still reviews a task whenever it touches auth, security rules, secrets, dependencies, payments or migrations. Or just say "skip UX for this epic".
 - **Speed**: set `Pace: speed` (or say "I want speed") to trade extra checking for speed: fewer optional reviewers and skeptic runs, independent tasks in parallel; gates, approvals and Security stay.
 - **Project memory**: specialists keep learnings in `.claude/agent-memory/<agent>/` per project. Commit it to share with your team, or add it to `.gitignore`.
 - **GitHub issue tracking**: give `gh` the `project` scope once: `gh auth refresh -s project`. Without it, tasks are tracked in `docs/architecture/tasks.md`. Init also offers the GitHub MCP server instead of `gh` for the Product Manager and Project Manager (no shell for them, but you add the server with a personal access token); `gh` is the recommended default.

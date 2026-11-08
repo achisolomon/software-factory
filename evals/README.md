@@ -29,6 +29,8 @@ The free offline checks in `tests/test_evals.py` run with the normal suite. They
 
 ## Limits
 
+- Run from a copy outside your home folder (for example `git archive HEAD | tar -x -C $TMPDIR/sf`), not from a worktree under `~/.../.claude/worktrees/`. The eval sessions get an empty `$CLAUDE_PLUGIN_ROOT` in Bash and cannot `find` the plugin under the home folder, so cases that re-read `agents/team-lead.md` (`team-table-after-compaction`) fail there and pass from `/private/tmp`. Compare versions only from the same kind of location.
+
 - The runner cannot compact a session. `team-table-after-compaction` replays a compacted continuation in the prompt instead: the summary with its Lane | Tasks table, plus the after-compact hook text.
 - A running Workflow cannot be mocked. The fixture puts the workflow's run folder (`.factory-run/wf_demo-001/`: `journal.jsonl` and `agent-<id>.meta.json`) on disk, and `status.md` points to it.
 - `gh` has no GitHub to reach here. Board and issue activity comes from a file (`board-is-not-approval`).
@@ -87,6 +89,12 @@ Multi-repo workspaces (sessions started in a folder that holds several repos, li
 Model mix (2026-10-31: 172 Explore searches went to sonnet in one week):
 - The model hook blocks an Explore dispatch off `haiku` in a factory project, unless the prompt has `Why not haiku: <reason>`: unit `test_agent_model_hook.LookupOnHaikuTests`.
 - The Team Lead sends a brief's file lookup to `haiku` unprompted: eval `lookup-on-haiku` (slow).
+
+Team roster and per-epic Security (0.8.1):
+- No Team line, a soft security trigger (an HTTP call, the word session): Security waits for the epic-end review, not this task: eval `soft-security-at-epic-end`; unit `test_review_route.test_soft_security_waits_for_the_epic_by_default`.
+- Roster `security=off, ux=off` with an auth change: Security still reviews (hard trigger), UX stays off: eval `roster-off-hard-trigger-wins`; unit `test_review_route.test_roster_moves_soft_triggers_but_never_hard_ones`.
+- Foreground CI watches and sleep loops in subagents: unit `test_no_wait_hook` (the hook enforces it, so no eval).
+- Not covered by an eval: task size and turn budget, the review checklist self-check, Lead context rules and `effort: medium` (no single decision to grade in a short case).
 
 Releases from the same days with no backlog row:
 - 0.5.3, version in the first status: `team-table-status` (`version-named`).

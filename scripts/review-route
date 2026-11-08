@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
-"""Route a Developer's diff to reviewers. Prints one JSON object; never removes a reviewer.
+"""Route a Developer's diff to reviewers. Prints one JSON object.
 
 Usage:
-  review-route [base]             diff of the working tree (commits, staged, unstaged and
-                                  untracked files) against the merge base with base (default main)
-  review-route --changes-json     read {"changes": [{"path", "old_path"?, "added"?, "removed"?}]} on stdin
+  review-route [base] [--facts PATH]           diff of the working tree (commits, staged, unstaged and
+                                               untracked files) against the merge base with base (default main)
+  review-route --changes-json [--facts PATH]   read {"changes": [{"path", "old_path"?, "added"?, "removed"?}]}
+                                               on stdin
 
 Rules scan paths and both added and removed lines (a deleted guard counts). Anything
 the script cannot read fails toward more review. Stdlib only, Python 3.9+.
+
+Each optional reviewer gets one level:
+  required   review this task now
+  epic-end   the change is relevant, but the Team roster defers this role to one review of the epic's diff
+  optional   nothing in the diff calls for this role
+  off        the Team roster turned this role off and nothing hard calls for it
+
+The Team roster is the `- Team:` line under Preferences in project-facts.md (default
+<repo top>/docs/architecture/project-facts.md, or --facts PATH), for example
+`- Team: security=per-epic, ux=per-task, finops=off, devops=per-task`. A role missing from the
+line uses DEFAULT_ROSTER. Hard security triggers (auth, rules, secrets, dependencies, payments,
+migrations, agent instruction files, a deleted guard) and a deep route always make Security
+`required`, whatever the roster says.
 """
 
 import json
@@ -17,13 +31,34 @@ import subprocess
 import sys
 
 OPTIONAL = ("security", "ux", "finops", "devops")
+ROSTER_LEVELS = ("per-task", "per-epic", "off")
+# Security per epic by default: only its hard triggers interrupt a task. The others review each task they touch.
+DEFAULT_ROSTER = {"security": "per-epic", "ux": "per-task", "finops": "per-task", "devops": "per-task"}
 MAX_UNTRACKED_BYTES = 1_000_000
 
+# In a path, or on a removed line (a deleted guard), these words are a hard security trigger.
 SECURITY_WORDS = re.compile(
     r"auth|permission|secret|credential|token|passw|session|crypt|admin|forbidden|privileg"
     r"|(?<![a-z])(?:acls?|rbac|jwts?|csrf|xsrf|cors|sso|saml|oidc)(?![a-z])"
 )
-HTTP_CLIENT = re.compile(r"fetch\(|axios|requests\.|urllib|http\.client|httpx|webhook", re.I)
+# On an added line, only these are hard: auth, token and session appear in most app code and are soft there.
+SECURITY_LINE_HARD = re.compile(
+    r"permission|secret|credential|passw|admin|forbidden|privileg|private ?key|webhook"
+    r"|(?<![a-z])(?:acls?|rbac|jwts?|csrf|xsrf|cors|sso|saml|oidc)(?![a-z])"
+    r"|inner ?html|child_process|os\.system|subprocess|(?<![a-z.])eval\("
+)
+HTTP_CLIENT = re.compile(r"fetch\(|axios|requests\.|urllib|http\.client|httpx", re.I)
+RULES_FILE = re.compile(r"(^|/)(firestore|storage|database)\.rules(\.json)?$|\.rules$|(^|/)database\.rules\.json$")
+PAYMENT_PATH = re.compile(r"payment|billing|checkout|stripe|invoice|refund|payout")
+MIGRATION_PATH = re.compile(r"(^|/)(migrations?|migrate|prisma)(/|$)")
+SOFT_STORAGE_PATH = re.compile(r"(^|/)(schemas?|models?|entities|db|database|storage)(/|$)")
+# Generated code-graph output (graphify) is rewritten whole on every build and holds every symbol name: no rules.
+GENERATED_PATH = re.compile(r"(^|/)graphify-out/")
+# Tests and docs never trigger Security or UX by their words; agent instruction files still do.
+TEST_OR_DOC_PATH = re.compile(
+    r"(^|/)(tests?|__tests__|spec|specs|e2e|docs?)/|\.(test|spec)\.[a-z0-9]+$|_test\.(py|go|dart)$|(^|/)test_[^/]*\.py$"
+    r"|\.(md|mdx|rst)$"
+)
 MANIFESTS = {
     "package.json", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb",
     "bun.lock", "pipfile", "pipfile.lock", "pyproject.toml", "poetry.lock", "uv.lock", "setup.py", "setup.cfg",
@@ -32,7 +67,6 @@ MANIFESTS = {
     "libs.versions.toml", "pom.xml", "podfile", "podfile.lock", "package.swift", "package.resolved",
     "pubspec.yaml", "pubspec.lock", "mix.exs", "mix.lock", "deno.json", "deno.lock", "packages.config",
 }
-STORAGE_PATH = re.compile(r"(^|/)(migrations?|migrate|schemas?|models?|entities|db|database|storage|prisma)(/|$)")
 UX_EXT = (".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", ".sass", ".less", ".html")
 UX_PATH = re.compile(r"(^|/)(components|screens|pages)/|(^|/)res/layout")
 INFRA_PATH = re.compile(r"(^|/)(infra|deploy|deployment|helm|charts|k8s|kubernetes)/")
@@ -72,15 +106,19 @@ def words(text):
 
 
 def path_rules(path):
-    """(rule, path) pairs that a changed path alone triggers."""
+    """Rules that a changed path alone triggers. `security` is a hard trigger, `security-soft` a soft one."""
     low, base = path.lower(), os.path.basename(path.lower())
+    test_or_doc = bool(TEST_OR_DOC_PATH.search(low))
     hits = []
-    if (SECURITY_WORDS.search(words(path)) or base in MANIFESTS or re.match(r"requirements.*\.txt$", base)
-            or base.endswith(".csproj") or STORAGE_PATH.search(low) or "schema" in base
-            or base.endswith((".sql", ".prisma")) or AGENT_INSTRUCTIONS.search(low)):
+    if AGENT_INSTRUCTIONS.search(low) or (not test_or_doc and (
+            SECURITY_WORDS.search(words(path)) or base in MANIFESTS or re.match(r"requirements.*\.txt$", base)
+            or base.endswith(".csproj") or RULES_FILE.search(low) or PAYMENT_PATH.search(low)
+            or MIGRATION_PATH.search(low) or base.endswith((".sql", ".prisma")))):
         hits.append("security")
-    if (base.endswith(UX_EXT) or UX_PATH.search(low)
-            or (base.endswith(".xml") and re.search(r"(^|/)res/", low))):
+    elif not test_or_doc and (SOFT_STORAGE_PATH.search(low) or "schema" in base):
+        hits.append("security-soft")
+    if not test_or_doc and (base.endswith(UX_EXT) or UX_PATH.search(low)
+                            or (base.endswith(".xml") and re.search(r"(^|/)res/", low))):
         hits.append("ux")
     if (base.endswith((".tf", ".tfvars")) or INFRA_PATH.search(low) or is_dockerfile(base)
             or FINOPS_FILES.match(base) or CI_PATH.search(low)):
@@ -92,13 +130,18 @@ def path_rules(path):
     return hits
 
 
-def line_rules(path, lines):
-    """Rules that the changed lines (added and removed) trigger."""
+def line_rules(path, added, removed):
+    """Rules that the changed lines trigger. A removed line with a security word is a deleted guard: hard."""
+    lines = added + removed
     text = "\n".join(lines)
     low = path.lower()
     hits = []
-    if SECURITY_WORDS.search(words(text)) or HTTP_CLIENT.search(text):
-        hits.append("security")
+    if not TEST_OR_DOC_PATH.search(low):
+        added_words = words("\n".join(added))
+        if SECURITY_WORDS.search(words("\n".join(removed))) or SECURITY_LINE_HARD.search(added_words):
+            hits.append("security")
+        elif SECURITY_WORDS.search(added_words) or HTTP_CLIENT.search(text):
+            hits.append("security-soft")
     if low.endswith(".swift") and re.search(r"\bView\b", text):
         hits.append("ux")
     if FINOPS_KEYS.search(words(text)) or (
@@ -108,38 +151,70 @@ def line_rules(path, lines):
     return hits
 
 
-def route(changes, problems):
-    reviewers = {"architect": "required", "test": "required"}
-    reviewers.update({name: "optional" for name in OPTIONAL})
+def read_roster(path):
+    """The Team roster from a project-facts.md `- Team:` line; unknown roles and levels keep the default."""
+    roster = dict(DEFAULT_ROSTER)
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+    except (OSError, TypeError):
+        return roster
+    line = re.search(r"^\s*-\s*Team:\s*(.*)$", text, re.M)
+    if line:
+        for role, level in re.findall(r"([a-z]+)\s*=\s*([a-z-]+)", line.group(1).lower()):
+            if role in roster and level in ROSTER_LEVELS:
+                roster[role] = level
+    return roster
+
+
+def route(changes, problems, roster=None):
+    roster = roster or dict(DEFAULT_ROSTER)
+    hard, soft = set(), set()
     reasons, deep = [], False
 
     def add(rule, path):
         nonlocal deep
-        if rule in OPTIONAL:
-            reviewers[rule] = "required"
+        if rule == "security-soft":
+            soft.add("security")
+        elif rule in ("ux", "finops", "devops"):
+            soft.add(rule)  # the roster decides when these run
+        elif rule == "security":
+            hard.add("security")
         if rule in ("deep", "unresolved"):
             deep = True
         reason = f"{rule}: {path}"
         if reason not in reasons:
             reasons.append(reason)
 
-    for problem in problems:  # the diff itself could not be read: every reviewer, deep
-        for name in OPTIONAL:
-            reviewers[name] = "required"
-        add("unresolved", problem)
     if not changes and not problems:
         add("unresolved", "(empty diff)")
     for change in changes:
         paths = list(dict.fromkeys(p for p in (change["path"], change["old_path"]) if p))
+        if all(GENERATED_PATH.search(p.lower()) for p in paths):
+            continue
         for path in paths:
             for rule in path_rules(path):
                 add(rule, path)
-        for rule in line_rules(paths[0], change["added"] + change["removed"]):
+        for rule in line_rules(paths[0], change["added"], change["removed"]):
             add(rule, paths[0])
         if change["incomplete"]:
             add("unresolved", paths[0])
+    for problem in problems:  # the diff itself could not be read: every reviewer, deep
+        add("unresolved", problem)
+    if deep:
+        hard.add("security")  # a deep route always runs Security
+
+    reviewers = {"architect": "required", "test": "required"}
+    for name in OPTIONAL:
+        level = roster.get(name, "per-task")
+        if problems or name in hard:
+            reviewers[name] = "required"
+        elif name in soft:
+            reviewers[name] = {"per-task": "required", "per-epic": "epic-end", "off": "off"}[level]
+        else:
+            reviewers[name] = "off" if level == "off" else "optional"
     return {"reviewers": reviewers, "depth": "deep" if deep else "standard", "reasons": reasons,
-            "action": "route-only"}
+            "roster": roster, "action": "route-only"}
 
 
 def git(args, cwd=None):
@@ -242,12 +317,23 @@ def main(argv):
     if "-h" in argv or "--help" in argv:
         print(__doc__.strip())
         return 0
+    facts = None
+    if "--facts" in argv:
+        i = argv.index("--facts")
+        facts = argv[i + 1] if i + 1 < len(argv) else ""
+        argv = argv[:i] + argv[i + 2:]
+    if facts is None:
+        try:
+            top = git(["rev-parse", "--show-toplevel"]).strip()
+        except (OSError, subprocess.CalledProcessError):
+            top = os.getcwd()
+        facts = os.path.join(top, "docs", "architecture", "project-facts.md")
     if "--changes-json" in argv:
         changes, problems = changes_from_json(sys.stdin.read())
     else:
         base = next((a for a in argv if not a.startswith("-")), "main")
         changes, problems = changes_from_git(base)
-    print(json.dumps(route(changes, problems)))
+    print(json.dumps(route(changes, problems, read_roster(facts))))
     return 0
 
 

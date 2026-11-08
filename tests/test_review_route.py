@@ -12,9 +12,10 @@ import unittest
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "review-route"
 
 
-def route_json(changes=None, raw=None):
+def route_json(changes=None, raw=None, facts=os.devnull):
     data = raw if raw is not None else json.dumps({"changes": changes})
-    result = subprocess.run([sys.executable, str(SCRIPT), "--changes-json"], input=data, capture_output=True, text=True)
+    result = subprocess.run([sys.executable, str(SCRIPT), "--changes-json", "--facts", facts], input=data,
+                            capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     return json.loads(result.stdout)
 
@@ -41,8 +42,10 @@ class ReviewRouteTests(unittest.TestCase):
             {"path": "src/api.py", "removed": ["    require_auth(request)"], "added": []},  # deleted guard
             {"path": "src/api.py", "added": ["if (!user.isAdmin) throw new Forbidden()"]},
             {"path": "src/userAcl.ts", "added": ["x"]},
-            {"path": "src/client.ts", "added": ["const r = await fetch(url)"]},
             {"path": "app/hooks.py", "added": ["requests.post(WEBHOOK_URL)"]},
+            {"path": "firestore.rules", "added": ["allow read: if true;"]},
+            {"path": "functions/src/payments/refund.ts", "added": ["x"]},
+            {"path": "web/src/render.ts", "added": ["el.innerHTML = name"]},
             {"path": "package-lock.json", "added": ["x"]},
             {"path": "requirements-dev.txt", "added": ["x"]},
             {"path": "db/migrations/001_init.sql", "added": ["create table t ();"]},
@@ -79,7 +82,8 @@ class ReviewRouteTests(unittest.TestCase):
         self.assert_routes({"path": "config/app.yaml", "added": ["log_retention_days: 30"]}, ["finops"])
         self.assert_routes({"path": "manifests/api.yaml", "added": ["apiVersion: apps/v1", "kind: Deployment"]},
                            ["finops"])
-        self.assert_routes({"path": ".github/workflows/ci.yml", "added": ["on: push"]}, ["finops", "devops"], "deep")
+        self.assert_routes({"path": ".github/workflows/ci.yml", "added": ["on: push"]},
+                           ["finops", "devops", "security"], "deep")  # deep always runs Security
 
     def test_deep_rules(self):
         for path in ("agents/team-lead.md", "reference/handoff-contract.md", "hooks/gate.py",
@@ -98,6 +102,49 @@ class ReviewRouteTests(unittest.TestCase):
         out = route_json([])
         self.assertEqual(out["depth"], "deep")
         self.assertIn("unresolved: (empty diff)", out["reasons"])
+
+    def test_soft_security_waits_for_the_epic_by_default(self):
+        for change in ({"path": "src/client.ts", "added": ["const r = await fetch(url)"]},
+                       {"path": "src/coupon.ts", "added": ["const uid = auth.currentUser.uid"]},
+                       {"path": "src/api.ts", "added": ["headers: { token }"]},
+                       {"path": "src/models/coupon.ts", "added": ["export type Coupon = {}"]}):
+            out = route_json([change])
+            self.assertEqual(out["reviewers"]["security"], "epic-end", change)
+            self.assertTrue(any(r.startswith("security-soft: ") for r in out["reasons"]), change)
+
+    def test_tests_and_docs_do_not_trigger_security_or_ux(self):
+        for change in ({"path": "src/auth.test.ts", "added": ["const password = 'x'"]},
+                       {"path": "tests/test_login.py", "removed": ["check_token(r)"]},
+                       {"path": "docs/security.md", "added": ["secret rotation"]},
+                       {"path": "web/src/__tests__/Button.tsx", "added": ["<button/>"]}):
+            out = route_json([change])
+            self.assertEqual(out["reviewers"]["security"], "optional", change)
+            self.assertEqual(out["reviewers"]["ux"], "optional", change)
+
+    def test_generated_code_graph_is_ignored(self):
+        out = route_json([{"path": "graphify-out/graph.json", "removed": ['"label": "requireAuth"'],
+                           "added": ['"label": "checkToken"']},
+                          {"path": "src/util.py", "added": ["x = 1"]}])
+        self.assertEqual(required(out), {"architect", "test"})
+        self.assertEqual(out["reasons"], [])
+
+    def test_roster_moves_soft_triggers_but_never_hard_ones(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            facts = Path(tmp) / "project-facts.md"
+            facts.write_text("## Preferences\n- Team: security=off, ux=per-epic, finops=off, devops=bogus\n")
+            soft = route_json([{"path": "src/client.ts", "added": ["fetch(url)"]},
+                               {"path": "web/src/components/Card.tsx", "added": ["<div/>"]},
+                               {"path": "infra/main.tf", "added": ["x = 1"]}], facts=str(facts))
+            self.assertEqual(soft["reviewers"]["security"], "off")
+            self.assertEqual(soft["reviewers"]["ux"], "epic-end")
+            self.assertEqual(soft["reviewers"]["finops"], "off")
+            self.assertEqual(soft["reviewers"]["devops"], "required")  # unknown level keeps per-task
+            self.assertEqual(soft["roster"]["devops"], "per-task")
+            hard = route_json([{"path": "src/api.py", "removed": ["require_auth(request)"]}], facts=str(facts))
+            self.assertEqual(hard["reviewers"]["security"], "required")
+            facts.write_text("- Team: security=per-task\n")
+            out = route_json([{"path": "src/client.ts", "added": ["fetch(url)"]}], facts=str(facts))
+            self.assertEqual(out["reviewers"]["security"], "required")
 
     def test_unreadable_input_requires_every_reviewer(self):
         for raw in ("not json", "{}", json.dumps({"changes": [{"added": ["x"]}]}),
