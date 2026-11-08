@@ -29,6 +29,8 @@ The free offline checks in `tests/test_evals.py` run with the normal suite. They
 
 ## Limits
 
+- Run from a copy outside your home folder (for example `git archive HEAD | tar -x -C $TMPDIR/sf`), not from a worktree under `~/.../.claude/worktrees/`. The eval sessions get an empty `$CLAUDE_PLUGIN_ROOT` in Bash and cannot `find` the plugin under the home folder, so cases that re-read `agents/team-lead.md` (`team-table-after-compaction`) fail there and pass from `/private/tmp`. Compare versions only from the same kind of location.
+
 - The runner cannot compact a session. `team-table-after-compaction` replays a compacted continuation in the prompt instead: the summary with its Lane | Tasks table, plus the after-compact hook text.
 - A running Workflow cannot be mocked. The fixture puts the workflow's run folder (`.factory-run/wf_demo-001/`: `journal.jsonl` and `agent-<id>.meta.json`) on disk, and `status.md` points to it.
 - `gh` has no GitHub to reach here. Board and issue activity comes from a file (`board-is-not-approval`).
