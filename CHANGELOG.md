@@ -4,10 +4,10 @@ What changed in each release of the Software Factory plugin, newest first. Back 
 
 ## 0.8.2 (2026-11-08)
 
-- **Fewer wasted turns in subagents.** Contract rule 9.15 lists the tool failures that repeated most in real traces (`cat >` file writes, scratch outside the project, missing Grep and Monitor tools, bad `--jq` quoting, missing labels, Edit without a prior Read) with the working form for each.
-- **No chained commands.** Rule 9.15 now tells agents to run each command on its own (no `cd X && cmd` or `cd X; cmd`) and to use absolute paths and directory flags (`git -C`, `npm --prefix`, `terraform -chdir`, `gh -R`), because many users' permission hooks block chains.
+- **Fewer wasted turns in subagents.** Contract rule 9.15 lists the tool failures that repeated most in real traces (missing Grep and Monitor tools, bad `--jq` quoting, missing labels) with the working form for each, and points to 9.12 for shell file writes and scratch.
+- **No chained commands.** Rule 9.15 now tells agents to run each command on its own (no `cd X && cmd` or `cd X; cmd`) and to use absolute paths and directory flags (`git -C`, `npm --prefix`, `terraform -chdir`, `gh -R`), because permission hooks can block chains. A tool with no directory flag gets absolute paths or a short script under `$FACTORY_TMP`.
 - **Cloud reads stay at project scope.** Rule 9.15 also tells agents that org- or billing-level reads (billing budgets, org IAM, org policies) are usually denied; a denied read is reported as a gap, not retried or routed around.
-- **Subagents end with the reply block as plain text.** A run that ended on a handback tool call with no final message was recorded as a failed subagent.
+- **Subagents end the run on the reply block.** With a handback tool (for example `SubagentHandback`) the whole block goes in that call; otherwise it is the final text message. A run that ended on any other tool call was recorded as a failed subagent.
 
 ## 0.8.1 (2026-11-07)
 
