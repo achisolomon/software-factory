@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: soft-security-at-epic-end
+# 0.8.1: with no Team line, a soft security trigger queues Security for the epic-end review instead of this task.
+context:
+  scaffold_script: scaffold.sh

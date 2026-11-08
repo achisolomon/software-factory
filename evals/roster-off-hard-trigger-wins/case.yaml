@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: roster-off-hard-trigger-wins
+# 0.8.1: Team roster security=off and ux=off. Auth code is a hard trigger, so Security still reviews; UX stays off.
+context:
+  scaffold_script: scaffold.sh

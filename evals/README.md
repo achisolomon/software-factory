@@ -88,6 +88,12 @@ Model mix (2026-10-31: 172 Explore searches went to sonnet in one week):
 - The model hook blocks an Explore dispatch off `haiku` in a factory project, unless the prompt has `Why not haiku: <reason>`: unit `test_agent_model_hook.LookupOnHaikuTests`.
 - The Team Lead sends a brief's file lookup to `haiku` unprompted: eval `lookup-on-haiku` (slow).
 
+Team roster and per-epic Security (0.8.1):
+- No Team line, a soft security trigger (an HTTP call, the word session): Security waits for the epic-end review, not this task: eval `soft-security-at-epic-end`; unit `test_review_route.test_soft_security_waits_for_the_epic_by_default`.
+- Roster `security=off, ux=off` with an auth change: Security still reviews (hard trigger), UX stays off: eval `roster-off-hard-trigger-wins`; unit `test_review_route.test_roster_moves_soft_triggers_but_never_hard_ones`.
+- Foreground CI watches and sleep loops in subagents: unit `test_no_wait_hook` (the hook enforces it, so no eval).
+- Not covered by an eval: task size and turn budget, the review checklist self-check, Lead context rules and `effort: medium` (no single decision to grade in a short case).
+
 Releases from the same days with no backlog row:
 - 0.5.3, version in the first status: `team-table-status` (`version-named`).
 - 0.5.4, one table with no Finished or Next lists: `team-table-status` (`no-separate-lists`).
