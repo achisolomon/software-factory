@@ -276,7 +276,7 @@ A task is done when all of these hold:
 15. **Avoid the known tool failures.** Each one below failed again and again in real runs, wasting turns and tokens. Do not retry a failed form; switch.
     - **No `cat > file`, `cat >> file` or heredoc writes.** Use Edit or Write. For an append, Read the file, then Edit.
     - **Scratch files only under `$FACTORY_TMP`** (inside the project), never `/tmp` or the session scratchpad: Write is blocked outside the project.
-    - **Grep and Monitor may not exist in the session.** On "No such tool available", use `grep -rn` through Bash (quote globs: `--include='*.ts'`, zsh fails on an unquoted `*`) and, to wait on a job, a bounded `until` loop in Bash. Do not call the missing tool again.
+    - **Grep and Monitor may not exist in the session.** On "No such tool available", use `grep -rn` through Bash (quote globs: `--include='*.ts'`, zsh fails on an unquoted `*`) and, to wait on a job, start it in the background and return `Status: in-progress` with `Job:` filled (see Long jobs). Do not call the missing tool again.
     - **`--jq` expressions:** string interpolation `\(.x)` inside double quotes breaks. Use single quotes around the expression, or `--json` and read the fields.
     - **Labels:** before `gh issue create --label X`, check the label exists (`gh label list -R <repo> --limit 100`). A missing label fails the whole create.
     - **Edit:** Read the exact lines first; an `old_string` that does not match, or equals `new_string`, wastes a turn.
