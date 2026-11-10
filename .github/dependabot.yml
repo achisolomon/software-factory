@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions (and their "# vX.Y.Z" comments) current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Keeps the CI-only pins in tests/requirements-ci.txt current.
+  - package-ecosystem: pip
+    directory: /tests
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+    groups:
+      ci-python:
+        patterns: ["*"]

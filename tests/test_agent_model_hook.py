@@ -12,8 +12,10 @@ HOOK = Path(__file__).resolve().parents[1] / "hooks" / "require_agent_model.py"
 
 
 def run_hook(tool_input, cwd=None):
-    payload = json.dumps({"tool_name": "Agent", "tool_input": tool_input, "cwd": cwd or str(HOOK.parent)})
-    return subprocess.run([sys.executable, str(HOOK)], input=payload, capture_output=True, text=True)
+    # Default cwd is an empty temp dir, never the repo (which holds docs/factory/ and would count as a factory project).
+    with tempfile.TemporaryDirectory() as empty:
+        payload = json.dumps({"tool_name": "Agent", "tool_input": tool_input, "cwd": cwd or empty})
+        return subprocess.run([sys.executable, str(HOOK)], input=payload, capture_output=True, text=True)
 
 
 class LookupOnHaikuTests(unittest.TestCase):
