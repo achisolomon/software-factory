@@ -4,9 +4,9 @@ Thanks for helping build the best software factory together. Every lesson from y
 
 ## Ways to help
 
-- **Use it and report what happened.** A review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens: [open an issue](https://github.com/achisolomon/software-factory/issues/new) with what you asked, what the team did, and what you expected.
-- **Pick a starter issue.** Issues labelled [`good first issue`](https://github.com/achisolomon/software-factory/labels/good%20first%20issue) are small and well scoped.
-- **Propose an idea.** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first (it lists what is done, planned and declined), then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
+- **Use it and report what happened.** A review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens: [open an issue](https://github.com/achisolomon/open-software-factory/issues/new) with what you asked, what the team did, and what you expected.
+- **Pick a starter issue.** Issues labelled [`good first issue`](https://github.com/achisolomon/open-software-factory/labels/good%20first%20issue) are small and well scoped.
+- **Propose an idea.** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first (it lists what is done, planned and declined), then start a [discussion](https://github.com/achisolomon/open-software-factory/discussions).
 
 ## Where things live
 

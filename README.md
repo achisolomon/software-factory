@@ -8,7 +8,7 @@
 
 An open-source AI software team for Claude Code: 10+ agents (Architect, Developer, Tester, PM, Security, UX and more) that take your spec to a tested, reviewed release.
 
-**[Use it](#quick-start). [Improve it](#contribute). [Star it](https://github.com/achisolomon/software-factory).**
+**[Use it](#quick-start). [Improve it](#contribute). [Star it](https://github.com/achisolomon/open-software-factory).**
 
 ## See it work
 
@@ -47,14 +47,14 @@ The agents are checked too: 31 behavior evals and 145 offline tests guard their 
 
 Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
 
-Current version: 0.8.2. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.8.3. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Quick start
 
 1. **Install once per machine.** Paste this line into a terminal (in VS Code: Terminal > New Terminal, not the Claude chat box):
 
    ```bash
-   claude plugin marketplace add achisolomon/software-factory && claude plugin install software-factory@software-factory-marketplace --scope user
+   claude plugin marketplace add achisolomon/open-software-factory && claude plugin install software-factory@software-factory-marketplace --scope user
    ```
 
    It ends with `Successfully installed plugin: software-factory@software-factory-marketplace (scope: user)`. Then reload VS Code: Cmd+Shift+P, **Developer: Reload Window**.
@@ -105,10 +105,10 @@ Current version: 0.8.2. What changed in each release, newest first: [release not
 
 Every improvement you make for your own projects can make the factory better for everyone:
 
-- **Found a gap?** [Open an issue](https://github.com/achisolomon/software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
-- **Want to start small?** Pick a [`good first issue`](https://github.com/achisolomon/software-factory/labels/good%20first%20issue).
+- **Found a gap?** [Open an issue](https://github.com/achisolomon/open-software-factory/issues/new): a review the agents missed, a gate that was too loose or too strict, a step that wasted time or tokens.
+- **Want to start small?** Pick a [`good first issue`](https://github.com/achisolomon/open-software-factory/labels/good%20first%20issue).
 - **Fixed it?** Open a pull request. Agent prompts live in `agents/`, the shared rules in `reference/handoff-contract.md`, and the code-enforced gates in `hooks/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
-- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/software-factory/discussions).
+- **Have an idea?** Check [docs/improvement-backlog.md](docs/improvement-backlog.md) first, then start a [discussion](https://github.com/achisolomon/open-software-factory/discussions).
 - **Like it?** Give it a star and tell a friend.
 
 </details>
