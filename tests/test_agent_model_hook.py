@@ -111,8 +111,10 @@ class AgentModelHookTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_ignores_other_agents(self):
-        for agent in ("Explore", "general-purpose", "other-plugin:software-architect", ""):
-            self.assertEqual(run_hook({"subagent_type": agent}).returncode, 0, agent)
+        # A clean temp dir: a checkout nested in a factory project would make the Explore rule apply.
+        with tempfile.TemporaryDirectory() as plain:
+            for agent in ("Explore", "general-purpose", "other-plugin:software-architect", ""):
+                self.assertEqual(run_hook({"subagent_type": agent}, cwd=plain).returncode, 0, agent)
 
     def test_ignores_malformed_input(self):
         result = subprocess.run([sys.executable, str(HOOK)], input="not json", capture_output=True, text=True)
