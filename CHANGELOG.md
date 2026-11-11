@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.3 (2026-11-11)
+
+- **New repo name: `achisolomon/open-software-factory`.** The install line, links, homepage and the version check now use the new name. GitHub redirects the old URL, so existing installs keep working. The plugin and marketplace names (`software-factory@software-factory-marketplace`) are unchanged.
+
 ## 0.8.2 (2026-11-08)
 
 - **Fewer wasted turns in subagents.** Contract rule 9.15 lists the tool failures that repeated most in real traces (missing Grep and Monitor tools, bad `--jq` quoting, missing labels) with the working form for each, and points to 9.12 for shell file writes and scratch.
