@@ -398,12 +398,50 @@ def safe_write_target(path, cwd):
     return path.startswith("/dev/") or under_tmp(path, cwd)
 
 
+# Branches whose push needs the user's approval: shared, deployed or released ones (contract rule 9.7).
+PROTECTED_BRANCH = re.compile(r"(main|master|trunk|dev|develop|development|staging|stage|prod|production|live|deploy"
+                              r"|gh-pages|(releases?|hotfix)([/-].*)?)", re.I)
+# A destination git expands to a full ref: x:heads/main updates refs/heads/main, x:tags/v1 a tag.
+REF_PREFIX = re.compile(r"(refs|heads|tags|remotes)/", re.I)
+PUSH_SAFE_FLAGS = {"-u", "--set-upstream", "-q", "--quiet", "-v", "--verbose", "--no-verify", "--force-with-lease",
+                   "--porcelain", "--progress", "--no-progress", "--atomic"}
+
+
+def task_branch_push(args):
+    """True only for `git push [safe flags] <remote> <branch>...` where every target is a named, unprotected
+    branch: no bare push, HEAD, variables, force (other than --force-with-lease), delete, tags, --all or --mirror."""
+    positional = []
+    for a in args:
+        if a.startswith("--force-with-lease="):
+            continue
+        if a.startswith("-"):
+            if a not in PUSH_SAFE_FLAGS and not (a[1:2] != "-" and set(a[1:]) <= {"u", "q", "v"}):
+                return False
+            continue
+        positional.append(a)
+    if len(positional) < 2 or not re.fullmatch(r"[\w.-]+", positional[0]):
+        return False
+    for spec in positional[1:]:
+        if spec.startswith(("+", ":")):
+            return False  # forced update, or delete (empty source)
+        dst = spec.rpartition(":")[2] if ":" in spec else spec
+        dst = dst[len("refs/heads/"):] if dst.startswith("refs/heads/") else dst
+        if (not dst or REF_PREFIX.match(dst) or dst == "HEAD" or PROTECTED_BRANCH.fullmatch(dst)
+                or not re.fullmatch(r"[\w./-]+", dst) or ".." in dst):
+            return False
+    return True
+
+
 def git_rule(args):
-    i, aliases = 0, {}
+    i, aliases, config = 0, {}, False
     while i < len(args) and args[i].startswith("-"):
         if args[i] == "-c" and i + 1 < len(args) and args[i + 1].startswith("alias."):
             key, _, value = args[i + 1].partition("=")
             aliases[key[6:]] = value
+        elif args[i] == "-c":
+            config = config or not args[i + 1:i + 2] or not args[i + 1].startswith("core.hooksPath=")
+        elif args[i] in ("--config-env", "--git-dir") or args[i].startswith(("--config-env=", "--git-dir=")):
+            config = True  # e.g. core.sshCommand can change what a push runs or where it goes
         i += 2 if args[i] in ("-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env") else 1
     if i >= len(args):
         return None
@@ -416,7 +454,9 @@ def git_rule(args):
             sub, rest = expansion[0], expansion[1:] + rest
     flags = short_flags(rest)
     if sub == "push":
-        return None if "--dry-run" in rest or "-n" in rest else EXTERNAL
+        if "--dry-run" in rest or "-n" in rest:
+            return None
+        return None if not config and task_branch_push(rest) else EXTERNAL
     if sub == "reset" and "--hard" in rest:
         return LOCAL
     if sub == "clean" and ("--force" in rest or "f" in flags):

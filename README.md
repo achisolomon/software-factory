@@ -16,7 +16,7 @@ A real run on [aitoolreview.ai](https://aitoolreview.ai): the Team Lead dispatch
 
 https://github.com/user-attachments/assets/8dabfe4a-e521-4b5e-9639-d8af3ca6259e
 
-The agents are checked too: 31 behavior evals and 145 offline tests guard their rules and approval gates.
+The agents are checked too: 31 behavior evals and 148 offline tests guard their rules and approval gates.
 
 ## What you get
 
@@ -47,7 +47,7 @@ The agents are checked too: 31 behavior evals and 145 offline tests guard their 
 
 Read-only lookups run on Haiku. To change the policy, see [Tips](#tips).
 
-Current version: 0.8.3. What changed in each release, newest first: [release notes](CHANGELOG.md).
+Current version: 0.8.4. What changed in each release, newest first: [release notes](CHANGELOG.md).
 
 ## Quick start
 

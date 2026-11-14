@@ -15,6 +15,7 @@ Goal: fewer permission prompts and a safe auto-compact threshold, written to the
 2. **Exact-command allowlist** in `permissions.allow`, built from the stack's exact commands: test, lint, typecheck, build, format-check. Detect them from `package.json` scripts (use the runner the lockfile implies), `pyproject.toml`, `go.mod`, `Cargo.toml`, the Gradle wrapper and Makefile targets. Add:
    - read-only git: `git status`, `git diff:*`, `git log:*`, `git show:*`, `git worktree list`
    - read-only gh: `gh issue list:*`, `gh issue view:*`, `gh pr view:*`, `gh project item-list:*`, `gh project view:*`, `gh project field-list:*`, `gh label list:*`, `gh repo view:*`
+   - each committed project runner script an agent named as `Team Lead → allowlist: Bash(<absolute path> *)` under `Handoffs:` (contract rule 9.15), exactly as named. Run this step again whenever a new one is named, not only at init.
    - the contract section 5 issue writes, only when `Tracking: github`: `gh issue create:*`, `gh issue comment:*`, `gh issue edit:*`, `gh issue close:*`, `gh issue reopen:*`, `gh label create:*`, `gh project item-add:*`, `gh project item-edit:*`
 3. **Never allow** wildcards over script runners (`npm run:*`, `python:*`, `bash:*`) and never any command the gate hook asks on (push, deploy, apply, publish, recursive force delete, and so on).
 4. Project `env` and `allow` take effect after the user trusts the folder.

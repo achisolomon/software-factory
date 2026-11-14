@@ -2,6 +2,20 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.4 (2026-11-14)
+
+- **Repeat commands stop asking for approval every time.** A week of traces showed about 3,000 sandbox-off Bash calls, most of them build-and-test runs sent as inline chains (`eval "$(...)"; ...; for s in ...; do ...; done`) or as scripts in a scratch folder. Neither can match an allow rule, and a scratch path changes every session, so the user approved the same run again and again. Contract rule 9.15 now says: a command you run more than once becomes a script in the project's `scripts/` folder, committed with the task and run as one plain command by absolute path. The agent hands the Team Lead `allowlist: Bash(<absolute path> *)`; the Team Lead asks the user once and adds it to the project settings (`session-setup` step 2).
+- **Subagents may write to Claude Code's own session scratchpad.** The project-bounds hook blocked `/private/tmp/claude-<uid>/<project>/<session>/scratchpad`, which Claude Code itself tells subagents to use (96+ wasted turns in a week). Loose files elsewhere in the temp folder are still blocked.
+- **Shell form, in three lines.** Rule 9.15 now spells out one command per call, literal absolute paths in directory flags (never `git -C "$W"`), and scripts for tools without a directory flag. These blocks cost about 700 turns in a week.
+- **Sandbox off only after a sandbox error.** Agents run every command in the sandbox first and never turn it off up front, never for `gh` or `git push`.
+- **No more calls to tools that are not there.** Agents check their tool list and search with `grep`/`rg` through Bash when Grep or Glob is missing; no subagent role has Monitor.
+- **Background processes are stopped by ID.** Agents record the shell ID or PID of every server or emulator they start and stop it with TaskStop or `kill <pid>`, never `pkill -f`, which the auto-mode classifier denies.
+- **Smaller tasks.** Developer tasks averaged about 225 tool calls against a target of 80. The Architect now splits any task over about 5 production files, 2 acceptance criteria, or one that spans UI and backend; the Team Lead sends the rest of a story back for splitting when a Developer dispatch passes about 120 calls.
+- **Flaky tests are quarantined at once.** A test that passes on an unchanged rerun is quarantined with an issue in the same turn, with no debugging rounds, and the user is told which test and what it failed on.
+- **Mock parity.** In Review mode the UX Designer screenshots the local build and compares it with the mock the user approved; a visible difference is at least Major.
+- **Pushing a task branch no longer asks.** The gate hook flags a push only when it goes to a shared branch (`main`, `master`, `dev`, `develop`, `staging`, `prod`, `production`, `gh-pages`, `release/*`), or when it is a bare or `HEAD` push, a plain force push, a delete, or a push of tags, `--all` or `--mirror`. `git push -u origin feature/x` and `--force-with-lease` to a task branch pass. Merges stay gated. The hook still never answers "allow", so your own permission settings decide whether you are prompted.
+- **Repeat bugs get a regression test.** When the user says a bug came back, the Developer finds why the earlier fix did not hold and adds a test that fails without the fix.
+
 ## 0.8.3 (2026-11-11)
 
 - **New repo name: `achisolomon/open-software-factory`.** The install line, links, homepage and the version check now use the new name. GitHub redirects the old URL, so existing installs keep working. The plugin and marketplace names (`software-factory@software-factory-marketplace`) are unchanged.

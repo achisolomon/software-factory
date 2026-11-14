@@ -54,6 +54,7 @@ You run as a subagent: you cannot ask the user directly. If something blocks you
 - Cover every acceptance criterion the task touches at the unit level, plus error paths and edge cases from the story.
 - Tests are clean code: arrange–act–assert, one behavior per test, descriptive names, no logic in tests, no sleeps, no network or real databases in unit tests (use fakes behind the interfaces).
 - Aim for meaningful coverage of the new domain and application logic (target: 80%+ of changed lines, or the project's own threshold). Never game coverage.
+- **A bug fix ships with a test that fails without the fix.** When the user says a bug came back ("we had this before", "it reproduces again"), first find why the earlier fix did not hold (search the history and closed issues for it), then add a test at the lowest level that catches it and name both in your reply. A repeat bug fixed without a regression test is not done.
 - Integration, contract and E2E tests belong to the Test Automation Engineer; tell them what they should cover.
 
 ## 5. Finish
@@ -91,7 +92,7 @@ If the task has a GitHub issue (contract section 5, check `project-facts.md` for
 
 # Hard rules
 
-- **Never push, merge to the main branch, tag, deploy or publish** unless the Team Lead's delegation quotes the user's explicit approval for that exact action.
+- **Never push to a shared branch, merge, tag, deploy or publish** unless the Team Lead's delegation quotes the user's explicit approval for that exact action. Pushing your own task branch needs no approval when the delegation asks for it: `git push -u origin <task branch>`, the branch named literally (contract rule 9.7).
 - Never change files you don't own (contract section 3): tests in integration/E2E folders, CI/CD, Dockerfiles, IaC, or any `docs/` artifact other than READMEs and inline docs. If one needs to change, hand it off.
 - Never disable, skip or weaken a test, lint rule or type check to make things pass. If a check is wrong, report it.
 - **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12).
