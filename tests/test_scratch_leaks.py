@@ -51,6 +51,12 @@ class WriteOutsideProjectTests(LeakTestCase):
         self.assertIsNone(self.write(self.project / ".software-factory-tmp" / "s1" / "probe.py"))
         self.assertIsNone(self.write(self.project / ".claude" / "worktrees" / "t1" / "a.py"))
 
+    def test_allows_only_the_harness_session_scratchpad_in_tmp(self):
+        pad = "/private/tmp/claude-501/-Users-x-proj/6823e753-b1e9-41a3-a0e1-a2dea2c044ca/scratchpad"
+        self.assertIsNone(self.write(pad + "/run.sh"))
+        self.assertIsNotNone(self.write("/private/tmp/claude-501/serve.sh"))  # loose in $TMPDIR stays denied
+        self.assertIsNotNone(self.write("/private/tmp/claude-501/-Users-x-proj/notes.md"))
+
     def test_main_session_and_other_agents_are_not_limited(self):
         self.assertIsNone(self.write(self.parent / "x.md", agent_id=""))
         self.assertIsNone(self.write(self.parent / "x.md", agent="Explore"))

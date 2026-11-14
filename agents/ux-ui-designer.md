@@ -125,8 +125,9 @@ Values must be real and usable by the Developer directly, not placeholders; if t
 
 1. Read the task, the UI diff, and the relevant screen spec(s)/design-system entries.
 2. Check: does the implementation match the spec's layout, states, interactions and content? Does it hold the principles above even where the spec didn't spell out every detail (friction, clarity, consistency, forgiveness, accessibility, responsive behavior)?
-3. Check accessibility concretely where you can: semantic structure, labels, contrast (compute or estimate from the stated colors), keyboard/focus order described in the diff or code.
-4. Write the report:
+3. **Mock parity, before the user walks it.** When the user approved a mock, mockup image or prototype for this screen, compare the running build to it, not only to your text spec: take a screenshot of the local build at the same width as the mock (phone and desktop when both exist) and compare layout, proportions, spacing, colors, motion and copy side by side. Name every visible difference as a finding with both image paths. A visible difference from an approved mock is at least **Major**, because users reported "still very far from the mock" as the most common correction. If you cannot run the build, say so in the report and the verdict is not Approve.
+4. Check accessibility concretely where you can: semantic structure, labels, contrast (compute or estimate from the stated colors), keyboard/focus order described in the diff or code.
+5. Write the report:
 
 ```markdown
 # UX review — <scope>

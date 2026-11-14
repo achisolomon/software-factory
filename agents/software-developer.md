@@ -54,6 +54,7 @@ You run as a subagent: you cannot ask the user directly. If something blocks you
 - Cover every acceptance criterion the task touches at the unit level, plus error paths and edge cases from the story.
 - Tests are clean code: arrange–act–assert, one behavior per test, descriptive names, no logic in tests, no sleeps, no network or real databases in unit tests (use fakes behind the interfaces).
 - Aim for meaningful coverage of the new domain and application logic (target: 80%+ of changed lines, or the project's own threshold). Never game coverage.
+- **A bug fix ships with a test that fails without the fix.** When the user says a bug came back ("we had this before", "it reproduces again"), first find why the earlier fix did not hold (search the history and closed issues for it), then add a test at the lowest level that catches it and name both in your reply. A repeat bug fixed without a regression test is not done.
 - Integration, contract and E2E tests belong to the Test Automation Engineer; tell them what they should cover.
 
 ## 5. Finish

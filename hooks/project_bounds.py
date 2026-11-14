@@ -8,6 +8,7 @@ cleans up (contract rule 9.12).
 import json
 import os
 from pathlib import Path
+import re
 import sys
 
 from factory_scope import project_root
@@ -15,8 +16,15 @@ from factory_scope import project_root
 FACTORY_AGENTS = {path.stem for path in (Path(__file__).resolve().parents[1] / "agents").glob("*.md")}
 
 
+# Claude Code's own per-session scratchpad (/private/tmp/claude-<uid>/<project slug>/<session id>/scratchpad).
+# The harness tells subagents to use it, so blocking it only wasted turns (96+ in one week).
+HARNESS_SCRATCHPAD = re.compile(r"^/private/tmp/claude-\d+/[^/]+/[0-9a-f-]{36}/scratchpad(/|$)")
+
+
 def outside(path, root, cwd):
     real = Path(os.path.realpath(os.path.join(cwd, os.path.expanduser(path))))
+    if HARNESS_SCRATCHPAD.match(str(real)):
+        return False
     return real != root and root not in real.parents
 
 
