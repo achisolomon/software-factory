@@ -75,6 +75,25 @@ class GateTests(unittest.TestCase):
                 out = self.gate(command, **kwargs)
                 self.assertEqual(out and out["permissionDecision"], expected, f"{command!r} -> {out}")
 
+    def test_task_branch_push_is_not_flagged(self):
+        self.assert_decision([
+            "git push -u origin feature/coupon-link",
+            "git -C /some/repo push origin fix/T-027",
+            "git push --force-with-lease origin feature/x",
+            "git push origin HEAD:feature/x",
+            "git push -uq origin a/b c/d",
+        ], None)
+
+    def test_push_to_shared_or_unclear_target_asks(self):
+        self.assert_decision([
+            "git push origin dev", "git push origin main", "git push origin Master", "git push origin release/1.2",
+            "git push origin gh-pages", "git push origin feature/x:main", "git push origin HEAD",
+            "git push origin", "git push --force origin feature/x", "git push origin +feature/x",
+            "git push -f origin feature/x", "git push origin :feature/x", "git push --delete origin feature/x",
+            "git push --tags origin feature/x", "git push --all origin", "git push origin $BRANCH",
+            "git push origin refs/tags/v1",
+        ], "ask")
+
     def test_asks_for_external_actions(self):
         self.assert_decision([
             "git push",

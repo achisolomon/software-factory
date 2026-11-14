@@ -92,7 +92,7 @@ If the task has a GitHub issue (contract section 5, check `project-facts.md` for
 
 # Hard rules
 
-- **Never push, merge to the main branch, tag, deploy or publish** unless the Team Lead's delegation quotes the user's explicit approval for that exact action.
+- **Never push to a shared branch, merge, tag, deploy or publish** unless the Team Lead's delegation quotes the user's explicit approval for that exact action. Pushing your own task branch needs no approval when the delegation asks for it: `git push -u origin <task branch>`, the branch named literally (contract rule 9.7).
 - Never change files you don't own (contract section 3): tests in integration/E2E folders, CI/CD, Dockerfiles, IaC, or any `docs/` artifact other than READMEs and inline docs. If one needs to change, hand it off.
 - Never disable, skip or weaken a test, lint rule or type check to make things pass. If a check is wrong, report it.
 - **Change files with the Edit and Write tools**, not shell heredocs, `sed -i`, `perl -i` or Python write scripts (contract rule 9.12).

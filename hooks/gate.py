@@ -398,6 +398,38 @@ def safe_write_target(path, cwd):
     return path.startswith("/dev/") or under_tmp(path, cwd)
 
 
+# Branches whose push needs the user's approval: shared, deployed or released ones (contract rule 9.7).
+PROTECTED_BRANCH = re.compile(r"(main|master|dev|develop|development|staging|stage|prod|production|gh-pages"
+                              r"|releases?(/.*)?)", re.I)
+PUSH_SAFE_FLAGS = {"-u", "--set-upstream", "-q", "--quiet", "-v", "--verbose", "--no-verify", "--force-with-lease",
+                   "--porcelain", "--progress", "--no-progress", "--atomic"}
+
+
+def task_branch_push(args):
+    """True only for `git push [safe flags] <remote> <branch>...` where every target is a named, unprotected
+    branch: no bare push, HEAD, variables, force (other than --force-with-lease), delete, tags, --all or --mirror."""
+    positional = []
+    for a in args:
+        if a.startswith("--force-with-lease="):
+            continue
+        if a.startswith("-"):
+            if a not in PUSH_SAFE_FLAGS and not (a[1:2] != "-" and set(a[1:]) <= {"u", "q", "v"}):
+                return False
+            continue
+        positional.append(a)
+    if len(positional) < 2 or not re.fullmatch(r"[\w.-]+", positional[0]):
+        return False
+    for spec in positional[1:]:
+        if spec.startswith(("+", ":")):
+            return False  # forced update, or delete (empty source)
+        dst = spec.rpartition(":")[2] if ":" in spec else spec
+        dst = dst[len("refs/heads/"):] if dst.startswith("refs/heads/") else dst
+        if (not dst or dst.startswith("refs/") or dst == "HEAD" or PROTECTED_BRANCH.fullmatch(dst)
+                or not re.fullmatch(r"[\w./-]+", dst) or ".." in dst):
+            return False
+    return True
+
+
 def git_rule(args):
     i, aliases = 0, {}
     while i < len(args) and args[i].startswith("-"):
@@ -416,7 +448,9 @@ def git_rule(args):
             sub, rest = expansion[0], expansion[1:] + rest
     flags = short_flags(rest)
     if sub == "push":
-        return None if "--dry-run" in rest or "-n" in rest else EXTERNAL
+        if "--dry-run" in rest or "-n" in rest:
+            return None
+        return None if task_branch_push(rest) else EXTERNAL
     if sub == "reset" and "--hard" in rest:
         return LOCAL
     if sub == "clean" and ("--force" in rest or "f" in flags):

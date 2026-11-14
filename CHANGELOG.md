@@ -13,6 +13,7 @@ What changed in each release of the Software Factory plugin, newest first. Back 
 - **Smaller tasks.** Developer tasks averaged about 225 tool calls against a target of 80. The Architect now splits any task over about 5 production files, 2 acceptance criteria, or one that spans UI and backend; the Team Lead sends the rest of a story back for splitting when a Developer dispatch passes about 120 calls.
 - **Flaky tests are quarantined at once.** A test that passes on an unchanged rerun is quarantined with an issue in the same turn, with no debugging rounds, and the user is told which test and what it failed on.
 - **Mock parity.** In Review mode the UX Designer screenshots the local build and compares it with the mock the user approved; a visible difference is at least Major.
+- **Pushing a task branch no longer asks.** The gate hook flags a push only when it goes to a shared branch (`main`, `master`, `dev`, `develop`, `staging`, `prod`, `production`, `gh-pages`, `release/*`), or when it is a bare or `HEAD` push, a plain force push, a delete, or a push of tags, `--all` or `--mirror`. `git push -u origin feature/x` and `--force-with-lease` to a task branch pass. Merges stay gated. The hook still never answers "allow", so your own permission settings decide whether you are prompted.
 - **Repeat bugs get a regression test.** When the user says a bug came back, the Developer finds why the earlier fix did not hold and adds a test that fails without the fix.
 
 ## 0.8.3 (2026-11-11)
