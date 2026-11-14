@@ -2,6 +2,10 @@
 
 What changed in each release of the Software Factory plugin, newest first. Back to the [README](README.md). To update, see [Updating](README.md#updating).
 
+## 0.8.4 (2026-11-14)
+
+- **Repeat commands stop asking for approval every time.** A week of traces showed about 3,000 sandbox-off Bash calls, most of them build-and-test runs sent as inline chains (`eval "$(...)"; ...; for s in ...; do ...; done`) or as scripts in a scratch folder. Neither can match an allow rule, and a scratch path changes every session, so the user approved the same run again and again. Contract rule 9.15 now says: a command you run more than once becomes a script in the project's `scripts/` folder, committed with the task and run as one plain command by absolute path. The agent hands the Team Lead `allowlist: Bash(<absolute path> *)`; the Team Lead asks the user once and adds it to the project settings (`session-setup` step 2).
+
 ## 0.8.3 (2026-11-11)
 
 - **New repo name: `achisolomon/open-software-factory`.** The install line, links, homepage and the version check now use the new name. GitHub redirects the old URL, so existing installs keep working. The plugin and marketplace names (`software-factory@software-factory-marketplace`) are unchanged.
