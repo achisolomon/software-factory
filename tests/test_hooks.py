@@ -82,6 +82,7 @@ class GateTests(unittest.TestCase):
             "git push --force-with-lease origin feature/x",
             "git push origin HEAD:feature/x",
             "git push -uq origin a/b c/d",
+            "git -c core.hooksPath=.githooks push -u origin feature/x",
         ], None)
 
     def test_push_to_shared_or_unclear_target_asks(self):
@@ -92,6 +93,11 @@ class GateTests(unittest.TestCase):
             "git push -f origin feature/x", "git push origin :feature/x", "git push --delete origin feature/x",
             "git push --tags origin feature/x", "git push --all origin", "git push origin $BRANCH",
             "git push origin refs/tags/v1",
+            # git expands these shorthand destinations to full refs
+            "git push origin x:heads/main", "git push origin x:tags/v1", "git push origin x:remotes/origin/main",
+            "git push origin trunk", "git push origin release-1.0", "git push origin hotfix/urgent",
+            # config can change what a push runs or where it goes
+            "git -c core.sshCommand=evil push origin feature/x", "git --git-dir=/x/.git push origin feature/x",
         ], "ask")
 
     def test_asks_for_external_actions(self):

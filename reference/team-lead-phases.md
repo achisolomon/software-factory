@@ -161,7 +161,7 @@ Binding constraints for every agent. Changed only with the user's agreement.
 
 ## Repository
 - Hosting:
-- Branching: task branches `feature/T-NNN-<slug>` from `main`; agents commit locally; push/merge only with user approval
+- Branching: task branches `feature/T-NNN-<slug>` from `main`; agents commit locally; a task branch push needs no approval (rule 9.7); push to a shared branch and merge only with user approval
 - Layout overrides (if the repo differs from the contract):
 - GitHub Project: `owner/repo` #<project-number>, or "none (no GitHub remote yet); tracking tasks in tasks.md until one exists" (contract section 5)
 
